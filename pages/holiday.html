@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2026년 공휴일 캘린더 - 직장인닷컴</title>
+  <meta name="description" content="2026년 대한민국 공휴일 및 대체공휴일 총정리. 남은 공휴일 카운트다운.">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .holiday-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-top: 8px; }
+    .holiday-item {
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 12px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .holiday-item.passed { opacity: 0.4; }
+    .holiday-item.today { border-color: var(--secondary); background: rgba(255,215,0,0.08); }
+    .holiday-item.upcoming { border-color: var(--primary); }
+    .hol-date { min-width: 64px; text-align: center; }
+    .hol-date .month { font-size: 0.8rem; color: var(--text-muted); }
+    .hol-date .day { font-size: 1.8rem; font-weight: 900; color: var(--white); line-height: 1; }
+    .hol-date .dow { font-size: 0.75rem; color: var(--primary); font-weight: 700; }
+    .hol-info .name { font-weight: 700; color: var(--white); font-size: 1rem; }
+    .hol-info .dday { font-size: 0.82rem; color: var(--text-muted); margin-top: 3px; }
+    .hol-info .dday.soon { color: var(--accent); font-weight: 600; }
+    .hol-tag { display: inline-block; font-size: 0.7rem; padding: 2px 7px; border-radius: 5px; margin-left: 6px; background: rgba(78,205,196,0.2); color: var(--accent); }
+
+    .summary-cards { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 32px; }
+    .sum-card {
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 12px;
+      padding: 20px 24px;
+      flex: 1;
+      min-width: 140px;
+    }
+    .sum-card .num { font-size: 2.2rem; font-weight: 900; color: var(--secondary); }
+    .sum-card .label { font-size: 0.82rem; color: var(--text-muted); margin-top: 4px; }
+
+    .month-group { margin-bottom: 32px; }
+    .month-label { font-size: 1rem; font-weight: 700; color: var(--text-muted); margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="../index.html" class="logo">💼 <span>직장인</span>닷컴</a>
+  <ul class="nav-links">
+    <li><a href="../index.html#calculators">계산기</a></li>
+    <li><a href="../index.html#tools">업무도구</a></li>
+    <li><a href="../index.html#games">루팡게임</a></li>
+    <li><a href="../index.html#tests">테스트</a></li>
+    <li><a href="../index.html#info" class="active">정보</a></li>
+  </ul>
+</nav>
+
+<div class="page-header">
+  <div class="breadcrumb"><a href="../index.html">홈</a> › 직장인 정보</div>
+  <h1>📅 2026년 공휴일 캘린더</h1>
+  <p>대체공휴일 포함 2026년 공휴일 총정리</p>
+</div>
+
+<main>
+  <div class="ad-banner">광고 영역 (Google AdSense)</div>
+
+  <div class="summary-cards" id="summary"></div>
+  <div id="holidayList"></div>
+
+  <div class="ad-banner">광고 영역 (Google AdSense)</div>
+</main>
+
+<footer>
+  <p><strong>직장인닷컴</strong> — 직장인을 위한 올인원 도구 사이트</p>
+</footer>
+
+<script>
+const holidays2026 = [
+  { date: '2026-01-01', name: '신정', emoji: '🎉' },
+  { date: '2026-01-28', name: '설날 연휴', emoji: '🏮' },
+  { date: '2026-01-29', name: '설날', emoji: '🏮' },
+  { date: '2026-01-30', name: '설날 연휴', emoji: '🏮' },
+  { date: '2026-03-01', name: '3·1절', emoji: '🇰🇷' },
+  { date: '2026-03-02', name: '3·1절 대체공휴일', emoji: '🇰🇷', sub: true },
+  { date: '2026-05-05', name: '어린이날', emoji: '🧒' },
+  { date: '2026-05-24', name: '부처님오신날', emoji: '🪷' },
+  { date: '2026-05-25', name: '부처님오신날 대체공휴일', emoji: '🪷', sub: true },
+  { date: '2026-06-06', name: '현충일', emoji: '🎗️' },
+  { date: '2026-08-15', name: '광복절', emoji: '🇰🇷' },
+  { date: '2026-09-24', name: '추석 연휴', emoji: '🌕' },
+  { date: '2026-09-25', name: '추석', emoji: '🌕' },
+  { date: '2026-09-26', name: '추석 연휴', emoji: '🌕' },
+  { date: '2026-10-03', name: '개천절', emoji: '🇰🇷' },
+  { date: '2026-10-09', name: '한글날', emoji: '📖' },
+  { date: '2026-12-25', name: '크리스마스', emoji: '🎄' },
+];
+
+const DAYS = ['일', '월', '화', '수', '목', '금', '토'];
+const MONTHS = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
+
+const today = new Date(); today.setHours(0,0,0,0);
+
+function dday(dateStr) {
+  const d = new Date(dateStr); d.setHours(0,0,0,0);
+  const diff = Math.floor((d - today) / 86400000);
+  if (diff === 0) return { text: 'D-Day! 🎉', cls: 'soon' };
+  if (diff > 0) return { text: `D-${diff}`, cls: diff <= 30 ? 'soon' : '' };
+  return { text: `${Math.abs(diff)}일 전`, cls: '' };
+}
+
+function renderHolidays() {
+  const past = holidays2026.filter(h => new Date(h.date) < today).length;
+  const remaining = holidays2026.filter(h => new Date(h.date) >= today);
+  const next = remaining[0];
+
+  // Summary
+  const nextDiff = next ? Math.floor((new Date(next.date) - today) / 86400000) : 0;
+  document.getElementById('summary').innerHTML = `
+    <div class="sum-card"><div class="num">${holidays2026.length}</div><div class="label">📅 2026년 전체 공휴일</div></div>
+    <div class="sum-card"><div class="num">${remaining.length}</div><div class="label">⏳ 남은 공휴일</div></div>
+    <div class="sum-card"><div class="num" style="color:var(--accent)">${next ? `D-${nextDiff}` : '종료'}</div><div class="label">🔔 다음 공휴일: ${next ? next.name : '-'}</div></div>
+  `;
+
+  // Group by month
+  const byMonth = {};
+  holidays2026.forEach(h => {
+    const m = h.date.slice(0, 7);
+    if (!byMonth[m]) byMonth[m] = [];
+    byMonth[m].push(h);
+  });
+
+  let html = '';
+  for (const [month, items] of Object.entries(byMonth)) {
+    html += `<div class="month-group"><div class="month-label">${MONTHS[parseInt(month.slice(5,7)) - 1]}</div><div class="holiday-grid">`;
+    items.forEach(h => {
+      const d = new Date(h.date); d.setHours(0,0,0,0);
+      const dd = dday(h.date);
+      const isPassed = d < today;
+      const isToday  = d.getTime() === today.getTime();
+      const isNext   = next && h.date === next.date;
+      let cls = isPassed ? 'passed' : isToday ? 'today' : isNext ? 'upcoming' : '';
+      const dow = DAYS[d.getDay()];
+      const dowColor = d.getDay() === 0 ? '#e74c3c' : d.getDay() === 6 ? '#3498db' : 'var(--primary)';
+      html += `
+        <div class="holiday-item ${cls}">
+          <div class="hol-date">
+            <div class="month">${parseInt(h.date.slice(5,7))}월</div>
+            <div class="day">${parseInt(h.date.slice(8,10))}</div>
+            <div class="dow" style="color:${dowColor}">${dow}요일</div>
+          </div>
+          <div class="hol-info">
+            <div class="name">${h.emoji} ${h.name}${h.sub ? '<span class="hol-tag">대체</span>' : ''}</div>
+            <div class="dday ${dd.cls}">${dd.text}</div>
+          </div>
+        </div>
+      `;
+    });
+    html += '</div></div>';
+  }
+  document.getElementById('holidayList').innerHTML = html;
+}
+
+renderHolidays();
+</script>
+</body>
+</html>

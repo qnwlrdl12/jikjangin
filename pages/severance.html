@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>퇴직금 계산기 - 직장인닷컴</title>
+  <meta name="description" content="퇴직금 계산기. 근무기간과 평균임금을 입력하면 예상 퇴직금을 계산합니다.">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<nav>
+  <a href="../index.html" class="logo">💼 <span>직장인</span>닷컴</a>
+  <ul class="nav-links">
+    <li><a href="../index.html#calculators" class="active">계산기</a></li>
+    <li><a href="../index.html#tools">업무도구</a></li>
+    <li><a href="../index.html#games">루팡게임</a></li>
+    <li><a href="../index.html#tests">테스트</a></li>
+    <li><a href="../index.html#info">정보</a></li>
+  </ul>
+</nav>
+
+<div class="page-header">
+  <div class="breadcrumb"><a href="../index.html">홈</a> › 직장인 계산기</div>
+  <h1>🏃 퇴직금 계산기</h1>
+  <p>근무기간 1년 이상 시 발생하는 퇴직금을 계산합니다 (근로자퇴직급여보장법 기준)</p>
+</div>
+
+<main>
+  <div class="ad-banner">광고 영역 (Google AdSense)</div>
+
+  <div class="tool-card">
+    <label>입사일</label>
+    <input type="date" id="startDate">
+
+    <label>퇴사일 (예정)</label>
+    <input type="date" id="endDate">
+
+    <label>최근 3개월 월 급여 합계 (만원)</label>
+    <input type="number" id="salary3m" placeholder="예: 1200 (3개월 합계)">
+
+    <label>최근 3개월 상여금 합계 (만원, 없으면 0)</label>
+    <input type="number" id="bonus" placeholder="예: 0" value="0">
+
+    <label>최근 1년 연차수당 합계 (만원, 없으면 0)</label>
+    <input type="number" id="leaveBonus" placeholder="예: 0" value="0">
+
+    <button class="btn-primary" onclick="calculate()">퇴직금 계산</button>
+
+    <div class="result-box" id="result">
+      <div class="result-row"><span class="label">근무 기간</span><span class="value" id="r-period"></span></div>
+      <div class="result-row"><span class="label">1일 평균임금</span><span class="value" id="r-daily"></span></div>
+      <div class="result-row"><span class="label">30일 평균임금</span><span class="value" id="r-daily30"></span></div>
+      <div class="result-row highlight"><span class="label">🏃 예상 퇴직금</span><span class="value" id="r-severance"></span></div>
+      <div style="margin-top:12px; font-size:0.8rem; color:var(--text-muted)">
+        ※ 퇴직금 = 1일 평균임금 × 30일 × (근무일수 ÷ 365)
+      </div>
+    </div>
+  </div>
+
+  <div class="ad-banner" style="margin-top:32px">광고 영역 (Google AdSense)</div>
+
+  <div class="tool-card" style="margin-top:24px; max-width:600px">
+    <p style="color:var(--text-muted); font-size:0.85rem; line-height:1.7">
+      ※ 퇴직금은 1년 이상 근무 시 발생합니다.<br>
+      ※ 평균임금: 퇴직 전 3개월간 받은 임금 총액 ÷ 3개월 총 일수<br>
+      ※ 상여금/연차수당은 1년치를 3개월 비율로 환산하여 포함합니다.<br>
+      ※ 실제 퇴직금은 회사 규정, 퇴직연금 형태에 따라 다를 수 있습니다.
+    </p>
+  </div>
+</main>
+
+<footer>
+  <p><strong>직장인닷컴</strong> — 직장인을 위한 올인원 도구 사이트</p>
+  <p style="margin-top:8px">모든 계산은 참고용이며 법적 효력이 없습니다.</p>
+</footer>
+
+<script>
+function won(n) { return Math.round(n).toLocaleString('ko-KR') + '원'; }
+
+// Set default dates
+document.getElementById('endDate').valueAsDate = new Date();
+const d = new Date(); d.setFullYear(d.getFullYear() - 3);
+document.getElementById('startDate').valueAsDate = d;
+
+function calculate() {
+  const start = new Date(document.getElementById('startDate').value);
+  const end   = new Date(document.getElementById('endDate').value);
+  const s3m   = parseFloat(document.getElementById('salary3m').value) * 10000;
+  const bonus = parseFloat(document.getElementById('bonus').value) * 10000 || 0;
+  const leave = parseFloat(document.getElementById('leaveBonus').value) * 10000 || 0;
+
+  if (!document.getElementById('startDate').value || !document.getElementById('endDate').value) {
+    alert('입사일과 퇴사일을 입력해주세요.'); return;
+  }
+  if (!s3m || s3m <= 0) { alert('최근 3개월 급여를 입력해주세요.'); return; }
+
+  const totalDays = Math.floor((end - start) / (1000 * 60 * 60 * 24));
+  if (totalDays < 365) { alert('퇴직금은 1년(365일) 이상 근무 시 발생합니다.'); return; }
+
+  // 3개월 총 일수 (단순화: 91일)
+  const days3m = 91;
+  // 평균임금: (3개월 급여 + 상여금 × 3/12 + 연차수당 × 3/12) / 91일
+  const avgWage = (s3m + bonus * (3/12) + leave * (3/12)) / days3m;
+  const avg30   = avgWage * 30;
+  const severance = avg30 * (totalDays / 365);
+
+  const years  = Math.floor(totalDays / 365);
+  const months = Math.floor((totalDays % 365) / 30);
+  const days   = totalDays % 30;
+
+  document.getElementById('r-period').textContent    = `${years}년 ${months}개월 ${days}일 (총 ${totalDays}일)`;
+  document.getElementById('r-daily').textContent     = won(avgWage);
+  document.getElementById('r-daily30').textContent   = won(avg30);
+  document.getElementById('r-severance').textContent = won(severance);
+
+  document.getElementById('result').classList.add('show');
+}
+</script>
+</body>
+</html>

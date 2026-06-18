@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>한국어 워들 - 월급루팡 게임 - 직장인닷컴</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .game-wrap{display:flex;flex-direction:column;align-items:center;gap:16px;padding:24px 16px}
+    .board{display:grid;grid-template-rows:repeat(6,1fr);gap:6px;margin:8px 0}
+    .row{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+    .tile{width:clamp(48px,11vw,60px);height:clamp(48px,11vw,60px);border:2px solid rgba(255,255,255,0.15);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:clamp(1.1rem,4vw,1.5rem);font-weight:900;color:var(--white);transition:background 0.4s,border-color 0.4s;background:transparent}
+    .tile.filled{border-color:rgba(255,255,255,0.4);animation:pop 0.1s ease}
+    .tile.correct{background:#538d4e;border-color:#538d4e}
+    .tile.present{background:#b59f3b;border-color:#b59f3b}
+    .tile.absent{background:#3a3a3c;border-color:#3a3a3c}
+    @keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.12)}100%{transform:scale(1)}}
+    @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+    .shake{animation:shake 0.3s ease}
+    .keyboard{display:flex;flex-direction:column;gap:6px;align-items:center}
+    .kb-row{display:flex;gap:5px}
+    .kb-key{height:44px;min-width:clamp(28px,7vw,40px);padding:0 4px;border-radius:6px;background:#818384;border:none;color:var(--white);font-size:0.8rem;font-weight:700;cursor:pointer;transition:background 0.3s;-webkit-tap-highlight-color:transparent}
+    .kb-key.wide{min-width:clamp(50px,11vw,64px);font-size:0.75rem}
+    .kb-key.correct{background:#538d4e}
+    .kb-key.present{background:#b59f3b}
+    .kb-key.absent{background:#3a3a3c}
+    .msg{height:24px;font-size:0.9rem;color:var(--secondary);font-weight:700;text-align:center}
+  </style>
+</head>
+<body>
+<nav>
+  <a href="../index.html" class="logo">💼 <span>직장인</span>닷컴</a>
+  <ul class="nav-links">
+    <li><a href="../index.html#calculators">계산기</a></li>
+    <li><a href="../index.html#tools">업무도구</a></li>
+    <li><a href="../index.html#games" class="active">루팡게임</a></li>
+    <li><a href="../index.html#tests">테스트</a></li>
+    <li><a href="../index.html#info">정보</a></li>
+  </ul>
+</nav>
+<div class="page-header">
+  <div class="breadcrumb"><a href="../index.html">홈</a> › 월급루팡 게임</div>
+  <h1>🟩 한국어 워들</h1>
+  <p>매일 바뀌는 5글자 단어를 6번 안에 맞춰보세요</p>
+</div>
+<main>
+  <div class="ad-banner">광고 영역 (Google AdSense)</div>
+  <div class="game-wrap">
+    <div class="msg" id="msg"></div>
+    <div class="board" id="board"></div>
+    <div class="keyboard" id="keyboard"></div>
+  </div>
+  <div class="ad-banner">광고 영역 (Google AdSense)</div>
+</main>
+<footer><p><strong>직장인닷컴</strong></p></footer>
+<script>
+// 직장인 테마 단어 목록 (5글자 한국어)
+const WORDS = [
+  '회의실','야근비','월급날','퇴직금','연차일','상여금','부장님','대리님',
+  '프로젝','마감일','보고서','인사부','재무부','출장비','명함지','취업자',
+  '면접관','합격통','이직률','연봉제','성과급','인센티','복지비','식대값',
+  '업무량','워크숍','팀빌딩','직장내','스트레','번아웃','자기계','능력자',
+  '신입사','경력자','정규직','계약직','파견직','프리랜','재택근',
+];
+
+// 매일 다른 단어 (날짜 기반)
+function getTodayWord() {
+  const d = new Date(); const idx = (d.getFullYear()*366+d.getMonth()*31+d.getDate()) % WORDS.length;
+  return WORDS[idx];
+}
+
+const answer = getTodayWord().split('');
+const ROWS=6, COLS=5;
+let currentRow=0, currentCol=0, gameOver=false;
+const board=Array.from({length:ROWS},()=>Array(COLS).fill(''));
+
+function renderBoard() {
+  document.getElementById('board').innerHTML = Array.from({length:ROWS},(_,r)=>`
+    <div class="row" id="row${r}">
+      ${Array.from({length:COLS},(_,c)=>`<div class="tile" id="t${r}_${c}"></div>`).join('')}
+    </div>`).join('');
+}
+
+const KB_ROWS = [
+  ['ㅂ','ㅈ','ㄷ','ㄱ','ㅅ','ㅛ','ㅕ','ㅑ','ㅐ','ㅔ'],
+  ['ㅁ','ㄴ','ㅇ','ㄹ','ㅎ','ㅗ','ㅓ','ㅏ','ㅣ'],
+  ['←','ㅋ','ㅌ','ㅊ','ㅍ','ㅠ','ㅜ','ㅡ','입력'],
+];
+
+function renderKeyboard() {
+  document.getElementById('keyboard').innerHTML = KB_ROWS.map(row=>`
+    <div class="kb-row">${row.map(k=>`<button class="kb-key ${['입력','←'].includes(k)?'wide':''}" id="kb_${k}" onclick="pressKey('${k}')">${k}</button>`).join('')}</div>`).join('');
+}
+
+function pressKey(k) {
+  if(gameOver) return;
+  if(k==='←') {
+    if(currentCol>0){currentCol--;board[currentRow][currentCol]='';updateTile(currentRow,currentCol,'');}
+  } else if(k==='입력') {
+    submitGuess();
+  } else {
+    if(currentCol<COLS){board[currentRow][currentCol]=k;updateTile(currentRow,currentCol,k);currentCol++;}
+  }
+}
+
+function updateTile(r,c,ch) {
+  const t=document.getElementById(`t${r}_${c}`);
+  t.textContent=ch; t.className='tile'+(ch?' filled':'');
+}
+
+function submitGuess() {
+  if(currentCol<COLS){msg('5글자를 모두 입력하세요');shake();return;}
+  const guess=board[currentRow];
+  const result=Array(COLS).fill('absent');
+  const answerCopy=[...answer];
+
+  // correct pass
+  guess.forEach((ch,i)=>{ if(ch===answerCopy[i]){result[i]='correct';answerCopy[i]=null;} });
+  // present pass
+  guess.forEach((ch,i)=>{ if(result[i]==='correct')return; const ai=answerCopy.indexOf(ch); if(ai!==-1){result[i]='present';answerCopy[ai]=null;} });
+
+  // Animate tiles
+  guess.forEach((ch,i)=>{
+    setTimeout(()=>{
+      const t=document.getElementById(`t${currentRow}_${i}`);
+      t.className='tile '+result[i];
+      // Update keyboard
+      const kb=document.getElementById(`kb_${ch}`);
+      if(kb){
+        const pri={'correct':3,'present':2,'absent':1};
+        const cur=pri[kb.dataset.state||'']||0;
+        if((pri[result[i]]||0)>cur){kb.className='kb-key '+result[i];kb.dataset.state=result[i];}
+      }
+    },i*120);
+  });
+
+  const won=result.every(r=>r==='correct');
+  setTimeout(()=>{
+    if(won){msg('🎉 정답! 오늘도 수고하셨습니다!');gameOver=true;}
+    else if(currentRow===ROWS-1){msg(`정답: ${answer.join('')}`);gameOver=true;}
+    currentRow++;currentCol=0;
+  },COLS*120+200);
+}
+
+function shake() {
+  const row=document.getElementById(`row${currentRow}`);
+  row.classList.add('shake'); setTimeout(()=>row.classList.remove('shake'),300);
+}
+
+function msg(text) {
+  const el=document.getElementById('msg');el.textContent=text;
+  if(text) setTimeout(()=>{if(el.textContent===text)el.textContent='';},3000);
+}
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='Backspace') pressKey('←');
+  else if(e.key==='Enter') pressKey('입력');
+  else if(/^[ㄱ-ㅎㅏ-ㅣ]$/.test(e.key)) pressKey(e.key);
+});
+
+renderBoard();
+renderKeyboard();
+</script>
+</body>
+</html>

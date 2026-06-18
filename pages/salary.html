@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>연봉 실수령액 계산기 - 직장인닷컴</title>
+  <meta name="description" content="2026년 연봉 실수령액 계산기. 국민연금, 건강보험, 고용보험, 소득세 공제 후 실제 월급을 확인하세요.">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<nav>
+  <a href="../index.html" class="logo">💼 <span>직장인</span>닷컴</a>
+  <ul class="nav-links">
+    <li><a href="../index.html#calculators" class="active">계산기</a></li>
+    <li><a href="../index.html#tools">업무도구</a></li>
+    <li><a href="../index.html#games">루팡게임</a></li>
+    <li><a href="../index.html#tests">테스트</a></li>
+    <li><a href="../index.html#info">정보</a></li>
+  </ul>
+</nav>
+
+<div class="page-header">
+  <div class="breadcrumb"><a href="../index.html">홈</a> › 직장인 계산기</div>
+  <h1>💰 연봉 실수령액 계산기</h1>
+  <p>4대보험 + 소득세 공제 후 실제로 받는 금액을 계산합니다 (2026년 기준)</p>
+</div>
+
+<main>
+  <div class="ad-banner">광고 영역 (Google AdSense)</div>
+
+  <div class="tool-card">
+    <label>연봉 (만원)</label>
+    <input type="number" id="annual" placeholder="예: 4000" min="0">
+
+    <label>부양가족 수 (본인 포함)</label>
+    <select id="dependents">
+      <option value="1">1명 (본인만)</option>
+      <option value="2">2명</option>
+      <option value="3">3명</option>
+      <option value="4">4명</option>
+      <option value="5">5명 이상</option>
+    </select>
+
+    <label>비과세 식대 포함 여부</label>
+    <select id="mealAllowance">
+      <option value="1">포함 (월 20만원 비과세)</option>
+      <option value="0">미포함</option>
+    </select>
+
+    <button class="btn-primary" onclick="calculate()">계산하기</button>
+
+    <div class="result-box" id="result">
+      <div class="result-row"><span class="label">연봉</span><span class="value" id="r-annual"></span></div>
+      <div class="result-row"><span class="label">월 급여 (세전)</span><span class="value" id="r-monthly"></span></div>
+      <div class="result-row"><span class="label">국민연금 (4.5%)</span><span class="value" id="r-pension"></span></div>
+      <div class="result-row"><span class="label">건강보험 (3.545%)</span><span class="value" id="r-health"></span></div>
+      <div class="result-row"><span class="label">장기요양보험 (건강보험의 12.95%)</span><span class="value" id="r-care"></span></div>
+      <div class="result-row"><span class="label">고용보험 (0.9%)</span><span class="value" id="r-employ"></span></div>
+      <div class="result-row"><span class="label">소득세</span><span class="value" id="r-income"></span></div>
+      <div class="result-row"><span class="label">지방소득세 (소득세의 10%)</span><span class="value" id="r-local"></span></div>
+      <div class="result-row highlight"><span class="label">💰 월 실수령액</span><span class="value" id="r-net"></span></div>
+      <div class="result-row highlight"><span class="label">💰 연 실수령액</span><span class="value" id="r-netAnnual"></span></div>
+    </div>
+  </div>
+
+  <div class="ad-banner" style="margin-top:32px">광고 영역 (Google AdSense)</div>
+
+  <div class="tool-card" style="margin-top:24px; max-width:600px">
+    <p style="color:var(--text-muted); font-size:0.85rem; line-height:1.7">
+      ※ 2026년 기준 근로소득 간이세액표를 단순화한 계산입니다.<br>
+      ※ 실제 수령액은 회사 복리후생, 수당, 연말정산 결과에 따라 다를 수 있습니다.<br>
+      ※ 비과세 식대 20만원은 2023년부터 적용된 기준입니다.
+    </p>
+  </div>
+</main>
+
+<footer>
+  <p><strong>직장인닷컴</strong> — 직장인을 위한 올인원 도구 사이트</p>
+  <p style="margin-top:8px">모든 계산은 참고용이며 법적 효력이 없습니다.</p>
+</footer>
+
+<script>
+function won(n) {
+  return Math.round(n).toLocaleString('ko-KR') + '원';
+}
+
+function getIncomeTax(monthly, dep) {
+  // 간이세액표 단순화 버전 (월 급여 기준, 부양가족 수 반영)
+  // 실제 간이세액표와 근사치
+  const d = Math.min(dep, 5);
+  const tables = [
+    // [월급여 상한, [부양가족1, 2, 3, 4, 5명 세금]]
+    [1060000,  [0, 0, 0, 0, 0]],
+    [1500000,  [17260, 6540, 0, 0, 0]],
+    [1800000,  [34940, 22980, 11680, 0, 0]],
+    [2000000,  [50670, 35110, 22740, 10420, 0]],
+    [2500000,  [84000, 62340, 47080, 34760, 22440]],
+    [3000000,  [128510, 103850, 81190, 65960, 50700]],
+    [3500000,  [185060, 155620, 126140, 103470, 81470]],
+    [4000000,  [250280, 215820, 182270, 155220, 128170]],
+    [4500000,  [318360, 280120, 241870, 210590, 179310]],
+    [5000000,  [395450, 354480, 313500, 278750, 244000]],
+    [6000000,  [570310, 523740, 477160, 435720, 394270]],
+    [8000000,  [970310, 916240, 862160, 813780, 765400]],
+    [10000000, [1398080, 1337380, 1276680, 1220820, 1164960]],
+    [Infinity, [monthly * 0.35 - 1500000, monthly * 0.35 - 1550000, monthly * 0.35 - 1600000, monthly * 0.35 - 1650000, monthly * 0.35 - 1700000]],
+  ];
+  for (const [limit, taxes] of tables) {
+    if (monthly <= limit) return Math.max(0, taxes[d - 1] || 0);
+  }
+  return 0;
+}
+
+function calculate() {
+  const annual = parseFloat(document.getElementById('annual').value);
+  const dep = parseInt(document.getElementById('dependents').value);
+  const hasMeal = document.getElementById('mealAllowance').value === '1';
+
+  if (!annual || annual <= 0) { alert('연봉을 입력해주세요.'); return; }
+
+  const annualWon = annual * 10000;
+  const monthly = annualWon / 12;
+
+  // 비과세 식대 공제 후 과세 월급
+  const mealEx = hasMeal ? 200000 : 0;
+  const taxableMonthly = monthly - mealEx;
+
+  const pension   = Math.min(taxableMonthly * 0.045, 248850); // 상한 월 590만원 기준
+  const health    = taxableMonthly * 0.03545;
+  const care      = health * 0.1295;
+  const employ    = taxableMonthly * 0.009;
+  const incomeTax = getIncomeTax(taxableMonthly, dep);
+  const localTax  = incomeTax * 0.1;
+
+  const totalDeduct = pension + health + care + employ + incomeTax + localTax;
+  const netMonthly  = monthly - totalDeduct;
+  const netAnnual   = netMonthly * 12;
+
+  document.getElementById('r-annual').textContent     = won(annualWon);
+  document.getElementById('r-monthly').textContent    = won(monthly);
+  document.getElementById('r-pension').textContent    = '- ' + won(pension);
+  document.getElementById('r-health').textContent     = '- ' + won(health);
+  document.getElementById('r-care').textContent       = '- ' + won(care);
+  document.getElementById('r-employ').textContent     = '- ' + won(employ);
+  document.getElementById('r-income').textContent     = '- ' + won(incomeTax);
+  document.getElementById('r-local').textContent      = '- ' + won(localTax);
+  document.getElementById('r-net').textContent        = won(netMonthly);
+  document.getElementById('r-netAnnual').textContent  = won(netAnnual);
+
+  document.getElementById('result').classList.add('show');
+}
+
+document.getElementById('annual').addEventListener('keydown', e => { if(e.key === 'Enter') calculate(); });
+</script>
+</body>
+</html>

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>꼰대력 측정기 - 직장인닷컴</title>
+  <meta name="description" content="나는 꼰대인가 아닌가? 솔직하게 테스트해보세요. SNS 공유 가능.">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .quiz-wrap { max-width:640px; margin:0 auto; padding:32px 16px; }
+    .progress-bar { background:rgba(255,255,255,0.1); border-radius:99px; height:6px; margin-bottom:32px; }
+    .progress-fill { height:100%; background:var(--secondary); border-radius:99px; transition:width 0.3s; }
+    .question-card { background:var(--card); border:1px solid rgba(255,255,255,0.06); border-radius:var(--radius); padding:32px; display:none; }
+    .question-card.active { display:block; }
+    .q-num { font-size:0.82rem; color:var(--secondary); font-weight:700; margin-bottom:12px; }
+    .q-text { font-size:1.1rem; font-weight:700; color:var(--white); line-height:1.5; margin-bottom:28px; }
+    .options { display:flex; flex-direction:column; gap:10px; }
+    .option-btn { background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:14px 18px; color:var(--text); font-size:0.95rem; cursor:pointer; text-align:left; transition:all 0.2s; }
+    .option-btn:hover { background:rgba(255,215,0,0.15); border-color:var(--secondary); color:var(--white); }
+    .result-wrap { display:none; text-align:center; }
+    .result-wrap.show { display:block; }
+    .result-emoji { font-size:5rem; margin-bottom:16px; }
+    .result-title { font-size:1.8rem; font-weight:900; color:var(--white); margin-bottom:8px; }
+    .result-score { font-size:3.5rem; font-weight:900; color:var(--secondary); margin:16px 0; }
+    .result-desc { background:var(--card); border-radius:var(--radius); padding:24px; margin:24px 0; text-align:left; line-height:1.8; color:var(--text-muted); }
+    .result-desc h3 { color:var(--white); margin-bottom:8px; }
+    .gauge-bar { background:rgba(255,255,255,0.1); border-radius:99px; height:16px; margin:12px 0 20px; overflow:hidden; }
+    .gauge-fill { height:100%; border-radius:99px; transition:width 1s ease-out; }
+    .share-btn { background:var(--primary); border:none; color:var(--white); padding:12px 32px; border-radius:10px; font-size:1rem; font-weight:700; cursor:pointer; margin-top:16px; margin-right:8px; }
+    .retry-btn { background:var(--card); border:1px solid rgba(255,255,255,0.1); color:var(--text); padding:12px 32px; border-radius:10px; font-size:1rem; cursor:pointer; margin-top:16px; }
+    .retry-btn:hover { background:var(--primary); color:var(--white); }
+  </style>
+</head>
+<body>
+<nav>
+  <a href="../index.html" class="logo">💼 <span>직장인</span>닷컴</a>
+  <ul class="nav-links">
+    <li><a href="../index.html#calculators">계산기</a></li>
+    <li><a href="../index.html#tools">업무도구</a></li>
+    <li><a href="../index.html#games">루팡게임</a></li>
+    <li><a href="../index.html#tests" class="active">테스트</a></li>
+    <li><a href="../index.html#info">정보</a></li>
+  </ul>
+</nav>
+<div class="page-header">
+  <div class="breadcrumb"><a href="../index.html">홈</a> › 직장인 테스트</div>
+  <h1>👴 꼰대력 측정기</h1>
+  <p>솔직하게 답하면 더 정확합니다. 10문항.</p>
+</div>
+<main>
+  <div class="ad-banner">광고 영역 (Google AdSense)</div>
+  <div class="quiz-wrap">
+    <div class="progress-bar"><div class="progress-fill" id="progress" style="width:0%"></div></div>
+    <div id="questions"></div>
+    <div class="result-wrap" id="resultWrap">
+      <div class="result-emoji" id="r-emoji"></div>
+      <div class="result-title" id="r-title"></div>
+      <div class="result-score" id="r-score"></div>
+      <div class="gauge-bar"><div class="gauge-fill" id="r-gauge"></div></div>
+      <div class="result-desc" id="r-desc"></div>
+      <div>
+        <button class="share-btn" onclick="shareResult()">📤 결과 공유</button>
+        <button class="retry-btn" onclick="restart()">🔄 다시하기</button>
+      </div>
+    </div>
+  </div>
+  <div class="ad-banner">광고 영역 (Google AdSense)</div>
+</main>
+<footer><p><strong>직장인닷컴</strong></p></footer>
+<script>
+const questions = [
+  { text: '"요즘 애들은 끈기가 없어" 라는 생각이 자주 든다', options: ['전혀 없다', '가끔 그렇다', '자주 그렇다', '맞는 말인데?'] },
+  { text: '신입사원이 의견을 내면 "경험도 없으면서" 라는 생각이 든다', options: ['전혀 없다', '가끔', '자주', '당연한 거 아냐?'] },
+  { text: '"나 때는 이 정도 야근은 기본이었는데" 라고 생각하거나 말한 적 있다', options: ['전혀 없다', '한두 번', '종종', '자주'] },
+  { text: '후배들이 칼퇴근하면 눈살이 찌푸려진다', options: ['전혀 없다', '가끔', '자주', '당연히 불편하지'] },
+  { text: '"MZ세대는 너무 개인주의적"이라고 생각한다', options: ['전혀 아니다', '조금', '꽤 그렇다', '완전 동의'] },
+  { text: '카카오톡으로 업무 지시하는 게 문제없다고 생각한다', options: ['전혀 아니다', '상황에 따라', '괜찮다', '당연하지'] },
+  { text: '회식 참석은 팀워크를 위해 당연한 거라고 생각한다', options: ['전혀 아니다', '조금', '그렇다', '무조건 참석해야지'] },
+  { text: '"내가 틀릴 수도 있다"는 생각을 자주 하나요?', options: ['매우 자주', '가끔', '거의 없다', '내가 왜 틀려?'] },
+  { text: '후배가 상사의 의견에 반박하면 불쾌하다', options: ['전혀 아니다', '조금', '꽤 그렇다', '버릇없다'] },
+  { text: '"요즘 세상이 너무 쉽게 가려 한다"고 생각한 적 있다', options: ['전혀 없다', '가끔', '자주', '맨날 그런 생각 한다'] },
+];
+const results = [
+  { min:0, max:10, emoji:'😇', title:'꼰대 DNA 없음', color:'#2ecc71',
+    desc:'<h3>✅ 열린 마음의 소유자!</h3>후배들이 좋아하는 유형입니다. 수평적인 소통 능력이 뛰어나네요. 이대로만 가주세요.' },
+  { min:11, max:20, emoji:'😐', title:'잠재적 꼰대 주의', color:'#f39c12',
+    desc:'<h3>⚠️ 조금씩 싹이 보입니다</h3>아직 심각하지 않지만 무의식 중에 꼰대적 사고가 있습니다. 후배의 입장에서 생각하는 연습을 해보세요.' },
+  { min:21, max:30, emoji:'👴', title:'중급 꼰대', color:'#e67e22',
+    desc:'<h3>🚨 꼰대력이 상당합니다</h3>주변 사람들이 눈치를 봤을 가능성이 높습니다. "내가 틀릴 수 있다"는 생각을 습관화해보세요.' },
+  { min:31, max:40, emoji:'🦕', title:'레전드 꼰대', color:'#e74c3c',
+    desc:'<h3>💀 꼰대 최고 등급입니다</h3>주변의 MZ들이 등 뒤에서 뭔가 말하고 있을 겁니다. 지금 당장 후배에게 솔직한 피드백을 요청해보세요.' },
+];
+
+let current = 0, answers = [];
+function render() {
+  document.getElementById('questions').innerHTML = questions.map((q,i) => `
+    <div class="question-card ${i===0?'active':''}" id="q${i}">
+      <div class="q-num">Q${i+1} / ${questions.length}</div>
+      <div class="q-text">${q.text}</div>
+      <div class="options">${q.options.map((o,j)=>`<button class="option-btn" onclick="answer(${i},${j})">${o}</button>`).join('')}</div>
+    </div>`).join('');
+}
+function answer(qi, score) {
+  answers[qi] = score;
+  document.querySelectorAll(`#q${qi} .option-btn`).forEach((b,i)=>b.style.background=i===score?'rgba(255,215,0,0.25)':'');
+  setTimeout(() => {
+    if (qi < questions.length-1) {
+      document.getElementById(`q${qi}`).classList.remove('active');
+      document.getElementById(`q${qi+1}`).classList.add('active');
+      current = qi+1;
+      document.getElementById('progress').style.width = ((current+1)/questions.length*100)+'%';
+    } else showResult();
+  }, 350);
+}
+function showResult() {
+  const total = answers.reduce((a,b)=>a+b,0);
+  const res = results.find(r=>total>=r.min&&total<=r.max)||results[3];
+  document.getElementById('questions').style.display='none';
+  document.getElementById('progress').style.width='100%';
+  document.getElementById('r-emoji').textContent=res.emoji;
+  document.getElementById('r-title').textContent=res.title;
+  document.getElementById('r-score').textContent=`${total}점`;
+  document.getElementById('r-gauge').style.background=res.color;
+  document.getElementById('r-gauge').style.width='0%';
+  document.getElementById('r-desc').innerHTML=res.desc;
+  document.getElementById('resultWrap').classList.add('show');
+  setTimeout(()=>document.getElementById('r-gauge').style.width=(total/30*100)+'%',100);
+}
+function restart() {
+  current=0;answers=[];
+  document.getElementById('questions').style.display='block';
+  document.getElementById('resultWrap').classList.remove('show');
+  document.getElementById('progress').style.width='0%';
+  render();
+}
+function shareResult() {
+  const t=document.getElementById('r-title').textContent, s=document.getElementById('r-score').textContent;
+  const text=`나의 꼰대력: ${t} (${s})\n직장인닷컴에서 테스트해보세요!`;
+  if (navigator.share) navigator.share({title:'꼰대력 측정 결과',text,url:location.href});
+  else navigator.clipboard.writeText(text).then(()=>alert('복사되었습니다!'));
+}
+render();
+</script>
+</body>
+</html>

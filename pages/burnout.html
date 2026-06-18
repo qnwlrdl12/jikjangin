@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>번아웃 지수 테스트 - 직장인닷컴</title>
+  <meta name="description" content="나는 번아웃 상태일까? 직장인 번아웃 지수 테스트로 내 현재 상태를 확인해보세요.">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .quiz-wrap { max-width: 640px; margin: 0 auto; padding: 32px 16px; }
+    .progress-bar { background: rgba(255,255,255,0.1); border-radius: 99px; height: 6px; margin-bottom: 32px; }
+    .progress-fill { height: 100%; background: var(--primary); border-radius: 99px; transition: width 0.3s; }
+    .question-card {
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: var(--radius);
+      padding: 32px;
+      display: none;
+    }
+    .question-card.active { display: block; }
+    .q-num { font-size: 0.82rem; color: var(--primary); font-weight: 700; margin-bottom: 12px; }
+    .q-text { font-size: 1.15rem; font-weight: 700; color: var(--white); line-height: 1.5; margin-bottom: 28px; }
+    .options { display: flex; flex-direction: column; gap: 10px; }
+    .option-btn {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      padding: 14px 18px;
+      color: var(--text);
+      font-size: 0.95rem;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.2s;
+    }
+    .option-btn:hover { background: rgba(255,107,53,0.15); border-color: var(--primary); color: var(--white); }
+    .option-btn.selected { background: rgba(255,107,53,0.25); border-color: var(--primary); color: var(--white); }
+
+    /* Result */
+    .result-wrap { display: none; text-align: center; }
+    .result-wrap.show { display: block; }
+    .result-emoji { font-size: 5rem; margin-bottom: 16px; }
+    .result-title { font-size: 1.8rem; font-weight: 900; color: var(--white); margin-bottom: 8px; }
+    .result-score {
+      font-size: 3.5rem; font-weight: 900; color: var(--secondary);
+      margin: 16px 0;
+    }
+    .result-desc {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin: 24px 0;
+      text-align: left;
+      line-height: 1.8;
+      color: var(--text-muted);
+    }
+    .result-desc h3 { color: var(--white); margin-bottom: 8px; }
+    .gauge-bar { background: rgba(255,255,255,0.1); border-radius: 99px; height: 16px; margin: 12px 0 20px; overflow: hidden; }
+    .gauge-fill { height: 100%; border-radius: 99px; transition: width 1s ease-out; }
+    .retry-btn {
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: var(--text);
+      padding: 12px 32px;
+      border-radius: 10px;
+      font-size: 1rem;
+      cursor: pointer;
+      margin-top: 16px;
+    }
+    .retry-btn:hover { background: var(--primary); color: var(--white); }
+    .share-btn {
+      background: var(--primary);
+      border: none;
+      color: var(--white);
+      padding: 12px 32px;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 16px;
+      margin-right: 8px;
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="../index.html" class="logo">💼 <span>직장인</span>닷컴</a>
+  <ul class="nav-links">
+    <li><a href="../index.html#calculators">계산기</a></li>
+    <li><a href="../index.html#tools">업무도구</a></li>
+    <li><a href="../index.html#games">루팡게임</a></li>
+    <li><a href="../index.html#tests" class="active">테스트</a></li>
+    <li><a href="../index.html#info">정보</a></li>
+  </ul>
+</nav>
+
+<div class="page-header">
+  <div class="breadcrumb"><a href="../index.html">홈</a> › 직장인 테스트</div>
+  <h1>🔥 번아웃 지수 테스트</h1>
+  <p>10문항으로 알아보는 나의 직장 번아웃 지수</p>
+</div>
+
+<main>
+  <div class="ad-banner">광고 영역 (Google AdSense)</div>
+
+  <div class="quiz-wrap">
+    <div class="progress-bar"><div class="progress-fill" id="progress" style="width:0%"></div></div>
+
+    <!-- Questions -->
+    <div id="questions"></div>
+
+    <!-- Result -->
+    <div class="result-wrap" id="resultWrap">
+      <div class="result-emoji" id="r-emoji"></div>
+      <div class="result-title" id="r-title"></div>
+      <div class="result-score" id="r-score"></div>
+      <div class="gauge-bar"><div class="gauge-fill" id="r-gauge"></div></div>
+      <div class="result-desc" id="r-desc"></div>
+      <div>
+        <button class="share-btn" onclick="shareResult()">📤 결과 공유하기</button>
+        <button class="retry-btn" onclick="restart()">🔄 다시 테스트</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="ad-banner">광고 영역 (Google AdSense)</div>
+</main>
+
+<footer>
+  <p><strong>직장인닷컴</strong> — 직장인을 위한 올인원 도구 사이트</p>
+</footer>
+
+<script>
+const questions = [
+  { text: "아침에 눈을 떴을 때, 출근하기 싫다는 생각이 드나요?", options: ["전혀 없다", "가끔 있다", "자주 있다", "매일 그렇다"] },
+  { text: "일을 마치고 퇴근해도 업무 생각이 머릿속을 떠나지 않나요?", options: ["전혀 없다", "가끔 있다", "자주 있다", "항상 그렇다"] },
+  { text: "최근 일에 대한 흥미나 의욕이 예전보다 많이 줄었나요?", options: ["전혀 아니다", "조금 줄었다", "많이 줄었다", "거의 없다"] },
+  { text: "동료나 상사의 말에 예전보다 쉽게 짜증이 나나요?", options: ["전혀 없다", "가끔 있다", "자주 있다", "매우 자주 있다"] },
+  { text: "퇴근 후 아무것도 하기 싫고 그냥 누워만 있고 싶나요?", options: ["전혀 없다", "가끔 있다", "자주 있다", "매일 그렇다"] },
+  { text: "업무 성과나 결과에 대해 무감각해지거나 냉소적이 되었나요?", options: ["전혀 아니다", "조금 그렇다", "꽤 그렇다", "매우 그렇다"] },
+  { text: "작은 일도 결정하기 어렵고, 집중하기가 힘드나요?", options: ["전혀 없다", "가끔 있다", "자주 있다", "항상 그렇다"] },
+  { text: "두통, 소화불량, 피로감 등 몸에 이상 신호가 자주 나타나나요?", options: ["전혀 없다", "가끔 있다", "자주 있다", "만성적으로 있다"] },
+  { text: "퇴사하거나 직장을 바꾸고 싶다는 생각이 드나요?", options: ["전혀 없다", "가끔 있다", "자주 있다", "항상 생각한다"] },
+  { text: "주말이나 휴가에도 충분히 쉰 것 같지 않고 피곤함이 남아있나요?", options: ["전혀 없다", "가끔 있다", "자주 있다", "항상 그렇다"] },
+];
+
+const results = [
+  { min: 0,  max: 10, emoji: "😊", title: "번아웃 걱정 없음", color: "#2ecc71",
+    desc: "<h3>✅ 아직은 건강한 상태입니다</h3>직장 생활의 스트레스를 잘 관리하고 있습니다. 지금처럼 워라밸을 유지하세요. 앞으로도 주기적으로 자신의 상태를 체크하는 습관을 들이면 좋습니다." },
+  { min: 11, max: 20, emoji: "😐", title: "번아웃 주의 단계", color: "#f39c12",
+    desc: "<h3>⚠️ 가벼운 스트레스가 쌓이고 있습니다</h3>아직 심각한 번아웃은 아니지만 피로가 누적되고 있습니다. 주기적인 휴식, 취미 활동, 가벼운 운동을 통해 에너지를 충전하세요." },
+  { min: 21, max: 30, emoji: "😰", title: "번아웃 위험 단계", color: "#e67e22",
+    desc: "<h3>🚨 번아웃이 진행 중입니다</h3>심각한 수준의 직장 피로도를 경험하고 있습니다. 업무 경계를 분명히 하고, 필요하다면 상사에게 업무량 조정을 요청해보세요. 짧은 휴가도 좋습니다." },
+  { min: 31, max: 40, emoji: "🔥", title: "완전 번아웃 상태", color: "#e74c3c",
+    desc: "<h3>🆘 즉각적인 회복이 필요합니다</h3>심각한 번아웃 상태입니다. 혼자 참지 말고 신뢰할 수 있는 사람과 대화하거나 전문가 상담을 고려해보세요. 당신의 건강이 가장 먼저입니다." },
+];
+
+let current = 0, answers = [];
+
+function render() {
+  const container = document.getElementById('questions');
+  container.innerHTML = questions.map((q, i) => `
+    <div class="question-card ${i === 0 ? 'active' : ''}" id="q${i}">
+      <div class="q-num">Q${i+1} / ${questions.length}</div>
+      <div class="q-text">${q.text}</div>
+      <div class="options">
+        ${q.options.map((opt, j) => `
+          <button class="option-btn" onclick="answer(${i}, ${j})">${opt}</button>
+        `).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+function answer(qIdx, score) {
+  answers[qIdx] = score;
+  document.querySelectorAll(`#q${qIdx} .option-btn`).forEach((b, i) => {
+    b.classList.toggle('selected', i === score);
+  });
+  setTimeout(() => {
+    if (qIdx < questions.length - 1) {
+      document.getElementById(`q${qIdx}`).classList.remove('active');
+      document.getElementById(`q${qIdx + 1}`).classList.add('active');
+      current = qIdx + 1;
+      updateProgress();
+    } else {
+      showResult();
+    }
+  }, 400);
+}
+
+function updateProgress() {
+  document.getElementById('progress').style.width = ((current + 1) / questions.length * 100) + '%';
+}
+
+function showResult() {
+  const total = answers.reduce((a, b) => a + b, 0);
+  const res = results.find(r => total >= r.min && total <= r.max) || results[3];
+
+  document.getElementById('questions').style.display = 'none';
+  document.getElementById('progress').style.width = '100%';
+
+  document.getElementById('r-emoji').textContent = res.emoji;
+  document.getElementById('r-title').textContent = res.title;
+  document.getElementById('r-score').textContent = `${total}점 / 30점`;
+  document.getElementById('r-gauge').style.background = res.color;
+  document.getElementById('r-gauge').style.width = '0%';
+  document.getElementById('r-desc').innerHTML = res.desc;
+
+  document.getElementById('resultWrap').classList.add('show');
+  setTimeout(() => {
+    document.getElementById('r-gauge').style.width = (total / 30 * 100) + '%';
+  }, 100);
+}
+
+function restart() {
+  current = 0; answers = [];
+  document.getElementById('questions').style.display = 'block';
+  document.getElementById('resultWrap').classList.remove('show');
+  document.getElementById('progress').style.width = '0%';
+  render();
+}
+
+function shareResult() {
+  const title = document.getElementById('r-title').textContent;
+  const score = document.getElementById('r-score').textContent;
+  const text = `나의 번아웃 지수: ${title} (${score})\n직장인닷컴에서 테스트해보세요!`;
+  if (navigator.share) {
+    navigator.share({ title: '번아웃 지수 테스트 결과', text, url: window.location.href });
+  } else {
+    navigator.clipboard.writeText(text).then(() => alert('결과가 복사되었습니다!'));
+  }
+}
+
+render();
+</script>
+</body>
+</html>

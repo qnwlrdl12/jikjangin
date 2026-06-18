@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QR코드 생성기 - 직장인닷컴</title>
+  <meta name="description" content="URL, 텍스트를 QR코드로 즉시 변환. 무료 QR코드 생성기.">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .qr-wrap { max-width: 520px; margin: 0 auto; }
+    .qr-output {
+      background: white;
+      border-radius: var(--radius);
+      padding: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 220px;
+      margin-top: 20px;
+    }
+    .qr-output img { max-width: 200px; }
+    .qr-placeholder { color: #aaa; font-size: 0.9rem; text-align: center; }
+    .qr-actions { display: flex; gap: 10px; margin-top: 16px; }
+    .btn-secondary {
+      flex: 1;
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: var(--text);
+      border-radius: 10px;
+      padding: 12px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-secondary:hover { background: var(--accent); color: var(--dark); }
+    .size-btns { display: flex; gap: 8px; margin-top: 8px; }
+    .size-btn {
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: var(--text-muted);
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+    .size-btn.active { border-color: var(--primary); color: var(--primary); }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="../index.html" class="logo">💼 <span>직장인</span>닷컴</a>
+  <ul class="nav-links">
+    <li><a href="../index.html#calculators">계산기</a></li>
+    <li><a href="../index.html#tools" class="active">업무도구</a></li>
+    <li><a href="../index.html#games">루팡게임</a></li>
+    <li><a href="../index.html#tests">테스트</a></li>
+    <li><a href="../index.html#info">정보</a></li>
+  </ul>
+</nav>
+
+<div class="page-header">
+  <div class="breadcrumb"><a href="../index.html">홈</a> › 업무 도구</div>
+  <h1>📱 QR코드 생성기</h1>
+  <p>URL이나 텍스트를 QR코드로 즉시 변환하세요</p>
+</div>
+
+<main>
+  <div class="ad-banner">광고 영역 (Google AdSense)</div>
+
+  <div class="tool-card qr-wrap">
+    <label>URL 또는 텍스트 입력</label>
+    <input type="text" id="qrInput" placeholder="https://example.com 또는 텍스트 입력" oninput="generateQR()">
+
+    <label style="margin-top:16px">QR 코드 크기</label>
+    <div class="size-btns">
+      <button class="size-btn" onclick="setSize(150)">소 (150)</button>
+      <button class="size-btn active" onclick="setSize(200)">중 (200)</button>
+      <button class="size-btn" onclick="setSize(280)">대 (280)</button>
+    </div>
+
+    <div class="qr-output" id="qrOutput">
+      <div class="qr-placeholder">📱<br><br>위에 텍스트를 입력하면<br>QR코드가 생성됩니다</div>
+    </div>
+
+    <div class="qr-actions">
+      <button class="btn-secondary" onclick="downloadQR()">⬇️ PNG 다운로드</button>
+      <button class="btn-secondary" onclick="copyQR()">📋 이미지 복사</button>
+    </div>
+  </div>
+
+  <div class="ad-banner" style="margin-top:32px">광고 영역 (Google AdSense)</div>
+</main>
+
+<footer>
+  <p><strong>직장인닷컴</strong> — 직장인을 위한 올인원 도구 사이트</p>
+</footer>
+
+<!-- QR Code library (Google Charts API 대신 qrcodejs) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+let qrSize = 200;
+let qrInstance = null;
+
+function setSize(s) {
+  qrSize = s;
+  document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  generateQR();
+}
+
+function generateQR() {
+  const text = document.getElementById('qrInput').value.trim();
+  const output = document.getElementById('qrOutput');
+
+  if (!text) {
+    output.innerHTML = '<div class="qr-placeholder">📱<br><br>위에 텍스트를 입력하면<br>QR코드가 생성됩니다</div>';
+    qrInstance = null;
+    return;
+  }
+
+  output.innerHTML = '<div id="qrCanvas"></div>';
+  qrInstance = new QRCode(document.getElementById('qrCanvas'), {
+    text,
+    width: qrSize,
+    height: qrSize,
+    colorDark: '#000000',
+    colorLight: '#ffffff',
+    correctLevel: QRCode.CorrectLevel.H,
+  });
+}
+
+function getQRCanvas() {
+  return document.querySelector('#qrCanvas canvas') || document.querySelector('#qrCanvas img');
+}
+
+function downloadQR() {
+  const el = getQRCanvas();
+  if (!el) { alert('QR코드를 먼저 생성하세요.'); return; }
+  const text = document.getElementById('qrInput').value.trim();
+  const link = document.createElement('a');
+  if (el.tagName === 'CANVAS') {
+    link.href = el.toDataURL('image/png');
+  } else {
+    link.href = el.src;
+  }
+  link.download = 'qrcode.png';
+  link.click();
+}
+
+async function copyQR() {
+  const el = getQRCanvas();
+  if (!el) { alert('QR코드를 먼저 생성하세요.'); return; }
+  try {
+    let blob;
+    if (el.tagName === 'CANVAS') {
+      blob = await new Promise(res => el.toBlob(res));
+    } else {
+      const r = await fetch(el.src);
+      blob = await r.blob();
+    }
+    await navigator.clipboard.write([new ClipboardItem({'image/png': blob})]);
+    alert('이미지가 클립보드에 복사되었습니다!');
+  } catch(e) {
+    alert('복사 실패: 브라우저가 지원하지 않거나 HTTPS가 필요합니다.');
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>직장인 유형 테스트 - 직장인닷컴</title>
+  <meta name="description" content="나는 어떤 직장인 유형일까? 8가지 유형으로 알아보는 직장인 성격 테스트.">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .quiz-wrap{max-width:640px;margin:0 auto;padding:32px 16px}
+    .progress-bar{background:rgba(255,255,255,0.1);border-radius:99px;height:6px;margin-bottom:32px}
+    .progress-fill{height:100%;background:var(--accent);border-radius:99px;transition:width 0.3s}
+    .question-card{background:var(--card);border:1px solid rgba(255,255,255,0.06);border-radius:var(--radius);padding:32px;display:none}
+    .question-card.active{display:block}
+    .q-num{font-size:0.82rem;color:var(--accent);font-weight:700;margin-bottom:12px}
+    .q-text{font-size:1.1rem;font-weight:700;color:var(--white);line-height:1.5;margin-bottom:28px}
+    .options{display:flex;flex-direction:column;gap:10px}
+    .option-btn{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:14px 18px;color:var(--text);font-size:0.95rem;cursor:pointer;text-align:left;transition:all 0.2s}
+    .option-btn:hover{background:rgba(78,205,196,0.15);border-color:var(--accent);color:var(--white)}
+    .result-wrap{display:none;text-align:center}
+    .result-wrap.show{display:block}
+    .result-emoji{font-size:5rem;margin-bottom:16px}
+    .result-title{font-size:1.8rem;font-weight:900;color:var(--white);margin-bottom:8px}
+    .result-type{display:inline-block;background:rgba(78,205,196,0.15);border:1px solid var(--accent);color:var(--accent);padding:6px 16px;border-radius:99px;font-size:0.9rem;font-weight:700;margin-bottom:16px}
+    .result-desc{background:var(--card);border-radius:var(--radius);padding:24px;margin:24px 0;text-align:left;line-height:1.8;color:var(--text-muted)}
+    .result-desc h3{color:var(--white);margin-bottom:8px}
+    .share-btn{background:var(--primary);border:none;color:var(--white);padding:12px 32px;border-radius:10px;font-size:1rem;font-weight:700;cursor:pointer;margin-top:16px;margin-right:8px}
+    .retry-btn{background:var(--card);border:1px solid rgba(255,255,255,0.1);color:var(--text);padding:12px 32px;border-radius:10px;font-size:1rem;cursor:pointer;margin-top:16px}
+    .retry-btn:hover{background:var(--primary);color:var(--white)}
+  </style>
+</head>
+<body>
+<nav>
+  <a href="../index.html" class="logo">💼 <span>직장인</span>닷컴</a>
+  <ul class="nav-links">
+    <li><a href="../index.html#calculators">계산기</a></li>
+    <li><a href="../index.html#tools">업무도구</a></li>
+    <li><a href="../index.html#games">루팡게임</a></li>
+    <li><a href="../index.html#tests" class="active">테스트</a></li>
+    <li><a href="../index.html#info">정보</a></li>
+  </ul>
+</nav>
+<div class="page-header">
+  <div class="breadcrumb"><a href="../index.html">홈</a> › 직장인 테스트</div>
+  <h1>🧬 직장인 유형 테스트</h1>
+  <p>나는 어떤 직장인 유형일까? 8문항으로 알아보세요</p>
+</div>
+<main>
+  <div class="ad-banner">광고 영역 (Google AdSense)</div>
+  <div class="quiz-wrap">
+    <div class="progress-bar"><div class="progress-fill" id="progress" style="width:0%"></div></div>
+    <div id="questions"></div>
+    <div class="result-wrap" id="resultWrap">
+      <div class="result-emoji" id="r-emoji"></div>
+      <div class="result-title" id="r-title"></div>
+      <div class="result-type" id="r-type"></div>
+      <div class="result-desc" id="r-desc"></div>
+      <div>
+        <button class="share-btn" onclick="shareResult()">📤 결과 공유</button>
+        <button class="retry-btn" onclick="restart()">🔄 다시하기</button>
+      </div>
+    </div>
+  </div>
+  <div class="ad-banner">광고 영역 (Google AdSense)</div>
+</main>
+<footer><p><strong>직장인닷컴</strong></p></footer>
+<script>
+// 각 문항은 [A형점수, B형점수] 방향으로 점수를 냄
+// A = 성과형 vs B = 관계형 / C = 독립형 vs D = 협력형
+const questions = [
+  { text:'프로젝트가 주어졌을 때 나는?', options:['혼자 깊이 파고든다 (A)', '팀원들과 브레인스토밍부터 한다 (B)'], dim:'ab' },
+  { text:'업무 중 실수가 생기면?', options:['즉시 원인 분석하고 해결책 찾는다 (A)', '팀에 공유하고 같이 해결한다 (B)'], dim:'ab' },
+  { text:'회의 중 나는?', options:['핵심만 말하고 빠르게 끝내고 싶다 (C)', '모두의 의견을 충분히 들어야 한다 (D)'], dim:'cd' },
+  { text:'야근해야 할 때?', options:['묵묵히 혼자 해결한다 (C)', '팀원들과 나눠서 같이 한다 (D)'], dim:'cd' },
+  { text:'성과 평가 시즌에 나는?', options:['숫자로 증명 가능한 결과를 내놓는다 (A)', '팀워크와 협업 기여도를 강조한다 (B)'], dim:'ab' },
+  { text:'직장 생활에서 가장 중요한 것은?', options:['역량 성장과 커리어 (C)', '좋은 동료들과 즐거운 환경 (D)'], dim:'cd' },
+  { text:'신규 업무를 받으면?', options:['빠르게 시작해서 해보면서 배운다 (A)', '충분히 파악하고 계획 세운 뒤 시작 (B)'], dim:'ab' },
+  { text:'퇴근 후 업무 연락이 오면?', options:['급하면 답한다 (C)', '다음날 출근해서 처리한다 (D)'], dim:'cd' },
+];
+
+const types = {
+  AC: { emoji:'🦅', title:'성과 추구형 독수리', tag:'#성과충 #워커홀릭', desc:'<h3>빠르고 강하게, 결과로 증명한다</h3>목표 지향적이고 추진력이 강합니다. 숫자와 성과로 이야기하는 스타일. 워커홀릭 성향이 있고, 남들보다 빠른 승진을 원합니다. 번아웃 주의가 필요한 유형입니다.' },
+  AD: { emoji:'🌟', title:'협력하는 성과형', tag:'#리더형 #인싸', desc:'<h3>팀을 이끌며 성과를 만든다</h3>성과를 중시하면서도 팀워크를 놓치지 않습니다. 자연스럽게 리더 역할을 맡게 되는 유형. 갈등 조율 능력이 뛰어납니다.' },
+  BC: { emoji:'🎯', title:'전문가형 고독한 장인', tag:'#전문가 #장인정신', desc:'<h3>내 분야만큼은 최고가 되겠다</h3>자기 업무에 깊이 파고드는 전문가형. 팀플보다 독립적인 업무를 선호하며, 해당 분야에서 인정받는 것을 중요하게 생각합니다.' },
+  BD: { emoji:'🤝', title:'화합형 팀플레이어', tag:'#분위기메이커 #팀플', desc:'<h3>사람이 좋아서 일한다</h3>동료와의 관계를 가장 중요하게 생각합니다. 팀 내 분위기를 살리는 역할을 자연스럽게 맡으며, 회사 다니는 이유가 "사람" 인 유형입니다.' },
+};
+
+let current=0, answers={ab:0, cd:0};
+function render() {
+  document.getElementById('questions').innerHTML = questions.map((q,i)=>`
+    <div class="question-card ${i===0?'active':''}" id="q${i}">
+      <div class="q-num">Q${i+1} / ${questions.length}</div>
+      <div class="q-text">${q.text}</div>
+      <div class="options">${q.options.map((o,j)=>`<button class="option-btn" onclick="answer(${i},${j},'${q.dim}')">${o}</button>`).join('')}</div>
+    </div>`).join('');
+}
+function answer(qi, choice, dim) {
+  if(dim==='ab') answers.ab+=choice===0?1:-1;
+  else answers.cd+=choice===0?1:-1;
+  setTimeout(()=>{
+    if(qi<questions.length-1) {
+      document.getElementById(`q${qi}`).classList.remove('active');
+      document.getElementById(`q${qi+1}`).classList.add('active');
+      current=qi+1;
+      document.getElementById('progress').style.width=((current+1)/questions.length*100)+'%';
+    } else showResult();
+  },350);
+}
+function showResult() {
+  const abType=answers.ab>=0?'A':'B';
+  const cdType=answers.cd>=0?'C':'D';
+  const type=types[abType+cdType]||types.AC;
+  document.getElementById('questions').style.display='none';
+  document.getElementById('progress').style.width='100%';
+  document.getElementById('r-emoji').textContent=type.emoji;
+  document.getElementById('r-title').textContent=type.title;
+  document.getElementById('r-type').textContent=type.tag;
+  document.getElementById('r-desc').innerHTML=type.desc;
+  document.getElementById('resultWrap').classList.add('show');
+}
+function restart() {
+  current=0;answers={ab:0,cd:0};
+  document.getElementById('questions').style.display='block';
+  document.getElementById('resultWrap').classList.remove('show');
+  document.getElementById('progress').style.width='0%';
+  render();
+}
+function shareResult() {
+  const t=document.getElementById('r-title').textContent;
+  const text=`나의 직장인 유형: ${t}\n직장인닷컴에서 테스트해보세요!`;
+  if(navigator.share) navigator.share({title:'직장인 유형 테스트',text,url:location.href});
+  else navigator.clipboard.writeText(text).then(()=>alert('복사되었습니다!'));
+}
+render();
+</script>
+</body>
+</html>

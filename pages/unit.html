@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>단위 변환기 - 직장인닷컴</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .cat-tabs { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:24px; }
+    .cat-tab { padding:8px 16px; background:var(--card); border:1px solid rgba(255,255,255,0.1); color:var(--text-muted); border-radius:8px; cursor:pointer; font-size:0.88rem; font-weight:600; transition:all 0.2s; }
+    .cat-tab.active { background:var(--accent); color:var(--dark); border-color:var(--accent); }
+    .convert-row { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+    .convert-row input { flex:1; }
+    .convert-row select { flex:1; }
+    .arrow { color:var(--primary); font-size:1.4rem; font-weight:900; }
+    .result-big { font-size:2rem; font-weight:900; color:var(--secondary); margin:16px 0; text-align:center; }
+  </style>
+</head>
+<body>
+<nav>
+  <a href="../index.html" class="logo">💼 <span>직장인</span>닷컴</a>
+  <ul class="nav-links">
+    <li><a href="../index.html#calculators">계산기</a></li>
+    <li><a href="../index.html#tools" class="active">업무도구</a></li>
+    <li><a href="../index.html#games">루팡게임</a></li>
+    <li><a href="../index.html#tests">테스트</a></li>
+    <li><a href="../index.html#info">정보</a></li>
+  </ul>
+</nav>
+<div class="page-header">
+  <div class="breadcrumb"><a href="../index.html">홈</a> › 업무 도구</div>
+  <h1>📐 단위 변환기</h1>
+  <p>길이, 무게, 온도, 넓이, 속도 등 올인원 단위 변환</p>
+</div>
+<main>
+  <div class="ad-banner">광고 영역 (Google AdSense)</div>
+  <div class="tool-card">
+    <div class="cat-tabs" id="catTabs"></div>
+    <div class="convert-row">
+      <input type="number" id="fromVal" placeholder="값 입력" oninput="convert()">
+      <select id="fromUnit" onchange="convert()"></select>
+    </div>
+    <div style="text-align:center;margin:8px 0"><button style="background:none;border:none;cursor:pointer;font-size:1.5rem" onclick="swapUnits()">⇅</button></div>
+    <div class="convert-row">
+      <input type="text" id="toVal" readonly placeholder="결과">
+      <select id="toUnit" onchange="convert()"></select>
+    </div>
+    <div class="result-big" id="resultBig"></div>
+  </div>
+</main>
+<footer><p><strong>직장인닷컴</strong></p></footer>
+<script>
+const categories = {
+  '📏 길이': {
+    units: { mm:0.001, cm:0.01, m:1, km:1000, inch:0.0254, ft:0.3048, yd:0.9144, mile:1609.344 },
+    base: 'm'
+  },
+  '⚖️ 무게': {
+    units: { mg:0.000001, g:0.001, kg:1, t:1000, lb:0.453592, oz:0.0283495, 근:0.6 },
+    base: 'kg'
+  },
+  '🌡️ 온도': { special: true },
+  '📦 부피': {
+    units: { ml:0.001, L:1, m3:1000, tsp:0.00492892, tbsp:0.0147868, cup:0.236588, gal:3.78541 },
+    base: 'L'
+  },
+  '🗺️ 넓이': {
+    units: { mm2:0.000001, cm2:0.0001, m2:1, km2:1000000, pyeong:3.30579, acre:4046.86, 평:3.30579 },
+    base: 'm2'
+  },
+  '🚀 속도': {
+    units: { 'km/h':1, 'm/s':3.6, 'mph':1.60934, knot:1.852 },
+    base: 'km/h'
+  },
+};
+
+let currentCat = '📏 길이';
+
+function renderTabs() {
+  document.getElementById('catTabs').innerHTML = Object.keys(categories).map(c =>
+    `<button class="cat-tab ${c===currentCat?'active':''}" onclick="selectCat('${c}')">${c}</button>`
+  ).join('');
+}
+
+function selectCat(c) {
+  currentCat = c;
+  renderTabs();
+  renderUnits();
+  document.getElementById('fromVal').value='';
+  document.getElementById('toVal').value='';
+  document.getElementById('resultBig').textContent='';
+}
+
+function renderUnits() {
+  const cat = categories[currentCat];
+  const opts = cat.special ? ['°C', '°F', 'K'] : Object.keys(cat.units);
+  const makeOpts = (sel) => opts.map(u => `<option ${u===sel?'selected':''}>${u}</option>`).join('');
+  document.getElementById('fromUnit').innerHTML = makeOpts(opts[0]);
+  document.getElementById('toUnit').innerHTML   = makeOpts(opts[1]);
+}
+
+function convert() {
+  const val  = parseFloat(document.getElementById('fromVal').value);
+  const from = document.getElementById('fromUnit').value;
+  const to   = document.getElementById('toUnit').value;
+  if (isNaN(val)) { document.getElementById('toVal').value=''; document.getElementById('resultBig').textContent=''; return; }
+
+  let result;
+  if (currentCat === '🌡️ 온도') {
+    if (from==='°C'&&to==='°F') result = val*9/5+32;
+    else if (from==='°F'&&to==='°C') result = (val-32)*5/9;
+    else if (from==='°C'&&to==='K')  result = val+273.15;
+    else if (from==='K'&&to==='°C')  result = val-273.15;
+    else if (from==='°F'&&to==='K')  result = (val-32)*5/9+273.15;
+    else if (from==='K'&&to==='°F')  result = (val-273.15)*9/5+32;
+    else result = val;
+  } else {
+    const units = categories[currentCat].units;
+    const inBase = val * (units[from] || 1);
+    result = inBase / (units[to] || 1);
+  }
+
+  const formatted = result % 1 === 0 ? result.toLocaleString('ko-KR') : parseFloat(result.toPrecision(8)).toLocaleString('ko-KR');
+  document.getElementById('toVal').value = formatted;
+  document.getElementById('resultBig').textContent = `${val} ${from} = ${formatted} ${to}`;
+}
+
+function swapUnits() {
+  const f = document.getElementById('fromUnit').value;
+  const t = document.getElementById('toUnit').value;
+  document.getElementById('fromUnit').value = t;
+  document.getElementById('toUnit').value   = f;
+  convert();
+}
+
+renderTabs();
+renderUnits();
+</script>
+</body>
+</html>

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>연차수당 계산기 - 직장인닷컴</title>
+  <meta name="description" content="남은 연차를 돈으로 받으면 얼마인지 계산합니다.">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<nav>
+  <a href="../index.html" class="logo">💼 <span>직장인</span>닷컴</a>
+  <ul class="nav-links">
+    <li><a href="../index.html#calculators" class="active">계산기</a></li>
+    <li><a href="../index.html#tools">업무도구</a></li>
+    <li><a href="../index.html#games">루팡게임</a></li>
+    <li><a href="../index.html#tests">테스트</a></li>
+    <li><a href="../index.html#info">정보</a></li>
+  </ul>
+</nav>
+<div class="page-header">
+  <div class="breadcrumb"><a href="../index.html">홈</a> › 직장인 계산기</div>
+  <h1>🏖️ 연차수당 계산기</h1>
+  <p>남은 연차를 수당으로 지급받을 때 금액을 계산합니다</p>
+</div>
+<main>
+  <div class="ad-banner">광고 영역 (Google AdSense)</div>
+  <div class="tool-card">
+    <label>1일 통상임금 (원)</label>
+    <input type="number" id="dailyWage" placeholder="예: 100000 (월급 ÷ 209시간 × 8시간)">
+    <label>남은 연차 일수</label>
+    <input type="number" id="leaveDays" placeholder="예: 5">
+    <label>월 기본급 (원, 자동계산용)</label>
+    <input type="number" id="baseSalary" placeholder="예: 3000000 (입력 시 1일 임금 자동계산)" oninput="autoCalcDaily()">
+    <button class="btn-primary" onclick="calculate()">연차수당 계산</button>
+    <div class="result-box" id="result">
+      <div class="result-row"><span class="label">1일 통상임금</span><span class="value" id="r-daily"></span></div>
+      <div class="result-row"><span class="label">남은 연차</span><span class="value" id="r-days"></span></div>
+      <div class="result-row highlight"><span class="label">🏖️ 연차수당 합계</span><span class="value" id="r-total"></span></div>
+    </div>
+  </div>
+  <div class="tool-card" style="margin-top:24px;max-width:600px">
+    <p style="color:var(--text-muted);font-size:0.85rem;line-height:1.7">
+      ※ 1일 통상임금 = 월 기본급 ÷ 209시간 × 8시간<br>
+      ※ 연차수당 = 1일 통상임금 × 미사용 연차 일수<br>
+      ※ 퇴직 시 또는 연차 이월 불가 시 수당으로 지급됩니다
+    </p>
+  </div>
+</main>
+<footer>
+  <p><strong>직장인닷컴</strong> — 직장인을 위한 올인원 도구 사이트</p>
+  <p style="margin-top:8px">모든 계산은 참고용이며 법적 효력이 없습니다.</p>
+</footer>
+<script>
+function won(n) { return Math.round(n).toLocaleString('ko-KR') + '원'; }
+function autoCalcDaily() {
+  const base = parseFloat(document.getElementById('baseSalary').value);
+  if (base > 0) document.getElementById('dailyWage').value = Math.round(base / 209 * 8);
+}
+function calculate() {
+  const daily = parseFloat(document.getElementById('dailyWage').value);
+  const days  = parseFloat(document.getElementById('leaveDays').value);
+  if (!daily || !days) { alert('1일 임금과 연차 일수를 입력하세요.'); return; }
+  document.getElementById('r-daily').textContent = won(daily);
+  document.getElementById('r-days').textContent = days + '일';
+  document.getElementById('r-total').textContent = won(daily * days);
+  document.getElementById('result').classList.add('show');
+}
+</script>
+</body>
+</html>
