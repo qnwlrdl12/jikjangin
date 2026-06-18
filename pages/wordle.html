@@ -4,28 +4,59 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>한국어 워들 - 월급루팡 게임 - 직장인닷컴</title>
+  <meta name="description" content="매일 바뀌는 5글자 한국어 단어를 6번 안에 맞춰보세요. 직장인 테마 워들.">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../css/style.css">
   <style>
-    .game-wrap{display:flex;flex-direction:column;align-items:center;gap:16px;padding:24px 16px}
-    .board{display:grid;grid-template-rows:repeat(6,1fr);gap:6px;margin:8px 0}
-    .row{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
-    .tile{width:clamp(48px,11vw,60px);height:clamp(48px,11vw,60px);border:2px solid rgba(255,255,255,0.15);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:clamp(1.1rem,4vw,1.5rem);font-weight:900;color:var(--white);transition:background 0.4s,border-color 0.4s;background:transparent}
-    .tile.filled{border-color:rgba(255,255,255,0.4);animation:pop 0.1s ease}
-    .tile.correct{background:#538d4e;border-color:#538d4e}
-    .tile.present{background:#b59f3b;border-color:#b59f3b}
-    .tile.absent{background:#3a3a3c;border-color:#3a3a3c}
-    @keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.12)}100%{transform:scale(1)}}
-    @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
-    .shake{animation:shake 0.3s ease}
-    .keyboard{display:flex;flex-direction:column;gap:6px;align-items:center}
-    .kb-row{display:flex;gap:5px}
-    .kb-key{height:44px;min-width:clamp(28px,7vw,40px);padding:0 4px;border-radius:6px;background:#818384;border:none;color:var(--white);font-size:0.8rem;font-weight:700;cursor:pointer;transition:background 0.3s;-webkit-tap-highlight-color:transparent}
-    .kb-key.wide{min-width:clamp(50px,11vw,64px);font-size:0.75rem}
-    .kb-key.correct{background:#538d4e}
-    .kb-key.present{background:#b59f3b}
-    .kb-key.absent{background:#3a3a3c}
-    .msg{height:24px;font-size:0.9rem;color:var(--secondary);font-weight:700;text-align:center}
+    .game-wrap { display:flex; flex-direction:column; align-items:center; gap:12px; padding:20px 16px; }
+    .board { display:grid; grid-template-rows:repeat(6,1fr); gap:5px; }
+    .row   { display:grid; grid-template-columns:repeat(5,1fr); gap:5px; }
+    .tile  {
+      width: clamp(50px,12vw,62px);
+      height:clamp(50px,12vw,62px);
+      border:2px solid rgba(255,255,255,0.15);
+      border-radius:8px;
+      display:flex; align-items:center; justify-content:center;
+      font-size:clamp(1.1rem,4vw,1.4rem);
+      font-weight:900; color:var(--white);
+      transition:background 0.35s, border-color 0.35s;
+      background:transparent; user-select:none;
+    }
+    .tile.active   { border-color:rgba(255,255,255,0.5); }
+    .tile.composing{ border-color:var(--primary); background:rgba(255,107,53,0.1); }
+    .tile.correct  { background:#538d4e; border-color:#538d4e; }
+    .tile.present  { background:#b59f3b; border-color:#b59f3b; }
+    .tile.absent   { background:#3a3a3c; border-color:#3a3a3c; }
+    @keyframes pop  { 0%{transform:scale(1)} 50%{transform:scale(1.1)} 100%{transform:scale(1)} }
+    @keyframes shake{ 0%,100%{transform:translateX(0)} 25%{transform:translateX(-5px)} 75%{transform:translateX(5px)} }
+    @keyframes bounce{ 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+    .pop    { animation:pop    0.12s ease; }
+    .shake  { animation:shake  0.3s ease; }
+    .bounce { animation:bounce 0.4s ease; }
+
+    .msg-bar { height:28px; font-size:0.9rem; font-weight:700; color:var(--secondary); text-align:center; }
+
+    /* Keyboard */
+    .keyboard { display:flex; flex-direction:column; gap:5px; align-items:center; }
+    .kb-row   { display:flex; gap:4px; }
+    .kb-key   {
+      min-width:clamp(28px,7.5vw,38px); height:42px;
+      padding:0 3px;
+      border-radius:6px; background:#818384; border:none;
+      color:var(--white); font-size:clamp(0.7rem,2.5vw,0.85rem);
+      font-weight:700; cursor:pointer;
+      -webkit-tap-highlight-color:transparent;
+      transition:background 0.25s;
+      font-family: 'Noto Sans KR', sans-serif;
+    }
+    .kb-key.wide { min-width:clamp(48px,11vw,60px); font-size:0.72rem; }
+    .kb-key.correct { background:#538d4e; }
+    .kb-key.present { background:#b59f3b; }
+    .kb-key.absent  { background:#3a3a3c; }
+
+    .legend { display:flex; gap:14px; font-size:0.78rem; color:var(--text-muted); }
+    .legend span { display:flex; align-items:center; gap:5px; }
+    .leg-box { width:14px; height:14px; border-radius:3px; }
   </style>
 </head>
 <body>
@@ -42,38 +73,172 @@
 <div class="page-header">
   <div class="breadcrumb"><a href="../index.html">홈</a> › 월급루팡 게임</div>
   <h1>🟩 한국어 워들</h1>
-  <p>매일 바뀌는 5글자 단어를 6번 안에 맞춰보세요</p>
+  <p>매일 바뀌는 5글자 단어를 6번 안에 맞춰보세요 — 한글 키보드 입력 지원</p>
 </div>
 <main>
   <div class="ad-banner">광고 영역 (Google AdSense)</div>
   <div class="game-wrap">
-    <div class="msg" id="msg"></div>
-    <div class="board" id="board"></div>
+    <div class="legend">
+      <span><div class="leg-box" style="background:#538d4e"></div>정답 위치</span>
+      <span><div class="leg-box" style="background:#b59f3b"></div>다른 위치</span>
+      <span><div class="leg-box" style="background:#3a3a3c"></div>없음</span>
+    </div>
+    <div class="msg-bar" id="msg"></div>
+    <div class="board"  id="board"></div>
     <div class="keyboard" id="keyboard"></div>
+    <button style="background:none;border:1px solid rgba(255,255,255,0.1);color:var(--text-muted);padding:8px 20px;border-radius:8px;cursor:pointer;font-size:0.85rem;margin-top:4px" onclick="newGame()">🔄 새 게임</button>
   </div>
   <div class="ad-banner">광고 영역 (Google AdSense)</div>
 </main>
 <footer><p><strong>직장인닷컴</strong></p></footer>
-<script>
-// 직장인 테마 단어 목록 (5글자 한국어)
-const WORDS = [
-  '회의실','야근비','월급날','퇴직금','연차일','상여금','부장님','대리님',
-  '프로젝','마감일','보고서','인사부','재무부','출장비','명함지','취업자',
-  '면접관','합격통','이직률','연봉제','성과급','인센티','복지비','식대값',
-  '업무량','워크숍','팀빌딩','직장내','스트레','번아웃','자기계','능력자',
-  '신입사','경력자','정규직','계약직','파견직','프리랜','재택근',
-];
 
-// 매일 다른 단어 (날짜 기반)
-function getTodayWord() {
-  const d = new Date(); const idx = (d.getFullYear()*366+d.getMonth()*31+d.getDate()) % WORDS.length;
-  return WORDS[idx];
+<script>
+/* ── 한글 조합 엔진 ───────────────────────────────────────── */
+const CHO  = ['ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ','ㅅ','ㅆ','ㅇ','ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
+const JUNG = ['ㅏ','ㅐ','ㅑ','ㅒ','ㅓ','ㅔ','ㅕ','ㅖ','ㅗ','ㅘ','ㅙ','ㅚ','ㅛ','ㅜ','ㅝ','ㅞ','ㅟ','ㅠ','ㅡ','ㅢ','ㅣ'];
+const JONG = ['','ㄱ','ㄲ','ㄳ','ㄴ','ㄵ','ㄶ','ㄷ','ㄹ','ㄺ','ㄻ','ㄼ','ㄽ','ㄾ','ㄿ','ㅀ','ㅁ','ㅂ','ㅄ','ㅅ','ㅆ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
+
+// 단독 종성 → 초성 인덱스
+const JONG2CHO = {1:0,2:1,4:2,7:3,8:5,16:6,17:7,19:9,20:10,21:11,22:12,23:14,24:15,25:16,26:17,27:18};
+// 자음 → 종성 인덱스 (단독만)
+const CONS2JONG = {'ㄱ':1,'ㄲ':2,'ㄴ':4,'ㄷ':7,'ㄹ':8,'ㅁ':16,'ㅂ':17,'ㅅ':19,'ㅆ':20,'ㅇ':21,'ㅈ':22,'ㅊ':23,'ㅋ':24,'ㅌ':25,'ㅍ':26,'ㅎ':27};
+
+function makeSyl(ci, ji, jj=0) {
+  return String.fromCharCode(0xAC00 + ci*21*28 + ji*28 + jj);
+}
+function isVowel(j){ return JUNG.includes(j); }
+
+// 한 음절씩 조합하는 상태 머신
+// state: { ci(초성 idx), ji(중성 idx), jj(종성 idx) }  -1 = 없음
+class HangulIME {
+  constructor() { this.reset(); }
+  reset(){ this._ci=-1; this._ji=-1; this._jj=-1; }
+
+  // 현재 조합 중인 글자 반환
+  current() {
+    if (this._ci < 0) return '';
+    if (this._ji < 0) return CHO[this._ci];
+    return makeSyl(this._ci, this._ji, this._jj < 0 ? 0 : this._jj);
+  }
+
+  // jamo 입력 → { commit: '확정된 글자 or null', current: '조합중 글자' }
+  push(jamo) {
+    if (isVowel(jamo)) {
+      const ji = JUNG.indexOf(jamo);
+      if (this._ci >= 0 && this._ji < 0) {
+        // 초성만 있을 때 모음 → 음절 시작
+        this._ji = ji; return { commit:null, current:this.current() };
+      }
+      if (this._ci >= 0 && this._ji >= 0 && this._jj >= 0) {
+        // 종성이 있는데 모음이 오면 → 종성이 다음 음절의 초성
+        const committed = makeSyl(this._ci, this._ji); // 종성 없이 확정
+        const newCi = JONG2CHO[this._jj];
+        if (newCi === undefined) {
+          // 종성을 초성으로 쓸 수 없는 경우 (거의 없음)
+          const c = this.current(); this.reset();
+          this._ci = -1; this._ji = ji;
+          return { commit:c, current:this.current() };
+        }
+        this._ci = newCi; this._ji = ji; this._jj = -1;
+        return { commit:committed, current:this.current() };
+      }
+      if (this._ci < 0) {
+        // 아무것도 없을 때 모음 → ㅇ 초성
+        this._ci = 11; this._ji = ji; // ㅇ = 11
+        return { commit:null, current:this.current() };
+      }
+      // 이미 모음만 있는 상태 → 확정 후 새 모음
+      const c = this.current(); this.reset();
+      this._ci = 11; this._ji = ji;
+      return { commit:c, current:this.current() };
+    } else {
+      // 자음
+      if (this._ci < 0) {
+        this._ci = CHO.indexOf(jamo);
+        return { commit:null, current:this.current() };
+      }
+      if (this._ji >= 0 && this._jj < 0) {
+        // 모음 있고 종성 없음 → 이 자음이 종성?
+        const jj = CONS2JONG[jamo];
+        if (jj !== undefined) {
+          this._jj = jj;
+          return { commit:null, current:this.current() };
+        }
+        // 종성 불가 → 현재 확정, 새 초성
+        const c = this.current(); this.reset();
+        this._ci = CHO.indexOf(jamo);
+        return { commit:c, current:this.current() };
+      }
+      if (this._ji >= 0 && this._jj >= 0) {
+        // 이미 종성 있음 → 현재 확정, 새 초성
+        const c = this.current(); this.reset();
+        this._ci = CHO.indexOf(jamo);
+        return { commit:c, current:this.current() };
+      }
+      // 초성만 있는데 또 자음 → 확정, 새 초성
+      const c = this.current(); this.reset();
+      this._ci = CHO.indexOf(jamo);
+      return { commit:c, current:this.current() };
+    }
+  }
+
+  // 백스페이스: 현재 조합에서 한 획 삭제
+  // 반환: { deleted: 조합 내 삭제됐으면 true, current: 새 조합 글자 }
+  backspace() {
+    if (this._jj >= 0) { this._jj = -1; return { deleted:true, current:this.current() }; }
+    if (this._ji >= 0) { this._ji = -1; return { deleted:true, current:this.current() }; }
+    if (this._ci >= 0) { this.reset();  return { deleted:true, current:'' }; }
+    return { deleted:false, current:'' };
+  }
+
+  // 현재 글자를 확정하고 IME 초기화
+  flush() {
+    const c = this.current(); this.reset(); return c;
+  }
 }
 
-const answer = getTodayWord().split('');
-const ROWS=6, COLS=5;
-let currentRow=0, currentCol=0, gameOver=false;
-const board=Array.from({length:ROWS},()=>Array(COLS).fill(''));
+/* ── 단어 목록 ──────────────────────────────────────────────── */
+const WORDS = [
+  '안녕하세요','감사합니다','알겠습니다','죄송합니다','수고하셨어',
+  '잘부탁해요','이해합니다','확인해볼게','보고드릴게','완료했어요',
+  '퇴사하고파','야근하지마','월급올려줘','연차쓸거야','출근하기싫',
+  '점심뭐먹어','커피한잔해','회의하기싫','칼퇴하고파','업무많아요',
+  '내일봐요봐','열심히했어','화이팅해요','파이팅해봐','잠깐만요요',
+  '스트레스야','번아웃왔어','발표잘했어','프로젝완료','마감지켰어',
+  '연봉올랐어','보너스받았','승진했어요','팀장됐어요','이직해볼까',
+];
+
+/* ── 게임 상태 ───────────────────────────────────────────────── */
+const ROWS = 6, COLS = 5;
+let answer, guesses, currentRow, currentTiles, gameOver, ime;
+
+// 두벌식 키보드 매핑 (소문자)
+const KEYMAP = {
+  q:'ㅂ',w:'ㅈ',e:'ㄷ',r:'ㄱ',t:'ㅅ',y:'ㅛ',u:'ㅕ',i:'ㅑ',o:'ㅐ',p:'ㅔ',
+  a:'ㅁ',s:'ㄴ',d:'ㅇ',f:'ㄹ',g:'ㅎ',h:'ㅗ',j:'ㅓ',k:'ㅏ',l:'ㅣ',
+  z:'ㅋ',x:'ㅌ',c:'ㅊ',v:'ㅍ',b:'ㅠ',n:'ㅜ',m:'ㅡ',
+  Q:'ㅃ',W:'ㅉ',E:'ㄸ',R:'ㄲ',T:'ㅆ',O:'ㅒ',P:'ㅖ',
+};
+
+const KB_ROWS = [
+  ['ㅂ','ㅈ','ㄷ','ㄱ','ㅅ','ㅛ','ㅕ','ㅑ','ㅐ','ㅔ'],
+  ['ㅁ','ㄴ','ㅇ','ㄹ','ㅎ','ㅗ','ㅓ','ㅏ','ㅣ'],
+  ['⌫','ㅋ','ㅌ','ㅊ','ㅍ','ㅠ','ㅜ','ㅡ','입력'],
+];
+
+function newGame() {
+  const d = new Date();
+  const idx = ((d.getFullYear()-2026)*366 + d.getMonth()*31 + d.getDate()) % WORDS.length;
+  answer    = WORDS[Math.abs(idx)].split('');
+  guesses   = Array.from({length:ROWS}, () => Array(COLS).fill(''));
+  currentRow= 0;
+  currentTiles = Array(COLS).fill('');
+  gameOver  = false;
+  ime       = new HangulIME();
+  renderBoard();
+  renderKeyboard();
+  msg('');
+}
 
 function renderBoard() {
   document.getElementById('board').innerHTML = Array.from({length:ROWS},(_,r)=>`
@@ -82,85 +247,186 @@ function renderBoard() {
     </div>`).join('');
 }
 
-const KB_ROWS = [
-  ['ㅂ','ㅈ','ㄷ','ㄱ','ㅅ','ㅛ','ㅕ','ㅑ','ㅐ','ㅔ'],
-  ['ㅁ','ㄴ','ㅇ','ㄹ','ㅎ','ㅗ','ㅓ','ㅏ','ㅣ'],
-  ['←','ㅋ','ㅌ','ㅊ','ㅍ','ㅠ','ㅜ','ㅡ','입력'],
-];
-
+const KB_STATE = {};
 function renderKeyboard() {
   document.getElementById('keyboard').innerHTML = KB_ROWS.map(row=>`
-    <div class="kb-row">${row.map(k=>`<button class="kb-key ${['입력','←'].includes(k)?'wide':''}" id="kb_${k}" onclick="pressKey('${k}')">${k}</button>`).join('')}</div>`).join('');
+    <div class="kb-row">${row.map(k=>`
+      <button class="kb-key ${['입력','⌫'].includes(k)?'wide':''}" id="kb_${k}" onclick="pressKey('${k}')">${k}</button>`
+    ).join('')}</div>`).join('');
+}
+
+function setTile(r, c, text, cls='') {
+  const t = document.getElementById(`t${r}_${c}`);
+  if (!t) return;
+  t.textContent = text;
+  t.className   = 'tile' + (cls ? ' '+cls : '');
 }
 
 function pressKey(k) {
-  if(gameOver) return;
-  if(k==='←') {
-    if(currentCol>0){currentCol--;board[currentRow][currentCol]='';updateTile(currentRow,currentCol,'');}
-  } else if(k==='입력') {
-    submitGuess();
-  } else {
-    if(currentCol<COLS){board[currentRow][currentCol]=k;updateTile(currentRow,currentCol,k);currentCol++;}
+  if (gameOver) return;
+  if (k === '⌫') { doBackspace(); return; }
+  if (k === '입력') { doEnter();     return; }
+
+  // jamo 입력
+  const { commit, current } = ime.push(k);
+  if (commit) {
+    // 직전 타일 확정
+    const col = currentTiles.filter(x=>x).length - 1;
+    if (col >= 0 && currentTiles[col] === '') {
+      // 현재 조합 타일
+    }
+    commitChar(commit);
+  }
+  // 현재 조합 타일 업데이트
+  const filled = currentTiles.filter(x=>x).length;
+  if (filled < COLS) {
+    currentTiles[filled] = '​'; // placeholder
+    setTile(currentRow, filled, current, 'composing active');
+  }
+  syncCurrentRow();
+}
+
+function syncCurrentRow() {
+  const filled = currentTiles.filter(x=>x && x!=='​').length;
+  for (let c=0; c<COLS; c++) {
+    if (currentTiles[c] && currentTiles[c] !== '​') {
+      setTile(currentRow, c, currentTiles[c], '');
+    }
+  }
+  const composingChar = ime.current();
+  if (composingChar && filled < COLS) {
+    setTile(currentRow, filled, composingChar, 'composing active');
   }
 }
 
-function updateTile(r,c,ch) {
-  const t=document.getElementById(`t${r}_${c}`);
-  t.textContent=ch; t.className='tile'+(ch?' filled':'');
+function commitChar(ch) {
+  // 확정된 글자를 currentTiles에 넣기
+  const idx = currentTiles.findIndex(x => !x || x==='​');
+  if (idx >= 0 && idx < COLS) {
+    currentTiles[idx] = ch;
+    setTile(currentRow, idx, ch, 'pop');
+  }
 }
 
-function submitGuess() {
-  if(currentCol<COLS){msg('5글자를 모두 입력하세요');shake();return;}
-  const guess=board[currentRow];
-  const result=Array(COLS).fill('absent');
-  const answerCopy=[...answer];
+function doBackspace() {
+  const { deleted, current } = ime.backspace();
+  if (deleted) {
+    // 조합 중인 타일만 수정
+    const filled = currentTiles.filter(x=>x && x!=='​').length;
+    setTile(currentRow, filled, current, current?'composing active':'active');
+    return;
+  }
+  // IME가 비었으면 확정된 타일 삭제
+  const lastIdx = currentTiles.map((x,i)=>[x,i]).filter(([x])=>x&&x!=='​').pop();
+  if (lastIdx) {
+    const [,i] = lastIdx;
+    currentTiles[i] = '';
+    setTile(currentRow, i, '', '');
+    // 삭제된 글자를 IME에 다시 넣어 분해
+    rebuildIMEFromChar(currentTiles);
+  }
+}
 
-  // correct pass
-  guess.forEach((ch,i)=>{ if(ch===answerCopy[i]){result[i]='correct';answerCopy[i]=null;} });
-  // present pass
-  guess.forEach((ch,i)=>{ if(result[i]==='correct')return; const ai=answerCopy.indexOf(ch); if(ai!==-1){result[i]='present';answerCopy[ai]=null;} });
+function rebuildIMEFromChar(tiles) {
+  // 마지막 확정 글자를 다시 IME로 분해 (backspace 지원)
+  // 간단히: 마지막 글자를 그냥 비움 (복잡한 재조합 생략)
+  ime.reset();
+}
 
-  // Animate tiles
-  guess.forEach((ch,i)=>{
-    setTimeout(()=>{
-      const t=document.getElementById(`t${currentRow}_${i}`);
-      t.className='tile '+result[i];
-      // Update keyboard
-      const kb=document.getElementById(`kb_${ch}`);
-      if(kb){
-        const pri={'correct':3,'present':2,'absent':1};
-        const cur=pri[kb.dataset.state||'']||0;
-        if((pri[result[i]]||0)>cur){kb.className='kb-key '+result[i];kb.dataset.state=result[i];}
-      }
-    },i*120);
+function doEnter() {
+  // IME 조합 중인 글자 확정
+  const composing = ime.flush();
+  if (composing) {
+    const idx = currentTiles.findIndex(x=>!x||x==='​');
+    if (idx >= 0 && idx < COLS) currentTiles[idx] = composing;
+  }
+
+  const word = currentTiles.filter(x=>x&&x!=='​');
+  if (word.length < COLS) { msg('5글자를 입력하세요'); shakeRow(); return; }
+
+  guesses[currentRow] = [...word];
+  revealRow(currentRow, [...word]);
+}
+
+function revealRow(row, word) {
+  const result = Array(COLS).fill('absent');
+  const answerCopy = [...answer];
+
+  word.forEach((ch,i) => { if(ch===answerCopy[i]){ result[i]='correct'; answerCopy[i]=null; } });
+  word.forEach((ch,i) => {
+    if(result[i]==='correct') return;
+    const ai = answerCopy.indexOf(ch);
+    if(ai >= 0){ result[i]='present'; answerCopy[ai]=null; }
   });
 
-  const won=result.every(r=>r==='correct');
-  setTimeout(()=>{
-    if(won){msg('🎉 정답! 오늘도 수고하셨습니다!');gameOver=true;}
-    else if(currentRow===ROWS-1){msg(`정답: ${answer.join('')}`);gameOver=true;}
-    currentRow++;currentCol=0;
-  },COLS*120+200);
+  word.forEach((ch, i) => {
+    setTimeout(() => {
+      setTile(row, i, ch, result[i]);
+      updateKbKey(ch, result[i]);
+    }, i * 100);
+  });
+
+  const won = result.every(r=>r==='correct');
+  setTimeout(() => {
+    if (won) {
+      gameOver = true;
+      msg('🎉 정답! 수고하셨습니다!');
+      word.forEach((_,i) => setTimeout(()=>{ const t=document.getElementById(`t${row}_${i}`); t.classList.add('bounce'); },i*80));
+    } else if (row === ROWS-1) {
+      gameOver = true;
+      msg('정답: ' + answer.join(''));
+    } else {
+      currentRow++;
+      currentTiles = Array(COLS).fill('');
+      ime.reset();
+    }
+  }, COLS * 100 + 200);
 }
 
-function shake() {
-  const row=document.getElementById(`row${currentRow}`);
-  row.classList.add('shake'); setTimeout(()=>row.classList.remove('shake'),300);
+function updateKbKey(jamo, result) {
+  // 음절 → 개별 자모 분해해서 키보드 업데이트
+  const decomposed = decomposeHangul(jamo);
+  const pri = {correct:3, present:2, absent:1};
+  decomposed.forEach(j => {
+    const kb = document.getElementById(`kb_${j}`);
+    if (!kb) return;
+    const cur = pri[KB_STATE[j]||''] || 0;
+    if ((pri[result]||0) > cur) { KB_STATE[j]=result; kb.className=`kb-key ${result}`; }
+  });
+}
+
+function decomposeHangul(ch) {
+  const code = ch.charCodeAt(0) - 0xAC00;
+  if (code < 0 || code > 11171) return [ch];
+  const ci  = Math.floor(code / (21*28));
+  const ji  = Math.floor((code % (21*28)) / 28);
+  const jji = code % 28;
+  const result = [CHO[ci], JUNG[ji]];
+  if (jji > 0) result.push(JONG[jji]);
+  return result;
+}
+
+function shakeRow() {
+  const row = document.getElementById(`row${currentRow}`);
+  row.classList.add('shake');
+  setTimeout(() => row.classList.remove('shake'), 300);
 }
 
 function msg(text) {
-  const el=document.getElementById('msg');el.textContent=text;
-  if(text) setTimeout(()=>{if(el.textContent===text)el.textContent='';},3000);
+  document.getElementById('msg').textContent = text;
+  if (text && !gameOver) setTimeout(()=>{ if(document.getElementById('msg').textContent===text) document.getElementById('msg').textContent=''; },2500);
 }
 
-document.addEventListener('keydown',e=>{
-  if(e.key==='Backspace') pressKey('←');
-  else if(e.key==='Enter') pressKey('입력');
-  else if(/^[ㄱ-ㅎㅏ-ㅣ]$/.test(e.key)) pressKey(e.key);
+/* 물리 키보드 */
+document.addEventListener('keydown', e => {
+  if (e.ctrlKey || e.altKey || e.metaKey) return;
+  if (e.key === 'Backspace') { e.preventDefault(); pressKey('⌫'); return; }
+  if (e.key === 'Enter')     { e.preventDefault(); pressKey('입력'); return; }
+  const jamo = KEYMAP[e.key];
+  if (jamo) { e.preventDefault(); pressKey(jamo); }
 });
 
-renderBoard();
-renderKeyboard();
+newGame();
 </script>
 </body>
 </html>

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>직장인 유형 테스트 - 직장인닷컴</title>
-  <meta name="description" content="나는 어떤 직장인 유형일까? 8가지 유형으로 알아보는 직장인 성격 테스트.">
+  <meta name="description" content="나는 어떤 직장인 유형일까? 12문항으로 알아보는 직장인 유형 ABCD 성격 테스트.">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../css/style.css">
   <style>
@@ -14,7 +14,7 @@
     .question-card{background:var(--card);border:1px solid rgba(255,255,255,0.06);border-radius:var(--radius);padding:32px;display:none}
     .question-card.active{display:block}
     .q-num{font-size:0.82rem;color:var(--accent);font-weight:700;margin-bottom:12px}
-    .q-text{font-size:1.1rem;font-weight:700;color:var(--white);line-height:1.5;margin-bottom:28px}
+    .q-text{font-size:1.1rem;font-weight:700;color:var(--white);line-height:1.55;margin-bottom:28px}
     .options{display:flex;flex-direction:column;gap:10px}
     .option-btn{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:14px 18px;color:var(--text);font-size:0.95rem;cursor:pointer;text-align:left;transition:all 0.2s}
     .option-btn:hover{background:rgba(78,205,196,0.15);border-color:var(--accent);color:var(--white)}
@@ -22,12 +22,23 @@
     .result-wrap.show{display:block}
     .result-emoji{font-size:5rem;margin-bottom:16px}
     .result-title{font-size:1.8rem;font-weight:900;color:var(--white);margin-bottom:8px}
-    .result-type{display:inline-block;background:rgba(78,205,196,0.15);border:1px solid var(--accent);color:var(--accent);padding:6px 16px;border-radius:99px;font-size:0.9rem;font-weight:700;margin-bottom:16px}
-    .result-desc{background:var(--card);border-radius:var(--radius);padding:24px;margin:24px 0;text-align:left;line-height:1.8;color:var(--text-muted)}
-    .result-desc h3{color:var(--white);margin-bottom:8px}
+    .result-type{display:inline-block;background:rgba(78,205,196,0.15);border:1px solid var(--accent);color:var(--accent);padding:6px 16px;border-radius:99px;font-size:0.9rem;font-weight:700;margin-bottom:20px}
+    .result-desc{background:var(--card);border-radius:var(--radius);padding:24px;margin:16px 0;text-align:left;line-height:1.8;color:var(--text-muted)}
+    .result-desc h3{color:var(--white);margin-bottom:10px}
+    .trait-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+    .trait-box{background:rgba(255,255,255,0.04);border-radius:10px;padding:14px}
+    .trait-box .tlbl{font-size:0.75rem;color:var(--text-muted);margin-bottom:6px}
+    .trait-box .tval{font-size:0.88rem;color:var(--white);font-weight:600;line-height:1.5}
+    .dim-bars{margin:16px 0}
+    .dim-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;font-size:0.82rem}
+    .dim-row .d-lbl{min-width:60px;color:var(--text-muted)}
+    .dim-row .d-track{flex:1;height:8px;background:rgba(255,255,255,0.08);border-radius:99px;overflow:hidden}
+    .dim-row .d-fill{height:100%;border-radius:99px;transition:width 0.8s ease}
+    .dim-row .d-val{min-width:30px;text-align:right;color:var(--white);font-weight:700}
     .share-btn{background:var(--primary);border:none;color:var(--white);padding:12px 32px;border-radius:10px;font-size:1rem;font-weight:700;cursor:pointer;margin-top:16px;margin-right:8px}
     .retry-btn{background:var(--card);border:1px solid rgba(255,255,255,0.1);color:var(--text);padding:12px 32px;border-radius:10px;font-size:1rem;cursor:pointer;margin-top:16px}
     .retry-btn:hover{background:var(--primary);color:var(--white)}
+    @media(max-width:480px){.trait-grid{grid-template-columns:1fr}}
   </style>
 </head>
 <body>
@@ -44,7 +55,7 @@
 <div class="page-header">
   <div class="breadcrumb"><a href="../index.html">홈</a> › 직장인 테스트</div>
   <h1>🧬 직장인 유형 테스트</h1>
-  <p>나는 어떤 직장인 유형일까? 8문항으로 알아보세요</p>
+  <p>나는 어떤 직장인? 12문항 × 3가지 축으로 알아보는 유형 테스트</p>
 </div>
 <main>
   <div class="ad-banner">광고 영역 (Google AdSense)</div>
@@ -55,8 +66,10 @@
       <div class="result-emoji" id="r-emoji"></div>
       <div class="result-title" id="r-title"></div>
       <div class="result-type" id="r-type"></div>
+      <div class="dim-bars" id="dimBars"></div>
       <div class="result-desc" id="r-desc"></div>
-      <div>
+      <div class="trait-grid" id="r-traits"></div>
+      <div style="margin-top:24px">
         <button class="share-btn" onclick="shareResult()">📤 결과 공유</button>
         <button class="retry-btn" onclick="restart()">🔄 다시하기</button>
       </div>
@@ -66,72 +79,152 @@
 </main>
 <footer><p><strong>직장인닷컴</strong></p></footer>
 <script>
-// 각 문항은 [A형점수, B형점수] 방향으로 점수를 냄
-// A = 성과형 vs B = 관계형 / C = 독립형 vs D = 협력형
+// 3가지 축: AB(성과 vs 관계), CD(독립 vs 협력), EF(적극 vs 안정)
 const questions = [
-  { text:'프로젝트가 주어졌을 때 나는?', options:['혼자 깊이 파고든다 (A)', '팀원들과 브레인스토밍부터 한다 (B)'], dim:'ab' },
-  { text:'업무 중 실수가 생기면?', options:['즉시 원인 분석하고 해결책 찾는다 (A)', '팀에 공유하고 같이 해결한다 (B)'], dim:'ab' },
-  { text:'회의 중 나는?', options:['핵심만 말하고 빠르게 끝내고 싶다 (C)', '모두의 의견을 충분히 들어야 한다 (D)'], dim:'cd' },
-  { text:'야근해야 할 때?', options:['묵묵히 혼자 해결한다 (C)', '팀원들과 나눠서 같이 한다 (D)'], dim:'cd' },
-  { text:'성과 평가 시즌에 나는?', options:['숫자로 증명 가능한 결과를 내놓는다 (A)', '팀워크와 협업 기여도를 강조한다 (B)'], dim:'ab' },
-  { text:'직장 생활에서 가장 중요한 것은?', options:['역량 성장과 커리어 (C)', '좋은 동료들과 즐거운 환경 (D)'], dim:'cd' },
-  { text:'신규 업무를 받으면?', options:['빠르게 시작해서 해보면서 배운다 (A)', '충분히 파악하고 계획 세운 뒤 시작 (B)'], dim:'ab' },
-  { text:'퇴근 후 업무 연락이 오면?', options:['급하면 답한다 (C)', '다음날 출근해서 처리한다 (D)'], dim:'cd' },
+  {text:'프로젝트가 주어졌을 때 나는?', dim:'ab',
+   options:['혼자 깊이 파고들어 완성도를 높인다','팀원들과 아이디어를 나누며 시작한다']},
+  {text:'업무 중 실수가 생기면?', dim:'ab',
+   options:['즉시 원인을 분석하고 혼자 해결한다','팀에 공유하고 함께 해결책을 찾는다']},
+  {text:'성과 평가 시즌에 나는?', dim:'ab',
+   options:['숫자로 증명 가능한 결과를 내놓는다','팀워크와 협업 기여도를 강조한다']},
+  {text:'회의에서 나는?', dim:'cd',
+   options:['핵심만 짧게 말하고 빠르게 끝내고 싶다','모두의 의견을 충분히 듣고 싶다']},
+  {text:'야근이 필요한 상황이라면?', dim:'cd',
+   options:['묵묵히 혼자 처리한다','팀원들과 나눠서 같이 한다']},
+  {text:'직장 생활에서 가장 중요한 것은?', dim:'cd',
+   options:['역량 성장과 커리어 발전','좋은 동료들과 즐거운 환경']},
+  {text:'새로운 업무를 받으면?', dim:'ef',
+   options:['일단 빠르게 시작해서 배운다','충분히 파악하고 계획 세운 뒤 시작한다']},
+  {text:'회식·사내 행사에 대한 내 태도는?', dim:'ef',
+   options:['적극 참여해서 관계를 쌓는다','꼭 필요한 경우만 참석한다']},
+  {text:'회사에서 인정받고 싶은 방식은?', dim:'ab',
+   options:['탁월한 개인 성과로','팀 내 없어서는 안 될 사람으로']},
+  {text:'퇴근 후 업무 연락이 왔을 때?', dim:'ef',
+   options:['급하면 확인하고 처리한다','다음날 출근해서 처리한다']},
+  {text:'업무 스타일을 한 단어로 표현하면?', dim:'cd',
+   options:['전문가 (깊이 파고드는 스타일)','조율자 (사람과 연결하는 스타일)']},
+  {text:'이상적인 직장 생활은?', dim:'ef',
+   options:['도전적인 과제로 성장하는 것','안정적으로 오래 다닐 수 있는 것']},
 ];
 
+// 8가지 유형 (AB + CD + EF 조합)
 const types = {
-  AC: { emoji:'🦅', title:'성과 추구형 독수리', tag:'#성과충 #워커홀릭', desc:'<h3>빠르고 강하게, 결과로 증명한다</h3>목표 지향적이고 추진력이 강합니다. 숫자와 성과로 이야기하는 스타일. 워커홀릭 성향이 있고, 남들보다 빠른 승진을 원합니다. 번아웃 주의가 필요한 유형입니다.' },
-  AD: { emoji:'🌟', title:'협력하는 성과형', tag:'#리더형 #인싸', desc:'<h3>팀을 이끌며 성과를 만든다</h3>성과를 중시하면서도 팀워크를 놓치지 않습니다. 자연스럽게 리더 역할을 맡게 되는 유형. 갈등 조율 능력이 뛰어납니다.' },
-  BC: { emoji:'🎯', title:'전문가형 고독한 장인', tag:'#전문가 #장인정신', desc:'<h3>내 분야만큼은 최고가 되겠다</h3>자기 업무에 깊이 파고드는 전문가형. 팀플보다 독립적인 업무를 선호하며, 해당 분야에서 인정받는 것을 중요하게 생각합니다.' },
-  BD: { emoji:'🤝', title:'화합형 팀플레이어', tag:'#분위기메이커 #팀플', desc:'<h3>사람이 좋아서 일한다</h3>동료와의 관계를 가장 중요하게 생각합니다. 팀 내 분위기를 살리는 역할을 자연스럽게 맡으며, 회사 다니는 이유가 "사람" 인 유형입니다.' },
+  'ACE': {emoji:'🦅', title:'성과 추구형 독수리', tag:'#목표지향 #워커홀릭 #승진충',
+    desc:'<h3>빠르고 강하게, 결과로 증명한다</h3>목표를 향해 달려가는 타입. 숫자와 성과로 이야기하며 개인 역량 향상에 집중합니다. 번아웃 주의가 필요하지만, 가장 빠른 커리어 성장을 만들어냅니다.',
+    traits:['🎯 강점: 추진력, 목표 달성','⚠️ 주의: 팀워크 부족 인식','🏢 잘 맞는 환경: 성과 기반 스타트업','🤝 어울리는 동료: BD유형 (화합형)']},
+  'ACF': {emoji:'🏔️', title:'고독한 전문가형', tag:'#전문가 #조용한고수 #딥워크',
+    desc:'<h3>내 분야만큼은 최고가 되겠다</h3>혼자 깊이 파고드는 스타일. 소음보다 집중을 좋아하며, 자신의 전문 분야에서 묵묵히 최고가 되는 타입. 조직보다 개인 브랜드가 강합니다.',
+    traits:['🎯 강점: 전문성, 집중력','⚠️ 주의: 소통 부족 인식','🏢 잘 맞는 환경: 연구직, 개발, 디자인','🤝 어울리는 동료: BD유형 (외교관형)']},
+  'ADE': {emoji:'🌟', title:'팀을 이끄는 성과형', tag:'#리더형 #인싸 #ESTJ',
+    desc:'<h3>팀을 이끌며 성과를 만든다</h3>성과와 팀워크를 동시에 중시합니다. 자연스럽게 리더 역할을 맡으며, 구성원들을 결과로 이끄는 능력이 탁월합니다. 가장 이상적인 팀장 유형.',
+    traits:['🎯 강점: 리더십, 조율 능력','⚠️ 주의: 완벽주의로 인한 스트레스','🏢 잘 맞는 환경: 중견기업, 팀장 포지션','🤝 어울리는 동료: CF유형 (전문가형)']},
+  'ADF': {emoji:'🎖️', title:'신중한 전략가형', tag:'#전략가 #계획파 #체계적',
+    desc:'<h3>꼼꼼하게 준비하고 확실하게 실행한다</h3>팀과 함께하되, 철저한 계획과 안정적 실행을 중시합니다. 충동적 결정보다는 데이터 기반 판단. 프로젝트 매니저형 인재입니다.',
+    traits:['🎯 강점: 체계, 안정적 실행력','⚠️ 주의: 결단 속도가 느릴 수 있음','🏢 잘 맞는 환경: 대기업, 금융, 공공기관','🤝 어울리는 동료: CE유형 (도전형)']},
+  'BCE': {emoji:'⚡', title:'자유로운 개척자형', tag:'#독립적 #도전형 #부업러',
+    desc:'<h3>내 방식대로, 빠르게 앞으로</h3>협업보다 혼자 일하는 것을 선호하고, 적극적으로 새로운 것을 시도합니다. 조직의 틀을 벗어나고 싶은 욕구가 강하며, 프리랜서나 창업을 꿈꾸는 타입.',
+    traits:['🎯 강점: 독립성, 빠른 실행','⚠️ 주의: 조직 내 고립감','🏢 잘 맞는 환경: 프리랜서, 스타트업','🤝 어울리는 동료: ADF유형 (전략가형)']},
+  'BCF': {emoji:'🐢', title:'안정적인 장인형', tag:'#장인정신 #완성도 #묵묵히',
+    desc:'<h3>천천히, 그러나 확실하게</h3>혼자 일하며 완성도를 높이는 것을 즐깁니다. 서두르지 않고 자신만의 속도로 최고 품질의 결과물을 만들어냅니다. 장기 근속 성향이 강합니다.',
+    traits:['🎯 강점: 꼼꼼함, 장기 전문성','⚠️ 주의: 변화에 대한 저항','🏢 잘 맞는 환경: 연구소, 제조, 공공기관','🤝 어울리는 동료: ADE유형 (리더형)']},
+  'BDE': {emoji:'🤝', title:'화합형 팀플레이어', tag:'#분위기메이커 #팀플 #연결자',
+    desc:'<h3>사람이 좋아서 일한다</h3>동료와의 관계를 가장 중요하게 생각합니다. 팀 분위기를 살리고, 갈등을 중재하며 모두를 연결하는 역할을 자연스럽게 맡습니다. HR·영업·마케팅에 탁월.',
+    traits:['🎯 강점: 공감 능력, 네트워킹','⚠️ 주의: 경계 설정 어려움','🏢 잘 맞는 환경: HR, 영업, CS, 마케팅','🤝 어울리는 동료: ACE유형 (독수리형)']},
+  'BDF': {emoji:'🏡', title:'조화로운 안정 추구형', tag:'#워라밸 #안정지향 #팀의기둥',
+    desc:'<h3>오래, 편하게, 함께</h3>직장 생활에서 안정과 조화를 추구합니다. 급진적 변화보다는 점진적 개선을 선호하며, 팀의 든든한 버팀목 역할을 합니다. 조직 충성도가 높은 편입니다.',
+    traits:['🎯 강점: 안정감, 팀 결속력','⚠️ 주의: 커리어 성장 속도','🏢 잘 맞는 환경: 대기업, 공공기관, 금융','🤝 어울리는 동료: BCE유형 (개척자형)']},
 };
 
-let current=0, answers={ab:0, cd:0};
-function render() {
-  document.getElementById('questions').innerHTML = questions.map((q,i)=>`
+let current=0, scores={ab:0, cd:0, ef:0};
+
+function render(){
+  document.getElementById('questions').innerHTML=questions.map((q,i)=>`
     <div class="question-card ${i===0?'active':''}" id="q${i}">
       <div class="q-num">Q${i+1} / ${questions.length}</div>
       <div class="q-text">${q.text}</div>
       <div class="options">${q.options.map((o,j)=>`<button class="option-btn" onclick="answer(${i},${j},'${q.dim}')">${o}</button>`).join('')}</div>
     </div>`).join('');
 }
-function answer(qi, choice, dim) {
-  if(dim==='ab') answers.ab+=choice===0?1:-1;
-  else answers.cd+=choice===0?1:-1;
+
+function answer(qi, choice, dim){
+  if(dim==='ab') scores.ab += choice===0 ? 1 : -1;
+  else if(dim==='cd') scores.cd += choice===0 ? 1 : -1;
+  else scores.ef += choice===0 ? 1 : -1;
+
+  document.querySelectorAll(`#q${qi} .option-btn`).forEach((b,i)=>{
+    b.style.background = i===choice ? 'rgba(78,205,196,0.2)' : '';
+    b.style.borderColor= i===choice ? 'var(--accent)' : '';
+  });
+
   setTimeout(()=>{
-    if(qi<questions.length-1) {
+    if(qi < questions.length-1){
       document.getElementById(`q${qi}`).classList.remove('active');
       document.getElementById(`q${qi+1}`).classList.add('active');
       current=qi+1;
       document.getElementById('progress').style.width=((current+1)/questions.length*100)+'%';
     } else showResult();
-  },350);
+  }, 380);
 }
-function showResult() {
-  const abType=answers.ab>=0?'A':'B';
-  const cdType=answers.cd>=0?'C':'D';
-  const type=types[abType+cdType]||types.AC;
+
+function showResult(){
+  const a = scores.ab >= 0 ? 'A' : 'B';
+  const c = scores.cd >= 0 ? 'C' : 'D';
+  const e = scores.ef >= 0 ? 'E' : 'F';
+  const typeKey = a+c+e;
+  const type = types[typeKey] || types['ADE'];
+
   document.getElementById('questions').style.display='none';
   document.getElementById('progress').style.width='100%';
-  document.getElementById('r-emoji').textContent=type.emoji;
-  document.getElementById('r-title').textContent=type.title;
-  document.getElementById('r-type').textContent=type.tag;
-  document.getElementById('r-desc').innerHTML=type.desc;
+
+  document.getElementById('r-emoji').textContent = type.emoji;
+  document.getElementById('r-title').textContent = type.title;
+  document.getElementById('r-type').textContent  = type.tag;
+  document.getElementById('r-desc').innerHTML    = type.desc;
+
+  // 성향 바
+  const abQ = questions.filter(q=>q.dim==='ab').length;
+  const cdQ = questions.filter(q=>q.dim==='cd').length;
+  const efQ = questions.filter(q=>q.dim==='ef').length;
+  const abPct = Math.round((scores.ab+abQ)/(abQ*2)*100);
+  const cdPct = Math.round((scores.cd+cdQ)/(cdQ*2)*100);
+  const efPct = Math.round((scores.ef+efQ)/(efQ*2)*100);
+
+  document.getElementById('dimBars').innerHTML=`
+    <div style="font-size:0.82rem;color:var(--text-muted);margin-bottom:8px;font-weight:600">📊 성향 분석</div>
+    ${bar('성과 지향', '관계 지향', abPct, '#FF6B35')}
+    ${bar('독립 지향', '협력 지향', cdPct, '#4ECDC4')}
+    ${bar('적극 지향', '안정 지향', efPct, '#FFD700')}`;
+
+  document.getElementById('r-traits').innerHTML=type.traits.map(t=>`
+    <div class="trait-box"><div class="tval">${t}</div></div>`).join('');
+
   document.getElementById('resultWrap').classList.add('show');
 }
-function restart() {
-  current=0;answers={ab:0,cd:0};
+
+function bar(left, right, pct, color){
+  return `<div class="dim-row">
+    <span class="d-lbl">${left}</span>
+    <div class="d-track"><div class="d-fill" style="width:${pct}%;background:${color}"></div></div>
+    <span class="d-lbl" style="text-align:left">${right}</span>
+  </div>`;
+}
+
+function restart(){
+  current=0; scores={ab:0,cd:0,ef:0};
   document.getElementById('questions').style.display='block';
   document.getElementById('resultWrap').classList.remove('show');
   document.getElementById('progress').style.width='0%';
   render();
 }
-function shareResult() {
+
+function shareResult(){
   const t=document.getElementById('r-title').textContent;
-  const text=`나의 직장인 유형: ${t}\n직장인닷컴에서 테스트해보세요!`;
+  const tag=document.getElementById('r-type').textContent;
+  const text=`나의 직장인 유형: ${t}\n${tag}\n직장인닷컴에서 테스트해보세요!`;
   if(navigator.share) navigator.share({title:'직장인 유형 테스트',text,url:location.href});
-  else navigator.clipboard.writeText(text).then(()=>alert('복사되었습니다!'));
+  else navigator.clipboard.writeText(text).then(()=>alert('결과가 복사되었습니다!'));
 }
+
 render();
 </script>
 </body>

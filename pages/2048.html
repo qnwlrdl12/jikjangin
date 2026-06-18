@@ -7,33 +7,48 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../css/style.css">
   <style>
-    .game-wrap { display:flex; flex-direction:column; align-items:center; gap:16px; padding:24px 16px; }
-    .info-bar { display:flex; gap:16px; }
-    .info-box { background:var(--card); border-radius:10px; padding:10px 20px; text-align:center; min-width:90px; }
-    .info-box .label { font-size:0.75rem; color:var(--text-muted); }
-    .info-box .val { font-size:1.4rem; font-weight:900; color:var(--white); }
-    #board { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; background:#1a1a3e; padding:12px; border-radius:16px; width:min(380px,92vw); }
-    .cell {
-      aspect-ratio:1; border-radius:10px; display:flex; align-items:center; justify-content:center;
-      font-weight:900; font-size:clamp(1rem,4vw,1.5rem); transition:all 0.1s;
-      background: rgba(255,255,255,0.06);
+    .game-wrap{display:flex;flex-direction:column;align-items:center;gap:14px;padding:24px 16px}
+    .score-bar{display:flex;gap:12px}
+    .sc{background:var(--card);border-radius:10px;padding:10px 20px;text-align:center;min-width:90px}
+    .sc .lbl{font-size:0.72rem;color:var(--text-muted)}
+    .sc .val{font-size:1.4rem;font-weight:900;color:var(--white)}
+    .sc.best .val{color:var(--secondary)}
+    .btn-ctrl{background:var(--card);border:1px solid rgba(255,255,255,0.1);color:var(--text);padding:9px 20px;border-radius:8px;cursor:pointer;font-size:0.88rem;font-weight:600;transition:all 0.2s}
+    .btn-ctrl:hover{background:var(--primary);color:var(--white)}
+    #board{
+      display:grid; grid-template-columns:repeat(4,1fr); gap:10px;
+      background:#1a1a3e; padding:12px; border-radius:16px;
+      width:min(380px,94vw); position:relative;
     }
-    .cell[data-val="2"]    { background:#eee4da; color:#776e65; }
-    .cell[data-val="4"]    { background:#ede0c8; color:#776e65; }
-    .cell[data-val="8"]    { background:#f2b179; color:#fff; }
-    .cell[data-val="16"]   { background:#f59563; color:#fff; }
-    .cell[data-val="32"]   { background:#f67c5f; color:#fff; }
-    .cell[data-val="64"]   { background:#f65e3b; color:#fff; }
-    .cell[data-val="128"]  { background:#edcf72; color:#fff; font-size:clamp(0.85rem,3.5vw,1.2rem); }
-    .cell[data-val="256"]  { background:#edcc61; color:#fff; font-size:clamp(0.85rem,3.5vw,1.2rem); }
-    .cell[data-val="512"]  { background:#edc850; color:#fff; font-size:clamp(0.85rem,3.5vw,1.2rem); }
-    .cell[data-val="1024"] { background:#edc53f; color:#fff; font-size:clamp(0.7rem,3vw,1rem); }
-    .cell[data-val="2048"] { background:#FFD700; color:#333; font-size:clamp(0.7rem,3vw,1rem); box-shadow:0 0 20px #FFD700; }
-    .overlay2 { position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;border-radius:16px;backdrop-filter:blur(4px); }
-    .board-wrap { position:relative; }
-    .dpad { display:grid; grid-template-columns:repeat(3,52px); grid-template-rows:repeat(2,52px); gap:4px; }
-    .dpad-btn { background:var(--card); border:1px solid rgba(255,255,255,0.1); border-radius:10px; color:var(--white); font-size:1.4rem; cursor:pointer; display:flex; align-items:center; justify-content:center; -webkit-tap-highlight-color:transparent; }
-    .dpad-btn:active { background:var(--primary); }
+    .cell{
+      aspect-ratio:1; border-radius:10px;
+      display:flex; align-items:center; justify-content:center;
+      font-weight:900; font-size:clamp(1rem,4vw,1.5rem);
+      background:rgba(255,255,255,0.05);
+      transition:background 0.08s;
+    }
+    @keyframes appear { from{transform:scale(0)} to{transform:scale(1)} }
+    @keyframes merge  { 0%{transform:scale(1)} 50%{transform:scale(1.18)} 100%{transform:scale(1)} }
+    .new-cell  { animation:appear 0.15s ease; }
+    .merge-cell{ animation:merge  0.18s ease; }
+
+    .cell[data-v="2"]    {background:#eee4da;color:#776e65}
+    .cell[data-v="4"]    {background:#ede0c8;color:#776e65}
+    .cell[data-v="8"]    {background:#f2b179;color:#fff}
+    .cell[data-v="16"]   {background:#f59563;color:#fff}
+    .cell[data-v="32"]   {background:#f67c5f;color:#fff}
+    .cell[data-v="64"]   {background:#f65e3b;color:#fff}
+    .cell[data-v="128"]  {background:#edcf72;color:#fff;font-size:clamp(0.85rem,3.5vw,1.2rem)}
+    .cell[data-v="256"]  {background:#edcc61;color:#fff;font-size:clamp(0.85rem,3.5vw,1.2rem)}
+    .cell[data-v="512"]  {background:#edc850;color:#fff;font-size:clamp(0.85rem,3.5vw,1.2rem)}
+    .cell[data-v="1024"] {background:#edc53f;color:#fff;font-size:clamp(0.7rem,3vw,1rem)}
+    .cell[data-v="2048"] {background:#FFD700;color:#333;font-size:clamp(0.7rem,3vw,1rem);box-shadow:0 0 24px #FFD700}
+    .cell[data-v="4096"] {background:#FF6B35;color:#fff;font-size:clamp(0.65rem,2.8vw,0.95rem)}
+    .ov2{position:absolute;inset:0;background:rgba(0,0,0,0.72);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;border-radius:16px;backdrop-filter:blur(5px)}
+    .ov2 h2{color:var(--white);font-size:1.5rem}
+    .dpad{display:grid;grid-template-columns:repeat(3,52px);gap:4px}
+    .db{background:var(--card);border:1px solid rgba(255,255,255,0.1);border-radius:10px;width:52px;height:52px;color:var(--white);font-size:1.3rem;cursor:pointer;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;transition:background 0.12s}
+    .db:active{background:var(--primary)}
   </style>
 </head>
 <body>
@@ -50,36 +65,26 @@
 <div class="page-header">
   <div class="breadcrumb"><a href="../index.html">홈</a> › 월급루팡 게임</div>
   <h1>🔢 2048</h1>
-  <p>같은 숫자를 합쳐 2048을 만들어라. 방향키 또는 스와이프로 조작.</p>
+  <p>같은 숫자를 합쳐 2048을 만들어라 — 방향키 또는 스와이프</p>
 </div>
 <main>
   <div class="ad-banner">광고 영역 (Google AdSense)</div>
   <div class="game-wrap">
-    <div class="info-bar">
-      <div class="info-box"><div class="label">점수</div><div class="val" id="score">0</div></div>
-      <div class="info-box"><div class="label">최고</div><div class="val" id="best">0</div></div>
+    <div class="score-bar">
+      <div class="sc"><div class="lbl">점수</div><div class="val" id="score">0</div></div>
+      <div class="sc best"><div class="lbl">최고 기록</div><div class="val" id="best">0</div></div>
     </div>
-    <div style="display:flex;gap:8px">
-      <button class="btn-game" style="background:var(--card);border:1px solid rgba(255,255,255,0.1);color:var(--text);padding:8px 20px;border-radius:8px;cursor:pointer;font-weight:700" onclick="newGame()">🔄 새 게임</button>
-    </div>
-    <div class="board-wrap">
-      <div id="board"></div>
-      <div class="overlay2" id="overlay2" style="display:none">
-        <div style="font-size:2.5rem" id="ovEmoji"></div>
-        <h2 id="ovTitle" style="color:var(--white)"></h2>
-        <p id="ovSub" style="color:var(--text-muted)"></p>
-        <button class="btn-primary" style="width:140px" onclick="newGame()">다시하기</button>
-      </div>
-    </div>
+    <button class="btn-ctrl" onclick="newGame()">🔄 새 게임</button>
+    <div id="board"></div>
     <div class="dpad">
       <div></div>
-      <button class="dpad-btn" ontouchstart="e=>{e.preventDefault();move(0)}" onclick="move(0)">▲</button>
+      <button class="db" ontouchstart="e=>{e.preventDefault();move(0)}" onclick="move(0)">▲</button>
       <div></div>
-      <button class="dpad-btn" ontouchstart="e=>{e.preventDefault();move(3)}" onclick="move(3)">◀</button>
+      <button class="db" ontouchstart="e=>{e.preventDefault();move(3)}" onclick="move(3)">◀</button>
       <div></div>
-      <button class="dpad-btn" ontouchstart="e=>{e.preventDefault();move(1)}" onclick="move(1)">▶</button>
+      <button class="db" ontouchstart="e=>{e.preventDefault();move(1)}" onclick="move(1)">▶</button>
       <div></div>
-      <button class="dpad-btn" ontouchstart="e=>{e.preventDefault();move(2)}" onclick="move(2)">▼</button>
+      <button class="db" ontouchstart="e=>{e.preventDefault();move(2)}" onclick="move(2)">▼</button>
       <div></div>
     </div>
   </div>
@@ -87,93 +92,106 @@
 </main>
 <footer><p><strong>직장인닷컴</strong></p></footer>
 <script>
-let grid, score, best=0, won=false;
+let grid, score, won2048=false;
+let best = parseInt(localStorage.getItem('2048-best')||'0');
+document.getElementById('best').textContent = best;
 
-function newGame() {
+function newGame(){
   grid=Array.from({length:4},()=>Array(4).fill(0));
-  score=0; won=false;
+  score=0; won2048=false;
+  removeOverlay();
   addRandom(); addRandom();
-  document.getElementById('overlay2').style.display='none';
   render();
 }
 
-function addRandom() {
+function addRandom(){
   const empty=[];
-  grid.forEach((row,r)=>row.forEach((v,c)=>{if(!v)empty.push([r,c]);}));
+  grid.forEach((r,ri)=>r.forEach((v,ci)=>{if(!v)empty.push([ri,ci]);}));
   if(!empty.length) return;
   const [r,c]=empty[Math.floor(Math.random()*empty.length)];
-  grid[r][c]=Math.random()<0.9?2:4;
+  grid[r][c]=Math.random()<0.85?2:4;
 }
 
-function slide(row) {
-  let arr=row.filter(v=>v), gained=0;
-  for(let i=0;i<arr.length-1;i++) {
-    if(arr[i]===arr[i+1]){arr[i]*=2;gained+=arr[i];arr.splice(i+1,1);}
+function slide(row){
+  let arr=row.filter(v=>v), gained=0, merged=[];
+  for(let i=0;i<arr.length-1;i++){
+    if(arr[i]===arr[i+1]){ arr[i]*=2; gained+=arr[i]; merged.push(i); arr.splice(i+1,1); }
   }
   while(arr.length<4) arr.push(0);
-  return {arr,gained};
+  return {arr,gained,merged};
 }
 
-function move(dir) {
-  let moved=false, totalGained=0;
-  const orig=grid.map(r=>[...r]);
+function move(dir){ // 0=up,1=right,2=down,3=left
+  const prev=grid.map(r=>[...r]);
+  let totalGained=0;
 
-  if(dir===0||dir===2) { // up/down
-    for(let c=0;c<4;c++) {
-      let col=grid.map(r=>r[c]); if(dir===2) col.reverse();
-      const {arr,gained}=slide(col); totalGained+=gained;
-      if(dir===2) arr.reverse();
-      grid.forEach((r,ri)=>{r[c]=arr[ri];});
+  if(dir===0||dir===2){
+    for(let c=0;c<4;c++){
+      let col=grid.map(r=>r[c]); if(dir===2)col.reverse();
+      const{arr,gained}=slide(col); totalGained+=gained;
+      if(dir===2)arr.reverse();
+      grid.forEach((r,ri)=>r[c]=arr[ri]);
     }
-  } else { // left/right
+  } else {
     grid.forEach((row,ri)=>{
-      let r=[...row]; if(dir===1) r.reverse();
-      const {arr,gained}=slide(r); totalGained+=gained;
-      if(dir===1) arr.reverse();
+      let r=[...row]; if(dir===1)r.reverse();
+      const{arr,gained}=slide(r); totalGained+=gained;
+      if(dir===1)arr.reverse();
       grid[ri]=arr;
     });
   }
 
-  grid.forEach((row,r)=>row.forEach((v,c)=>{if(v!==orig[r][c])moved=true;}));
-  if(!moved) return;
+  const changed=grid.some((r,ri)=>r.some((v,ci)=>v!==prev[ri][ci]));
+  if(!changed) return;
   score+=totalGained;
-  if(score>best) best=score;
+  if(score>best){ best=score; localStorage.setItem('2048-best',best); }
+  document.getElementById('score').textContent=score.toLocaleString();
+  document.getElementById('best').textContent=best.toLocaleString();
   addRandom();
-  render();
+  render(prev);
   checkEnd();
 }
 
-function checkEnd() {
+function render(prev){
+  const bd=document.getElementById('board');
+  bd.innerHTML=grid.flatMap((row,ri)=>row.map((v,ci)=>{
+    const old=prev?prev[ri][ci]:undefined;
+    const isNew = old===0 && v>0;
+    const isMerge = old && old!==v && v===old*2;
+    const cls=isNew?'new-cell':isMerge?'merge-cell':'';
+    return `<div class="cell ${cls}" data-v="${v}">${v||''}</div>`;
+  })).join('');
+}
+
+function checkEnd(){
+  const has2048=grid.some(r=>r.some(v=>v>=2048));
+  if(has2048&&!won2048){
+    won2048=true;
+    showOverlay('🎉','2048 달성!',`점수: ${score.toLocaleString()}`);
+    return;
+  }
   const hasEmpty=grid.some(r=>r.some(v=>!v));
-  const has2048=grid.some(r=>r.some(v=>v===2048));
-  if(has2048&&!won) { won=true; showOverlay('🎉','2048 달성!','축하합니다! 월급 두 배도 가능할 것 같은데요?'); return; }
-  if(!hasEmpty) {
+  if(!hasEmpty){
     const canMove=grid.some((r,ri)=>r.some((v,ci)=>(ci<3&&v===grid[ri][ci+1])||(ri<3&&v===grid[ri+1][ci])));
-    if(!canMove) showOverlay('😵','게임 오버',`최종 점수: ${score}점`);
+    if(!canMove) showOverlay('😵','게임 오버',`최종 점수: ${score.toLocaleString()}`);
   }
 }
 
-function showOverlay(emoji,title,sub) {
-  document.getElementById('ovEmoji').textContent=emoji;
-  document.getElementById('ovTitle').textContent=title;
-  document.getElementById('ovSub').textContent=sub;
-  document.getElementById('overlay2').style.display='flex';
+function showOverlay(emoji,title,sub){
+  removeOverlay();
+  const ov=document.createElement('div'); ov.className='ov2'; ov.id='ov2';
+  ov.innerHTML=`<div style="font-size:2.5rem">${emoji}</div><h2>${title}</h2><p style="color:var(--text-muted)">${sub}</p><button class="btn-primary" style="width:140px" onclick="newGame()">다시하기</button>`;
+  document.getElementById('board').appendChild(ov);
 }
+function removeOverlay(){ const o=document.getElementById('ov2'); if(o)o.remove(); }
 
-function render() {
-  document.getElementById('score').textContent=score.toLocaleString();
-  document.getElementById('best').textContent=best.toLocaleString();
-  document.getElementById('board').innerHTML=grid.flatMap(row=>row).map(v=>`<div class="cell" data-val="${v}">${v||''}</div>`).join('');
-}
-
-// Touch swipe
-let tx,ty;
-document.getElementById('board').addEventListener('touchstart',e=>{tx=e.touches[0].clientX;ty=e.touches[0].clientY;},{passive:true});
+// 스와이프
+let sx,sy;
+document.getElementById('board').addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY;},{passive:true});
 document.getElementById('board').addEventListener('touchend',e=>{
-  const dx=e.changedTouches[0].clientX-tx, dy=e.changedTouches[0].clientY-ty;
+  const dx=e.changedTouches[0].clientX-sx, dy=e.changedTouches[0].clientY-sy;
   if(Math.abs(dx)<20&&Math.abs(dy)<20) return;
-  if(Math.abs(dx)>Math.abs(dy)) move(dx<0?3:1);
-  else move(dy<0?0:2);
+  if(Math.abs(dx)>Math.abs(dy)) move(dx<0?3:1); else move(dy<0?0:2);
 },{passive:true});
 
 document.addEventListener('keydown',e=>{

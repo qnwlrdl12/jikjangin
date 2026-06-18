@@ -3,10 +3,32 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>연차수당 계산기 - 직장인닷컴</title>
-  <meta name="description" content="남은 연차를 돈으로 받으면 얼마인지 계산합니다.">
+  <title>연차 계산기 2026 - 직장인닷컴</title>
+  <meta name="description" content="2026년 기준 연차 발생일수 자동계산 + 연차수당 계산기. 근로기준법 제60조 기준.">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .tab-row{display:flex;gap:8px;margin-bottom:20px}
+    .tab-b{flex:1;padding:10px;background:var(--card);border:1px solid rgba(255,255,255,0.1);color:var(--text-muted);border-radius:10px;cursor:pointer;font-size:0.9rem;font-weight:700;transition:all 0.2s}
+    .tab-b.on{background:var(--primary);color:var(--white);border-color:var(--primary)}
+    .tab-panel{display:none}.tab-panel.on{display:block}
+    .info-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);font-size:0.9rem}
+    .info-row:last-child{border:none}
+    .info-row .lbl{color:var(--text-muted)}
+    .info-row .val{font-weight:700;color:var(--white)}
+    .leave-table{width:100%;border-collapse:collapse;font-size:0.85rem;margin-top:8px}
+    .leave-table th{background:rgba(255,255,255,0.05);padding:8px;text-align:center;color:var(--text-muted)}
+    .leave-table td{padding:8px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--text)}
+    .leave-table tr.current-yr td{background:rgba(255,107,53,0.08);color:var(--secondary);font-weight:700}
+    .big-box{background:linear-gradient(135deg,rgba(255,107,53,0.12),rgba(78,205,196,0.08));border:1px solid rgba(255,107,53,0.3);border-radius:14px;padding:20px;text-align:center;margin-top:14px}
+    .big-box .lbl{font-size:0.85rem;color:var(--text-muted);margin-bottom:6px}
+    .big-box .num{font-size:2.2rem;font-weight:900;color:var(--secondary)}
+    .days-bar{display:flex;gap:6px;align-items:center;margin:10px 0}
+    .days-bar .track{flex:1;background:rgba(255,255,255,0.07);border-radius:99px;height:12px;overflow:hidden}
+    .days-bar .fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--accent),var(--primary));transition:width 0.5s}
+    .tip-box{background:rgba(78,205,196,0.08);border:1px solid rgba(78,205,196,0.2);border-radius:10px;padding:12px 16px;font-size:0.82rem;color:var(--accent);margin-top:8px;line-height:1.7}
+    @media(max-width:480px){.leave-table{font-size:0.75rem}}
+  </style>
 </head>
 <body>
 <nav>
@@ -21,52 +43,185 @@
 </nav>
 <div class="page-header">
   <div class="breadcrumb"><a href="../index.html">홈</a> › 직장인 계산기</div>
-  <h1>🏖️ 연차수당 계산기</h1>
-  <p>남은 연차를 수당으로 지급받을 때 금액을 계산합니다</p>
+  <h1>🏖️ 연차 계산기</h1>
+  <p>연차 발생일수 조회 + 연차수당 계산 (근로기준법 제60조)</p>
 </div>
 <main>
   <div class="ad-banner">광고 영역 (Google AdSense)</div>
   <div class="tool-card">
-    <label>1일 통상임금 (원)</label>
-    <input type="number" id="dailyWage" placeholder="예: 100000 (월급 ÷ 209시간 × 8시간)">
-    <label>남은 연차 일수</label>
-    <input type="number" id="leaveDays" placeholder="예: 5">
-    <label>월 기본급 (원, 자동계산용)</label>
-    <input type="number" id="baseSalary" placeholder="예: 3000000 (입력 시 1일 임금 자동계산)" oninput="autoCalcDaily()">
-    <button class="btn-primary" onclick="calculate()">연차수당 계산</button>
-    <div class="result-box" id="result">
-      <div class="result-row"><span class="label">1일 통상임금</span><span class="value" id="r-daily"></span></div>
-      <div class="result-row"><span class="label">남은 연차</span><span class="value" id="r-days"></span></div>
-      <div class="result-row highlight"><span class="label">🏖️ 연차수당 합계</span><span class="value" id="r-total"></span></div>
+    <div class="tab-row">
+      <button class="tab-b on" id="tb-earn" onclick="switchTab('earn')">연차 발생일수</button>
+      <button class="tab-b"   id="tb-pay"  onclick="switchTab('pay')">연차수당 계산</button>
+    </div>
+
+    <!-- 연차 발생일수 탭 -->
+    <div class="tab-panel on" id="tp-earn">
+      <label>입사일</label>
+      <input type="date" id="joinDate" oninput="calcEarn()">
+      <label>기준일 (오늘 또는 특정 날짜)</label>
+      <input type="date" id="baseDate" oninput="calcEarn()">
+      <label>연간 출근율 (%)</label>
+      <input type="number" id="attendance" value="100" min="0" max="100" placeholder="100 (개근 시 100)" oninput="calcEarn()">
+      <div class="tip-box">💡 출근율 80% 이상 시 연차 전액 발생. 미만이면 출근일수에 비례 발생.</div>
+
+      <div class="result-box" id="result-earn">
+        <div class="info-row"><span class="lbl">현재 근속연수</span><span class="val" id="e-tenure">-</span></div>
+        <div class="info-row"><span class="lbl">발생 연차 (올해)</span><span class="val" id="e-total">-</span></div>
+        <div class="info-row"><span class="lbl">사용 가능 잔여 연차</span><span class="val" id="e-remain" style="color:var(--accent)">-</span></div>
+
+        <div class="big-box" style="margin-top:14px">
+          <div class="lbl">📋 근속별 연차 발생 현황</div>
+        </div>
+        <div style="overflow-x:auto;margin-top:12px">
+          <table class="leave-table">
+            <thead><tr><th>근속연수</th><th>연차 일수</th><th>누적 최대</th></tr></thead>
+            <tbody id="earnTable"></tbody>
+          </table>
+        </div>
+        <p style="font-size:0.78rem;color:var(--text-muted);margin-top:10px">
+          ※ 1년 미만: 매월 개근 시 1일씩 총 11일<br>
+          ※ 1~2년: 15일 / 3년차부터 2년마다 1일 추가 (최대 25일)
+        </p>
+      </div>
+    </div>
+
+    <!-- 연차수당 탭 -->
+    <div class="tab-panel" id="tp-pay">
+      <label>월 기본급 (만원)</label>
+      <input type="number" id="baseSalary" placeholder="예: 300" oninput="autoDaily()">
+      <label>1일 통상임금 (원) — 월급 입력 시 자동 계산</label>
+      <input type="number" id="dailyWage" placeholder="= 월기본급 ÷ 209 × 8">
+      <label>미사용 연차 일수</label>
+      <input type="number" id="leaveDays" placeholder="예: 5">
+      <div class="tip-box">
+        💡 1일 통상임금 = 월 기본급 ÷ <strong>209시간</strong> × 8시간<br>
+        (주 5일, 법정근로 209시간 = 주 40시간 × 4.345주 + 주휴시간)
+      </div>
+      <button class="btn-primary" onclick="calcPay()">연차수당 계산</button>
+      <div class="result-box" id="result-pay">
+        <div class="info-row"><span class="lbl">월 기본급</span><span class="val" id="p-base">-</span></div>
+        <div class="info-row"><span class="lbl">1일 통상임금</span><span class="val" id="p-daily">-</span></div>
+        <div class="info-row"><span class="lbl">미사용 연차</span><span class="val" id="p-days">-</span></div>
+        <div class="big-box">
+          <div class="lbl">🏖️ 연차수당 합계</div>
+          <div class="num" id="p-total">-</div>
+          <div style="font-size:0.78rem;color:var(--text-muted);margin-top:6px">세전 금액 (소득세·4대보험 공제 후 수령)</div>
+        </div>
+
+        <div id="multiTable" style="margin-top:16px"></div>
+      </div>
     </div>
   </div>
-  <div class="tool-card" style="margin-top:24px;max-width:600px">
-    <p style="color:var(--text-muted);font-size:0.85rem;line-height:1.7">
-      ※ 1일 통상임금 = 월 기본급 ÷ 209시간 × 8시간<br>
-      ※ 연차수당 = 1일 통상임금 × 미사용 연차 일수<br>
-      ※ 퇴직 시 또는 연차 이월 불가 시 수당으로 지급됩니다
-    </p>
+
+  <div class="tool-card" style="margin-top:24px;max-width:640px">
+    <div style="font-weight:700;color:var(--white);margin-bottom:12px">📋 연차 관련 핵심 법률</div>
+    <div class="info-row"><span class="lbl">연차 사용 자유</span><span class="val" style="font-size:0.85rem">사유 설명 의무 없음 (근로기준법 §60)</span></div>
+    <div class="info-row"><span class="lbl">연차 소멸 시효</span><span class="val" style="font-size:0.85rem">발생 후 1년 (촉진제도 없으면 수당 지급)</span></div>
+    <div class="info-row"><span class="lbl">연차수당 지급 시기</span><span class="val" style="font-size:0.85rem">퇴직 시 또는 다음 연도 지급일</span></div>
+    <div class="info-row"><span class="lbl">5인 미만 사업장</span><span class="val" style="font-size:0.85rem">연차휴가 적용 제외 (주의)</span></div>
   </div>
+
+  <div class="ad-banner" style="margin-top:24px">광고 영역 (Google AdSense)</div>
 </main>
-<footer>
-  <p><strong>직장인닷컴</strong> — 직장인을 위한 올인원 도구 사이트</p>
-  <p style="margin-top:8px">모든 계산은 참고용이며 법적 효력이 없습니다.</p>
-</footer>
+<footer><p><strong>직장인닷컴</strong> — 모든 계산은 참고용이며 법적 효력이 없습니다.</p></footer>
 <script>
-function won(n) { return Math.round(n).toLocaleString('ko-KR') + '원'; }
-function autoCalcDaily() {
-  const base = parseFloat(document.getElementById('baseSalary').value);
-  if (base > 0) document.getElementById('dailyWage').value = Math.round(base / 209 * 8);
+function won(n){ return Math.round(n).toLocaleString('ko-KR')+'원'; }
+
+function switchTab(t){
+  ['earn','pay'].forEach(k=>{
+    document.getElementById('tb-'+k).classList.toggle('on',k===t);
+    document.getElementById('tp-'+k).classList.toggle('on',k===t);
+  });
 }
-function calculate() {
+
+// 연차 발생일수
+const today = new Date();
+document.getElementById('joinDate').valueAsDate = new Date(today.getFullYear()-2, today.getMonth(), today.getDate());
+document.getElementById('baseDate').valueAsDate = today;
+
+function getAnnualLeave(yearsWorked){
+  if(yearsWorked < 1) return 0;
+  if(yearsWorked === 1) return 15;
+  // 3년차부터 2년마다 1일 추가: 15 + floor((yearsWorked-1)/2)
+  return Math.min(25, 15 + Math.floor((yearsWorked-1)/2));
+}
+
+function calcEarn(){
+  const join = document.getElementById('joinDate').value;
+  const base = document.getElementById('baseDate').value;
+  const att  = parseFloat(document.getElementById('attendance').value)||100;
+  if(!join||!base) return;
+
+  const jd = new Date(join), bd = new Date(base);
+  const diffMs = bd - jd;
+  if(diffMs < 0) return;
+
+  const totalDays = Math.floor(diffMs/86400000);
+  const years  = Math.floor(totalDays/365);
+  const months = Math.floor((totalDays%365)/30);
+
+  let tenureStr = years+'년';
+  if(months>0) tenureStr += ' '+months+'개월';
+
+  let todayLeave;
+  if(years < 1){
+    // 1년 미만: 매월 개근 시 1일 (최대 11일)
+    todayLeave = Math.min(11, months);
+  } else {
+    todayLeave = getAnnualLeave(years);
+  }
+  if(att < 80) todayLeave = Math.round(todayLeave * att/100);
+
+  document.getElementById('e-tenure').textContent  = tenureStr;
+  document.getElementById('e-total').textContent   = todayLeave + '일';
+  document.getElementById('e-remain').textContent  = todayLeave + '일 (사용 내역 별도 차감 필요)';
+
+  // 연도별 테이블 (1~15년)
+  const tbl = document.getElementById('earnTable');
+  let rows = '';
+  let cumul = 11; // 1년 미만 최대
+  for(let y=1;y<=15;y++){
+    const days=getAnnualLeave(y);
+    if(y===1) cumul=11+days; else cumul+=days; // 첫 해 포함 누적은 단순 참고
+    const isCurr = y===years;
+    rows+=`<tr class="${isCurr?'current-yr':''}"><td>${y}년차${isCurr?' ★':''}</td><td>${days}일</td><td style="color:var(--text-muted)">${days}일/년 한도</td></tr>`;
+  }
+  tbl.innerHTML=rows;
+  document.getElementById('result-earn').classList.add('show');
+}
+
+// 연차수당
+function autoDaily(){
+  const base = parseFloat(document.getElementById('baseSalary').value)*10000;
+  if(base>0) document.getElementById('dailyWage').value = Math.round(base/209*8);
+}
+
+function calcPay(){
+  const base  = parseFloat(document.getElementById('baseSalary').value)*10000||0;
   const daily = parseFloat(document.getElementById('dailyWage').value);
   const days  = parseFloat(document.getElementById('leaveDays').value);
-  if (!daily || !days) { alert('1일 임금과 연차 일수를 입력하세요.'); return; }
-  document.getElementById('r-daily').textContent = won(daily);
-  document.getElementById('r-days').textContent = days + '일';
-  document.getElementById('r-total').textContent = won(daily * days);
-  document.getElementById('result').classList.add('show');
+  if(!daily||!days){ alert('1일 통상임금과 연차 일수를 입력하세요.'); return; }
+
+  document.getElementById('p-base').textContent  = base>0 ? won(base)+'/월' : '-';
+  document.getElementById('p-daily').textContent = won(daily);
+  document.getElementById('p-days').textContent  = days+'일';
+  document.getElementById('p-total').textContent = won(daily*days);
+
+  // 일수별 상세
+  let rows='<div style="font-size:0.82rem;color:var(--text-muted);margin-bottom:6px;font-weight:600">잔여 일수별 수당 참고표</div>';
+  rows+='<table class="leave-table"><thead><tr><th>연차 일수</th><th>수당 금액</th></tr></thead><tbody>';
+  [1,3,5,7,10,15,20,25].forEach(d=>{
+    const isHere=d===days;
+    rows+=`<tr style="${isHere?'background:rgba(255,107,53,0.1);font-weight:700':''}">`+
+      `<td>${d}일${isHere?' ★':''}</td>`+
+      `<td style="${isHere?'color:var(--secondary)':''}">${won(daily*d)}</td></tr>`;
+  });
+  rows+='</tbody></table>';
+  document.getElementById('multiTable').innerHTML=rows;
+  document.getElementById('result-pay').classList.add('show');
 }
+
+calcEarn();
 </script>
 </body>
 </html>
