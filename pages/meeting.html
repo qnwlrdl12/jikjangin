@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>회의 비용 타이머 - 직장인닷컴</title>
+  <meta name="description" content="회의에 낭비되는 비용을 실시간으로 계산하는 타이머. 참석 인원과 평균 연봉을 입력하면 회의 비용이 초 단위로 올라갑니다.">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .timer-card {
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: var(--radius);
+      padding: 32px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .input-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .input-group label {
+      display: block;
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .input-group input {
+      width: 100%;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      padding: 12px 16px;
+      color: var(--white);
+      font-size: 1rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .input-group input:focus { border-color: var(--primary); }
+
+    .timer-display {
+      text-align: center;
+      margin: 28px 0 20px;
+      padding: 28px 20px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.07);
+    }
+    .elapsed-time {
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 2.8rem;
+      font-weight: 700;
+      color: var(--white);
+      letter-spacing: 4px;
+      display: block;
+      margin-bottom: 6px;
+    }
+    .elapsed-label {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .cost-display {
+      margin-top: 20px;
+    }
+    .cost-value {
+      font-size: 3.4rem;
+      font-weight: 900;
+      color: var(--secondary);
+      display: block;
+      transition: color 0.4s;
+      line-height: 1.1;
+    }
+    .cost-value.warn { color: #ff9f43; }
+    .cost-value.danger { color: #ee5a24; }
+    .cost-label {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+    @keyframes pulse {
+      0%,100% { opacity:1; }
+      50% { opacity:0.7; }
+    }
+    .cost-value.running { animation: pulse 1.5s ease-in-out infinite; }
+
+    .rate-row {
+      display: flex;
+      justify-content: space-around;
+      margin-top: 16px;
+      gap: 12px;
+    }
+    .rate-item {
+      text-align: center;
+      background: rgba(255,255,255,0.04);
+      border-radius: 10px;
+      padding: 12px 16px;
+      flex: 1;
+    }
+    .rate-item .r-val { font-size: 1.1rem; font-weight: 800; color: var(--accent); }
+    .rate-item .r-lbl { font-size: 0.74rem; color: var(--text-muted); margin-top: 3px; }
+
+    .btn-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+      margin-top: 20px;
+    }
+    .btn-start  { background: #27ae60; color:#fff; border:none; border-radius:10px; padding:14px; font-size:1rem; font-weight:700; cursor:pointer; transition:opacity 0.2s; }
+    .btn-pause  { background: #f39c12; color:#fff; border:none; border-radius:10px; padding:14px; font-size:1rem; font-weight:700; cursor:pointer; transition:opacity 0.2s; }
+    .btn-reset  { background: #636e72; color:#fff; border:none; border-radius:10px; padding:14px; font-size:1rem; font-weight:700; cursor:pointer; transition:opacity 0.2s; }
+    .btn-start:hover, .btn-pause:hover, .btn-reset:hover { opacity:0.82; }
+    .btn-start:disabled, .btn-pause:disabled { opacity:0.35; cursor:not-allowed; }
+
+    .comparison-card {
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: var(--radius);
+      padding: 24px 28px;
+      max-width: 600px;
+      margin: 24px auto 0;
+    }
+    .comparison-card h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--white);
+      margin-bottom: 16px;
+    }
+    .comp-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+    .comp-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(255,255,255,0.03);
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: 0.88rem;
+    }
+    .comp-item .emoji { font-size: 1.3rem; margin-right: 8px; }
+    .comp-item .comp-lbl { color: var(--text-muted); flex: 1; }
+    .comp-item .comp-val { font-weight: 700; color: var(--secondary); font-size: 1rem; }
+
+    .notice {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      text-align: center;
+      margin-top: 16px;
+      line-height: 1.6;
+    }
+    @media(max-width:480px) {
+      .input-row { grid-template-columns: 1fr; }
+      .elapsed-time { font-size: 2rem; }
+      .cost-value { font-size: 2.4rem; }
+    }
+  </style>
+</head>
+<body>
+<nav>
+  <a href="../index.html" class="logo">💼 <span>직장인</span>닷컴</a>
+  <ul class="nav-links">
+    <li><a href="../index.html#calculators">계산기</a></li>
+    <li><a href="../index.html#tools" class="active">업무도구</a></li>
+    <li><a href="../index.html#games">루팡게임</a></li>
+    <li><a href="../index.html#tests">테스트</a></li>
+    <li><a href="../index.html#info">정보</a></li>
+  </ul>
+</nav>
+
+<div class="page-header">
+  <div class="breadcrumb"><a href="../index.html">홈</a> › 업무 도구</div>
+  <h1>⏱️ 회의 비용 타이머</h1>
+  <p>지금 이 회의, 얼마짜리인지 실시간으로 확인하세요</p>
+</div>
+
+<main>
+  <div class="ad-banner">광고 영역 (Google AdSense)</div>
+
+  <div class="timer-card">
+    <div class="input-row">
+      <div class="input-group">
+        <label>참석 인원 (명)</label>
+        <input type="number" id="headcount" placeholder="예: 6" min="1" value="6" oninput="onInputChange()">
+      </div>
+      <div class="input-group">
+        <label>평균 연봉 (만원)</label>
+        <input type="number" id="avgSalary" placeholder="예: 5000" min="1" value="5000" oninput="onInputChange()">
+      </div>
+    </div>
+
+    <div class="timer-display">
+      <span class="elapsed-time" id="elapsed">00:00:00</span>
+      <div class="elapsed-label">경과 시간</div>
+
+      <div class="cost-display">
+        <span class="cost-value" id="costValue">0원</span>
+        <div class="cost-label">현재까지 소비된 회의 비용</div>
+      </div>
+
+      <div class="rate-row">
+        <div class="rate-item">
+          <div class="r-val" id="perMin">0원</div>
+          <div class="r-lbl">분당 비용</div>
+        </div>
+        <div class="rate-item">
+          <div class="r-val" id="perHour">0원</div>
+          <div class="r-lbl">시간당 비용</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-start" id="btnStart" onclick="startTimer()">▶ 시작</button>
+      <button class="btn-pause" id="btnPause" onclick="pauseTimer()" disabled>⏸ 일시정지</button>
+      <button class="btn-reset" onclick="resetTimer()">↺ 리셋</button>
+    </div>
+
+    <p class="notice">※ 연봉 기준 시급 산정: 연봉 ÷ 2,080시간 (52주 × 40h)<br>회의 비용 = 시간당 비용 × 경과 시간</p>
+  </div>
+
+  <div class="comparison-card" id="compCard">
+    <h3>💸 이 회의 비용으로 할 수 있는 것들</h3>
+    <ul class="comp-list" id="compList">
+      <li class="comp-item"><span><span class="emoji">🍗</span><span class="comp-lbl">치킨</span></span><span class="comp-val" id="comp-chicken">—</span></li>
+      <li class="comp-item"><span><span class="emoji">🍱</span><span class="comp-lbl">직장인 점심</span></span><span class="comp-val" id="comp-lunch">—</span></li>
+      <li class="comp-item"><span><span class="emoji">☕</span><span class="comp-lbl">아메리카노</span></span><span class="comp-val" id="comp-coffee">—</span></li>
+      <li class="comp-item"><span><span class="emoji">🍺</span><span class="comp-lbl">회식 (1인)</span></span><span class="comp-val" id="comp-hoesik">—</span></li>
+      <li class="comp-item"><span><span class="emoji">🚕</span><span class="comp-lbl">카카오택시</span></span><span class="comp-val" id="comp-taxi">—</span></li>
+    </ul>
+  </div>
+
+  <div class="ad-banner" style="margin-top:24px">광고 영역 (Google AdSense)</div>
+</main>
+
+<footer>
+  <p><strong>직장인닷컴</strong> — 모든 계산은 참고용이며 법적 효력이 없습니다.</p>
+</footer>
+
+<script>
+let timerInterval = null;
+let elapsedSeconds = 0;
+let isRunning = false;
+
+// 비용 단가 (원)
+const PRICES = {
+  chicken: 22000,
+  lunch:    9000,
+  coffee:   4500,
+  hoesik:  35000,
+  taxi:      8000,
+};
+
+function getHourlyCost() {
+  const hc  = parseFloat(document.getElementById('headcount').value) || 0;
+  const sal = parseFloat(document.getElementById('avgSalary').value)  || 0;
+  const perPersonHourly = (sal * 10000) / 2080;
+  return perPersonHourly * hc;
+}
+
+function formatTime(s) {
+  const h = String(Math.floor(s / 3600)).padStart(2, '0');
+  const m = String(Math.floor((s % 3600) / 60)).padStart(2, '0');
+  const sec = String(s % 60).padStart(2, '0');
+  return `${h}:${m}:${sec}`;
+}
+
+function formatWon(n) {
+  if (n >= 100000000) return (n / 100000000).toFixed(1) + '억원';
+  if (n >= 10000)     return Math.round(n / 10000) + '만원';
+  return Math.round(n).toLocaleString('ko-KR') + '원';
+}
+
+function updateDisplay() {
+  const hourlyCost   = getHourlyCost();
+  const currentCost  = hourlyCost * (elapsedSeconds / 3600);
+  const perMin       = hourlyCost / 60;
+
+  document.getElementById('elapsed').textContent   = formatTime(elapsedSeconds);
+  const costEl = document.getElementById('costValue');
+  costEl.textContent = formatWon(currentCost);
+
+  // 색상 임계값
+  costEl.classList.remove('warn', 'danger');
+  if (currentCost >= 1000000) {
+    costEl.classList.add('danger');
+  } else if (currentCost >= 500000) {
+    costEl.classList.add('warn');
+  }
+
+  document.getElementById('perMin').textContent  = formatWon(perMin);
+  document.getElementById('perHour').textContent = formatWon(hourlyCost);
+
+  // 비교
+  document.getElementById('comp-chicken').textContent = Math.floor(currentCost / PRICES.chicken) + '마리';
+  document.getElementById('comp-lunch').textContent   = Math.floor(currentCost / PRICES.lunch) + '번';
+  document.getElementById('comp-coffee').textContent  = Math.floor(currentCost / PRICES.coffee) + '잔';
+  document.getElementById('comp-hoesik').textContent  = Math.floor(currentCost / PRICES.hoesik) + '인분';
+  document.getElementById('comp-taxi').textContent    = Math.floor(currentCost / PRICES.taxi) + '번';
+}
+
+function onInputChange() {
+  if (!isRunning) updateDisplay();
+}
+
+function startTimer() {
+  if (isRunning) return;
+  isRunning = true;
+
+  document.getElementById('btnStart').disabled  = true;
+  document.getElementById('btnPause').disabled  = false;
+  document.getElementById('costValue').classList.add('running');
+
+  timerInterval = setInterval(function() {
+    elapsedSeconds++;
+    updateDisplay();
+  }, 1000);
+}
+
+function pauseTimer() {
+  if (!isRunning) return;
+  isRunning = false;
+  clearInterval(timerInterval);
+  timerInterval = null;
+
+  document.getElementById('btnStart').disabled  = false;
+  document.getElementById('btnPause').disabled  = true;
+  document.getElementById('costValue').classList.remove('running');
+}
+
+function resetTimer() {
+  pauseTimer();
+  elapsedSeconds = 0;
+  document.getElementById('costValue').classList.remove('warn', 'danger', 'running');
+  document.getElementById('btnStart').disabled = false;
+  document.getElementById('btnPause').disabled = true;
+  updateDisplay();
+}
+
+// 초기 표시
+updateDisplay();
+</script>
+</body>
+</html>

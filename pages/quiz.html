@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>직장인 OX 퀴즈 - 월급루팡 게임 - 직장인닷컴</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .game-wrap {
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 24px 16px 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* ---- Top stat bar ---- */
+    .stat-bar {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    .stat-box {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 12px;
+      text-align: center;
+      border: 1px solid rgba(255,255,255,0.07);
+    }
+    .stat-box .lbl { font-size: 0.72rem; color: var(--text-muted); margin-bottom: 4px; }
+    .stat-box .val { font-size: 1.5rem; font-weight: 900; color: var(--white); }
+    .stat-box.streak-box .val { color: var(--secondary); }
+    .stat-box.score-box .val { color: var(--accent); }
+
+    /* ---- Question card ---- */
+    .question-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 28px 24px;
+      border: 1px solid rgba(255,255,255,0.07);
+      position: relative;
+      min-height: 160px;
+    }
+    .q-number {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .q-badge {
+      background: rgba(255,107,53,0.15);
+      color: var(--primary);
+      border: 1px solid rgba(255,107,53,0.3);
+      border-radius: 20px;
+      padding: 3px 10px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+    .q-text {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--white);
+      line-height: 1.6;
+    }
+
+    /* ---- Timer ---- */
+    .timer-wrap {
+      margin-bottom: 0;
+    }
+    .timer-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .timer-label { font-size: 0.78rem; color: var(--text-muted); }
+    .timer-count { font-size: 0.85rem; font-weight: 700; color: var(--accent); }
+    .timer-count.urgent { color: #e74c3c; animation: timerPulse 0.4s ease infinite alternate; }
+    @keyframes timerPulse { from { opacity: 1; } to { opacity: 0.4; } }
+    .timer-bar-bg {
+      height: 8px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .timer-bar-fill {
+      height: 100%;
+      border-radius: 99px;
+      transition: width 1s linear, background 0.3s;
+    }
+
+    /* ---- OX Buttons ---- */
+    .ox-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    .btn-ox {
+      padding: 28px 16px;
+      border-radius: var(--radius);
+      border: 2px solid transparent;
+      font-size: 3rem;
+      cursor: pointer;
+      font-family: inherit;
+      transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-ox-label { font-size: 1rem; font-weight: 700; }
+    .btn-o { background: rgba(46,204,113,0.1); border-color: rgba(46,204,113,0.3); color: #2ecc71; }
+    .btn-x { background: rgba(231,76,60,0.1); border-color: rgba(231,76,60,0.3); color: #e74c3c; }
+    .btn-o:hover:not(:disabled) { background: rgba(46,204,113,0.2); border-color: #2ecc71; transform: translateY(-3px); box-shadow: 0 8px 24px rgba(46,204,113,0.25); }
+    .btn-x:hover:not(:disabled) { background: rgba(231,76,60,0.2); border-color: #e74c3c; transform: translateY(-3px); box-shadow: 0 8px 24px rgba(231,76,60,0.25); }
+    .btn-ox:disabled { cursor: not-allowed; opacity: 0.5; transform: none; }
+    .btn-ox.correct-flash { background: rgba(46,204,113,0.35) !important; border-color: #2ecc71 !important; transform: scale(1.04) !important; }
+    .btn-ox.wrong-flash { background: rgba(231,76,60,0.35) !important; border-color: #e74c3c !important; }
+
+    /* ---- Explanation box ---- */
+    .explanation-box {
+      display: none;
+      border-radius: 12px;
+      padding: 14px 16px;
+      font-size: 0.9rem;
+      line-height: 1.6;
+      animation: fadeIn 0.3s ease;
+    }
+    .explanation-box.show { display: block; }
+    .explanation-box.correct { background: rgba(46,204,113,0.12); border: 1px solid rgba(46,204,113,0.3); color: #a8f0c6; }
+    .explanation-box.wrong { background: rgba(231,76,60,0.12); border: 1px solid rgba(231,76,60,0.3); color: #f5b7b1; }
+    .ex-head { font-weight: 700; margin-bottom: 4px; font-size: 0.95rem; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ---- Next button ---- */
+    .btn-next {
+      display: none;
+      width: 100%;
+      padding: 14px;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+      animation: fadeIn 0.3s ease;
+    }
+    .btn-next.show { display: block; }
+    .btn-next:hover { background: #e55a25; transform: translateY(-1px); }
+
+    /* ---- Intro/Result screens ---- */
+    .screen {
+      display: none;
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 36px 28px;
+      text-align: center;
+      border: 1px solid rgba(255,255,255,0.07);
+      animation: fadeIn 0.4s ease;
+    }
+    .screen.show { display: block; }
+    .screen h2 { font-size: 1.5rem; color: var(--white); margin-bottom: 10px; }
+    .screen .sub { color: var(--text-muted); font-size: 0.9rem; line-height: 1.7; margin-bottom: 24px; }
+
+    /* Grade */
+    .grade-display { font-size: 5rem; margin-bottom: 8px; line-height: 1; }
+    .grade-label { font-size: 1.3rem; font-weight: 900; margin-bottom: 6px; }
+    .grade-S { color: #FFD700; }
+    .grade-A { color: #4ECDC4; }
+    .grade-B { color: #2ecc71; }
+    .grade-C { color: var(--primary); }
+    .grade-D { color: #e74c3c; }
+
+    .result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 20px 0; }
+    .result-item { background: rgba(255,255,255,0.05); border-radius: 10px; padding: 14px; }
+    .result-item .r-lbl { font-size: 0.72rem; color: var(--text-muted); margin-bottom: 4px; }
+    .result-item .r-val { font-size: 1.5rem; font-weight: 900; color: var(--white); }
+
+    .btn-primary-game {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      padding: 12px 28px;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 0.15s;
+      margin: 4px;
+    }
+    .btn-primary-game:hover { background: #e55a25; }
+    .btn-secondary-game {
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: var(--text);
+      padding: 12px 28px;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 0.15s;
+      margin: 4px;
+    }
+    .btn-secondary-game:hover { background: rgba(255,255,255,0.1); }
+
+    @media (max-width: 480px) {
+      .btn-ox { padding: 20px 10px; font-size: 2.4rem; }
+      .q-text { font-size: 1rem; }
+    }
+  </style>
+</head>
+<body>
+<nav>
+  <a href="../index.html" class="logo">💼 <span>직장인</span>닷컴</a>
+  <ul class="nav-links">
+    <li><a href="../index.html#calculators">계산기</a></li>
+    <li><a href="../index.html#tools">업무도구</a></li>
+    <li><a href="../index.html#games" class="active">루팡게임</a></li>
+    <li><a href="../index.html#tests">테스트</a></li>
+    <li><a href="../index.html#info">정보</a></li>
+  </ul>
+</nav>
+
+<div class="page-header">
+  <div class="breadcrumb"><a href="../index.html">홈</a> › 월급루팡 게임</div>
+  <h1>📋 직장인 OX 퀴즈</h1>
+  <p>노동법과 직장생활 상식, 얼마나 알고 있나요?</p>
+</div>
+
+<main>
+  <div class="ad-banner">광고 영역 (Google AdSense)</div>
+
+  <div class="game-wrap">
+
+    <!-- Intro Screen -->
+    <div class="screen show" id="introScreen">
+      <div style="font-size:3.5rem;margin-bottom:12px;">📋</div>
+      <h2>직장인 OX 퀴즈</h2>
+      <div class="sub">노동법, 급여, 복지까지 — 직장인이라면 꼭 알아야 할 상식 25문제!<br>문제당 12초, 연속 정답으로 보너스 점수를 노리세요.</div>
+      <button class="btn-primary-game" onclick="startQuiz()" style="font-size:1.1rem;padding:14px 36px;">▶ 퀴즈 시작</button>
+    </div>
+
+    <!-- Quiz UI (hidden until started) -->
+    <div id="quizUI" style="display:none;">
+      <div class="stat-bar">
+        <div class="stat-box score-box"><div class="lbl">점수</div><div class="val" id="scoreVal">0</div></div>
+        <div class="stat-box"><div class="lbl">문제</div><div class="val" id="qNumVal">1/25</div></div>
+        <div class="stat-box streak-box"><div class="lbl">연속 정답</div><div class="val" id="streakVal">0</div></div>
+      </div>
+
+      <div class="timer-wrap">
+        <div class="timer-row">
+          <span class="timer-label">⏱ 남은 시간</span>
+          <span class="timer-count" id="timerCount">12</span>
+        </div>
+        <div class="timer-bar-bg">
+          <div class="timer-bar-fill" id="timerBarFill" style="width:100%;background:#4ECDC4;"></div>
+        </div>
+      </div>
+
+      <div class="question-card">
+        <div class="q-number">
+          <span id="qLabel">문제 1</span>
+          <span class="q-badge">노동법 상식</span>
+        </div>
+        <div class="q-text" id="qText"></div>
+      </div>
+
+      <div class="ox-buttons">
+        <button class="btn-ox btn-o" id="btnO" onclick="answer(true)">
+          <span>⭕</span>
+          <span class="btn-ox-label">맞다</span>
+        </button>
+        <button class="btn-ox btn-x" id="btnX" onclick="answer(false)">
+          <span>❌</span>
+          <span class="btn-ox-label">틀리다</span>
+        </button>
+      </div>
+
+      <div class="explanation-box" id="explanationBox">
+        <div class="ex-head" id="exHead"></div>
+        <div id="exText"></div>
+      </div>
+
+      <button class="btn-next" id="btnNext" onclick="nextQuestion()">다음 문제 →</button>
+    </div>
+
+    <!-- Result Screen -->
+    <div class="screen" id="resultScreen">
+      <div class="grade-display" id="gradeDisplay"></div>
+      <div class="grade-label" id="gradeName"></div>
+      <div class="sub" id="gradeComment"></div>
+      <div class="result-grid">
+        <div class="result-item"><div class="r-lbl">최종 점수</div><div class="r-val" id="r-score">0</div></div>
+        <div class="result-item"><div class="r-lbl">정답 수</div><div class="r-val" id="r-correct">0/25</div></div>
+        <div class="result-item"><div class="r-lbl">최고 연속</div><div class="r-val" id="r-streak">0</div></div>
+        <div class="result-item"><div class="r-lbl">정확도</div><div class="r-val" id="r-accuracy">0%</div></div>
+      </div>
+      <div>
+        <button class="btn-primary-game" onclick="startQuiz()">▶ 다시 도전</button>
+        <button class="btn-secondary-game" onclick="shareResult()">📤 결과 공유</button>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="ad-banner">광고 영역 (Google AdSense)</div>
+</main>
+
+<footer><p><strong>직장인닷컴</strong> — 직장인을 위한 올인원 도구 사이트</p></footer>
+
+<script>
+const questions = [
+  {q:"연차 유급휴가는 1년간 80% 이상 출근한 근로자에게 15일이 주어진다", a:true, ex:"근로기준법 제60조. 1년 미만은 매월 1일씩 최대 11일 발생"},
+  {q:"퇴직금은 6개월 이상 근무하면 발생한다", a:false, ex:"1년 이상 계속 근무한 경우에만 발생합니다 (근로자퇴직급여보장법)"},
+  {q:"야간근로(오후 10시~오전 6시)에는 통상임금의 50%를 추가 지급해야 한다", a:true, ex:"근로기준법 제56조. 야간근로 가산임금 50%"},
+  {q:"2025년 최저시급은 10,030원이다", a:true, ex:"2025년 최저임금은 시간당 10,030원 (전년 대비 1.7% 인상)"},
+  {q:"수습 기간 중에는 최저임금의 70%만 지급할 수 있다", a:false, ex:"수습 3개월 이내에는 최저임금의 10%만 감액 가능 (90% 이상 지급)"},
+  {q:"배우자 출산휴가는 20일이다", a:true, ex:"2024년 2월부터 10일→20일로 확대. 전액 유급"},
+  {q:"출산휴가는 90일이다 (단태아 기준)", a:true, ex:"출산전후휴가 90일. 쌍둥이 이상은 120일"},
+  {q:"해고 예고는 최소 30일 전에 해야 한다", a:true, ex:"30일 전 예고 미이행 시 30일분 이상 통상임금 지급 필요"},
+  {q:"5인 미만 사업장에도 연차휴가가 적용된다", a:false, ex:"5인 미만 사업장은 근로기준법 연차휴가 규정 미적용"},
+  {q:"주 52시간 근무제에서 기본 법정근로시간은 주 40시간이다", a:true, ex:"주 40시간 + 연장 최대 12시간 = 주 52시간"},
+  {q:"연차휴가는 발생 후 2년 이내에 사용해야 한다", a:false, ex:"연차휴가는 발생 후 1년 이내 사용해야 합니다"},
+  {q:"실업급여는 이직 전 18개월 중 피보험 단위기간이 180일 이상이어야 받을 수 있다", a:true, ex:"고용보험법상 수급자격 기준"},
+  {q:"산재보험료는 사업주가 전액 부담한다", a:true, ex:"산재보험은 사업주 100% 부담. 근로자 부담 없음"},
+  {q:"육아휴직은 자녀 만 8세 이하(또는 초등 2학년 이하)일 때 사용 가능하다", a:true, ex:"남녀고용평등법 제19조"},
+  {q:"퇴직금은 퇴직일로부터 30일 이내에 지급해야 한다", a:false, ex:"퇴직금은 퇴직일로부터 14일 이내 지급해야 합니다"},
+  {q:"2026년 근로자 국민연금 보험료율은 4.75%이다", a:true, ex:"국민연금 보험료율: 근로자 4.75%, 사업주 4.75% (총 9.5%)"},
+  {q:"2026년 근로자 건강보험료율은 3.595%이다", a:true, ex:"2025~2026 건강보험료율 동결 적용"},
+  {q:"근로계약서를 서면으로 작성하지 않으면 사업주는 처벌받을 수 있다", a:true, ex:"근로기준법 제17조 위반 시 500만원 이하 벌금"},
+  {q:"임신 중인 근로자에게는 야간근로를 시킬 수 없다", a:true, ex:"근로기준법 제70조. 임산부 야간·휴일 근로 금지 원칙"},
+  {q:"부당해고를 당한 경우 해고일로부터 3개월 이내에 노동위원회에 구제신청을 할 수 있다", a:true, ex:"근로기준법 제28조"},
+  {q:"정규직 전환 없이 계약직은 최대 3년까지 사용할 수 있다", a:false, ex:"기간제법: 2년 초과 시 기간의 정함이 없는 근로자(무기계약직)로 간주"},
+  {q:"고용보험 피보험자격을 유지하면 육아휴직 급여를 받을 수 있다", a:true, ex:"육아휴직 급여는 통상임금의 80%, 월 최대 200만원"},
+  {q:"주휴수당은 주 15시간 이상 근무한 근로자에게 지급된다", a:true, ex:"주 소정근로시간 15시간 이상이면 주 1회 유급휴일 부여"},
+  {q:"직장 내 괴롭힘 신고 후 불이익 조치는 형사처벌 대상이다", a:true, ex:"근로기준법 제76조의3. 3년 이하 징역 또는 3천만원 이하 벌금"},
+  {q:"퇴직금 중간정산은 법으로 완전히 금지되어 있다", a:false, ex:"무주택 주택 구입, 요양비 등 특정 사유 발생 시 중간정산 가능"},
+];
+
+const TIMER_MAX = 12;
+const BASE_SCORE = 100;
+const STREAK_BONUS = 20;
+
+const GRADES = [
+  { min: 2400, grade: 'S', emoji: '🏆', name: 'S등급 — 노동법 전문가!', color: 'grade-S', comment: '완벽합니다! 직장 동료들에게 노동법을 알려주세요!' },
+  { min: 2000, grade: 'A', emoji: '🥇', name: 'A등급 — 직장인 고수!', color: 'grade-A', comment: '훌륭해요! 내 권리를 잘 지킬 수 있습니다.' },
+  { min: 1400, grade: 'B', emoji: '🥈', name: 'B등급 — 평균 이상!', color: 'grade-B', comment: '좋아요! 조금만 더 공부하면 완벽해질 것입니다.' },
+  { min: 800,  grade: 'C', emoji: '🥉', name: 'C등급 — 기초 수준', color: 'grade-C', comment: '아직 모르는 것이 있어요. 노동법 공부를 추천합니다!' },
+  { min: 0,    grade: 'D', emoji: '📚', name: 'D등급 — 다시 도전!', color: 'grade-D', comment: '내 권리를 지키려면 노동법 공부가 필요해요!' },
+];
+
+let currentQ = 0;
+let score = 0;
+let streak = 0;
+let maxStreak = 0;
+let correctCount = 0;
+let answered = false;
+let timerSecs = TIMER_MAX;
+let timerInterval = null;
+let shuffledQs = [];
+let finalScore = 0;
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function startQuiz() {
+  shuffledQs = shuffle(questions);
+  currentQ = 0;
+  score = 0;
+  streak = 0;
+  maxStreak = 0;
+  correctCount = 0;
+  finalScore = 0;
+
+  document.getElementById('introScreen').classList.remove('show');
+  document.getElementById('resultScreen').classList.remove('show');
+  document.getElementById('quizUI').style.display = 'block';
+
+  updateStatBar();
+  loadQuestion();
+}
+
+function loadQuestion() {
+  answered = false;
+  clearInterval(timerInterval);
+  timerSecs = TIMER_MAX;
+
+  const q = shuffledQs[currentQ];
+  document.getElementById('qLabel').textContent = `문제 ${currentQ + 1}`;
+  document.getElementById('qNumVal').textContent = `${currentQ + 1}/25`;
+  document.getElementById('qText').textContent = q.q;
+
+  // Reset UI
+  document.getElementById('btnO').disabled = false;
+  document.getElementById('btnX').disabled = false;
+  document.getElementById('btnO').classList.remove('correct-flash', 'wrong-flash');
+  document.getElementById('btnX').classList.remove('correct-flash', 'wrong-flash');
+  document.getElementById('explanationBox').classList.remove('show', 'correct', 'wrong');
+  document.getElementById('btnNext').classList.remove('show');
+
+  updateTimer();
+  timerInterval = setInterval(tickTimer, 1000);
+}
+
+function tickTimer() {
+  timerSecs--;
+  updateTimer();
+  if (timerSecs <= 0) {
+    clearInterval(timerInterval);
+    timeUp();
+  }
+}
+
+function updateTimer() {
+  const pct = (timerSecs / TIMER_MAX) * 100;
+  const fill = document.getElementById('timerBarFill');
+  const count = document.getElementById('timerCount');
+  fill.style.width = pct + '%';
+  fill.style.background = timerSecs > 6 ? '#4ECDC4' : timerSecs > 3 ? '#FFD700' : '#e74c3c';
+  count.textContent = timerSecs;
+  count.className = 'timer-count' + (timerSecs <= 3 ? ' urgent' : '');
+}
+
+function timeUp() {
+  if (answered) return;
+  answered = true;
+  streak = 0;
+  disableButtons();
+  showExplanation(false, true);
+  scheduleNext();
+}
+
+function answer(userAnswer) {
+  if (answered) return;
+  answered = true;
+  clearInterval(timerInterval);
+
+  const q = shuffledQs[currentQ];
+  const isCorrect = (userAnswer === q.a);
+
+  if (isCorrect) {
+    const bonus = streak * STREAK_BONUS;
+    const timeBonus = Math.round(timerSecs * 5);
+    const earned = BASE_SCORE + bonus + timeBonus;
+    score += earned;
+    streak++;
+    maxStreak = Math.max(maxStreak, streak);
+    correctCount++;
+  } else {
+    streak = 0;
+  }
+
+  updateStatBar();
+  disableButtons();
+  flashButtons(userAnswer, q.a);
+  showExplanation(isCorrect, false);
+  scheduleNext();
+}
+
+function disableButtons() {
+  document.getElementById('btnO').disabled = true;
+  document.getElementById('btnX').disabled = true;
+}
+
+function flashButtons(userAns, correctAns) {
+  const btnO = document.getElementById('btnO');
+  const btnX = document.getElementById('btnX');
+  // Mark correct answer green
+  if (correctAns === true) btnO.classList.add('correct-flash');
+  else btnX.classList.add('correct-flash');
+  // Mark wrong choice if user was wrong
+  if (userAns !== correctAns) {
+    if (userAns === true) btnO.classList.add('wrong-flash');
+    else btnX.classList.add('wrong-flash');
+  }
+}
+
+function showExplanation(isCorrect, timedOut) {
+  const q = shuffledQs[currentQ];
+  const box = document.getElementById('explanationBox');
+  const head = document.getElementById('exHead');
+  const text = document.getElementById('exText');
+
+  box.classList.remove('correct', 'wrong');
+  if (timedOut) {
+    box.classList.add('wrong');
+    head.textContent = `⏰ 시간 초과! 정답은 ${q.a ? 'O (맞다)' : 'X (틀리다)'}`;
+  } else if (isCorrect) {
+    box.classList.add('correct');
+    head.textContent = '✅ 정답!';
+  } else {
+    box.classList.add('wrong');
+    head.textContent = `❌ 오답! 정답은 ${q.a ? 'O (맞다)' : 'X (틀리다)'}`;
+  }
+  text.textContent = q.ex;
+  box.classList.add('show');
+  document.getElementById('btnNext').classList.add('show');
+}
+
+function scheduleNext() {
+  // Auto-advance after 4 seconds if user doesn't click next
+  // (user can also click "다음 문제" button)
+}
+
+function nextQuestion() {
+  currentQ++;
+  if (currentQ >= shuffledQs.length) {
+    endQuiz();
+  } else {
+    loadQuestion();
+  }
+}
+
+function updateStatBar() {
+  document.getElementById('scoreVal').textContent = score;
+  document.getElementById('streakVal').textContent = streak > 0 ? `🔥 ${streak}` : streak;
+}
+
+function endQuiz() {
+  clearInterval(timerInterval);
+  document.getElementById('quizUI').style.display = 'none';
+  finalScore = score;
+
+  const grade = GRADES.find(g => finalScore >= g.min) || GRADES[GRADES.length - 1];
+  const accuracy = Math.round((correctCount / shuffledQs.length) * 100);
+
+  document.getElementById('gradeDisplay').textContent = grade.emoji;
+  document.getElementById('gradeName').textContent = grade.name;
+  document.getElementById('gradeName').className = 'grade-label ' + grade.color;
+  document.getElementById('gradeComment').textContent = grade.comment;
+
+  document.getElementById('r-score').textContent = finalScore.toLocaleString();
+  document.getElementById('r-correct').textContent = `${correctCount}/25`;
+  document.getElementById('r-streak').textContent = maxStreak;
+  document.getElementById('r-accuracy').textContent = accuracy + '%';
+
+  document.getElementById('resultScreen').classList.add('show');
+}
+
+function shareResult() {
+  const grade = GRADES.find(g => finalScore >= g.min) || GRADES[GRADES.length - 1];
+  const text = `📋 직장인 OX 퀴즈 결과\n${grade.emoji} ${grade.grade}등급 (${finalScore.toLocaleString()}점)\n정답: ${correctCount}/25 | 최고 연속: ${maxStreak}연속\n직장인닷컴에서 도전해보세요!`;
+  if (navigator.share) {
+    navigator.share({ title: '직장인 OX 퀴즈', text });
+  } else if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(() => alert('결과가 클립보드에 복사되었습니다!'));
+  } else {
+    alert(text);
+  }
+}
+</script>
+</body>
+</html>

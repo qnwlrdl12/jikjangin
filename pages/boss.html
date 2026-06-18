@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>상사 눈피해 클리커 - 월급루팡 게임 - 직장인닷컴</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .game-wrap {
+      max-width: 500px;
+      margin: 0 auto;
+      padding: 24px 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .stat-bar {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      width: 100%;
+    }
+    .stat-box {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 12px;
+      text-align: center;
+      border: 1px solid rgba(255,255,255,0.07);
+    }
+    .stat-box .lbl { font-size: 0.72rem; color: var(--text-muted); margin-bottom: 4px; }
+    .stat-box .val { font-size: 1.5rem; font-weight: 900; color: var(--white); }
+    .stat-box.level-box .val { color: var(--accent); font-size: 1rem; }
+    .stat-box.best-box .val { color: var(--secondary); }
+
+    .canvas-container {
+      position: relative;
+      width: 100%;
+      max-width: 420px;
+    }
+    #bossCanvas {
+      display: block;
+      width: 100%;
+      border-radius: var(--radius);
+      border: 2px solid rgba(255,107,53,0.3);
+      background: #080820;
+      cursor: default;
+    }
+
+    /* Status indicator below canvas */
+    .status-indicator {
+      width: 100%;
+      max-width: 420px;
+      padding: 10px 16px;
+      border-radius: 10px;
+      text-align: center;
+      font-weight: 700;
+      font-size: 1rem;
+      transition: background 0.2s, color 0.2s;
+    }
+    .status-safe { background: rgba(46,204,113,0.15); border: 1px solid rgba(46,204,113,0.4); color: #2ecc71; }
+    .status-danger { background: rgba(231,76,60,0.15); border: 1px solid rgba(231,76,60,0.4); color: #e74c3c; animation: dangerPulse 0.4s ease infinite alternate; }
+    .status-idle { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--text-muted); }
+    @keyframes dangerPulse { from { opacity: 1; } to { opacity: 0.6; } }
+
+    /* Click button */
+    .click-btn-wrap { width: 100%; max-width: 420px; }
+    #clickBtn {
+      width: 100%;
+      padding: 22px;
+      font-size: 1.5rem;
+      font-weight: 900;
+      font-family: inherit;
+      border: none;
+      border-radius: 14px;
+      cursor: pointer;
+      background: linear-gradient(135deg, var(--primary), #ff9f43);
+      color: #fff;
+      box-shadow: 0 6px 24px rgba(255,107,53,0.35);
+      transition: transform 0.1s, box-shadow 0.1s;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+    #clickBtn:active { transform: scale(0.96); box-shadow: 0 2px 10px rgba(255,107,53,0.2); }
+    #clickBtn:disabled { background: var(--card); color: var(--text-muted); box-shadow: none; cursor: not-allowed; }
+
+    /* Click ripple animation */
+    .click-feedback {
+      position: absolute;
+      font-size: 1.4rem;
+      font-weight: 900;
+      pointer-events: none;
+      animation: floatUp 0.7s ease forwards;
+      z-index: 10;
+      white-space: nowrap;
+    }
+    @keyframes floatUp {
+      0% { opacity: 1; transform: translateY(0) scale(1); }
+      100% { opacity: 0; transform: translateY(-60px) scale(1.3); }
+    }
+
+    .btn-row { display: flex; gap: 10px; width: 100%; max-width: 420px; }
+    .btn-game {
+      flex: 1;
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: var(--card);
+      color: var(--text);
+      font-size: 0.95rem;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-game.primary { background: var(--primary); border-color: var(--primary); color: #fff; }
+    .btn-game:hover { filter: brightness(1.15); transform: translateY(-1px); }
+
+    /* Game over overlay on canvas */
+    .gameover-overlay {
+      display: none;
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.82);
+      border-radius: var(--radius);
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      backdrop-filter: blur(6px);
+      z-index: 5;
+    }
+    .gameover-overlay.show { display: flex; }
+    .gameover-overlay h2 { font-size: 1.6rem; color: var(--white); }
+    .gameover-overlay p { color: var(--text-muted); font-size: 0.9rem; text-align: center; padding: 0 16px; }
+    .gameover-score { font-size: 3rem; font-weight: 900; color: var(--secondary); }
+
+    /* Caught flash */
+    .caught-flash {
+      position: fixed;
+      inset: 0;
+      background: rgba(231,76,60,0.35);
+      pointer-events: none;
+      z-index: 999;
+      opacity: 0;
+    }
+    .caught-flash.flash { animation: flashAnim 0.4s ease; }
+    @keyframes flashAnim { 0%,100% { opacity: 0; } 40% { opacity: 1; } }
+  </style>
+</head>
+<body>
+<nav>
+  <a href="../index.html" class="logo">💼 <span>직장인</span>닷컴</a>
+  <ul class="nav-links">
+    <li><a href="../index.html#calculators">계산기</a></li>
+    <li><a href="../index.html#tools">업무도구</a></li>
+    <li><a href="../index.html#games" class="active">루팡게임</a></li>
+    <li><a href="../index.html#tests">테스트</a></li>
+    <li><a href="../index.html#info">정보</a></li>
+  </ul>
+</nav>
+
+<div class="page-header">
+  <div class="breadcrumb"><a href="../index.html">홈</a> › 월급루팡 게임</div>
+  <h1>👀 상사 눈피해 클리커</h1>
+  <p>상사가 딴 곳을 볼 때만 클릭! 들키면 아웃!</p>
+</div>
+
+<main>
+  <div class="ad-banner">광고 영역 (Google AdSense)</div>
+
+  <div class="game-wrap">
+    <div class="stat-bar">
+      <div class="stat-box"><div class="lbl">점수</div><div class="val" id="scoreVal">0</div></div>
+      <div class="stat-box level-box"><div class="lbl">직급</div><div class="val" id="levelVal">-</div></div>
+      <div class="stat-box best-box"><div class="lbl">최고 기록</div><div class="val" id="bestVal">0</div></div>
+    </div>
+
+    <div class="canvas-container">
+      <canvas id="bossCanvas" width="420" height="320"></canvas>
+      <div class="gameover-overlay" id="gameoverOverlay">
+        <div style="font-size:3rem">😱</div>
+        <h2>들켰다!</h2>
+        <div class="gameover-score" id="finalScore">0</div>
+        <p id="finalLevel">점 획득</p>
+        <button class="btn-game primary" onclick="startGame()" style="width:160px;margin-top:8px;">▶ 다시하기</button>
+      </div>
+    </div>
+
+    <div class="status-indicator status-idle" id="statusIndicator">
+      게임 시작 버튼을 눌러주세요
+    </div>
+
+    <div class="click-btn-wrap" style="position:relative;" id="clickBtnWrap">
+      <button id="clickBtn" onclick="handleClick(event)" disabled>클릭!</button>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-game primary" id="startBtn" onclick="startGame()">▶ 게임 시작</button>
+      <button class="btn-game" onclick="showRules()">📖 규칙</button>
+    </div>
+  </div>
+
+  <div class="ad-banner">광고 영역 (Google AdSense)</div>
+</main>
+
+<div class="caught-flash" id="caughtFlash"></div>
+
+<footer><p><strong>직장인닷컴</strong> — 직장인을 위한 올인원 도구 사이트</p></footer>
+
+<script>
+const canvas = document.getElementById('bossCanvas');
+const ctx = canvas.getContext('2d');
+const scoreEl = document.getElementById('scoreVal');
+const levelEl = document.getElementById('levelVal');
+const bestEl = document.getElementById('bestVal');
+const statusEl = document.getElementById('statusIndicator');
+const clickBtn = document.getElementById('clickBtn');
+const gameoverOverlay = document.getElementById('gameoverOverlay');
+const caughtFlash = document.getElementById('caughtFlash');
+
+let W = canvas.width;
+let H = canvas.height;
+
+let gameState = 'idle'; // idle | running | over
+let score = 0;
+let animId = null;
+let angle = 0;       // boss looking angle in radians, 0 = forward (toward player)
+let angleSpeed = 0.018;
+let t = 0;           // time accumulator for sine
+
+const LEVELS = [
+  { min: 0,  max: 9,  name: '신입',  color: '#a0a0b0', speed: 0.018 },
+  { min: 10, max: 24, name: '대리',  color: '#4ECDC4', speed: 0.028 },
+  { min: 25, max: 49, name: '과장',  color: '#FFD700', speed: 0.040 },
+  { min: 50, max: Infinity, name: '부장', color: '#FF6B35', speed: 0.055 },
+];
+
+function getLevel(s) {
+  return LEVELS.find(l => s >= l.min && s <= l.max) || LEVELS[0];
+}
+
+function getBest() { return parseInt(localStorage.getItem('boss_best') || '0'); }
+function setBest(v) { localStorage.setItem('boss_best', v); }
+
+bestEl.textContent = getBest();
+
+// ---- Canvas drawing ----
+function drawScene() {
+  ctx.clearRect(0, 0, W, H);
+
+  // Background gradient
+  const bg = ctx.createLinearGradient(0, 0, 0, H);
+  bg.addColorStop(0, '#080820');
+  bg.addColorStop(1, '#0d1830');
+  ctx.fillStyle = bg;
+  ctx.roundRect(0, 0, W, H, 16);
+  ctx.fill();
+
+  // Desk/floor line
+  ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(0, H * 0.72);
+  ctx.lineTo(W, H * 0.72);
+  ctx.stroke();
+
+  // --- Boss ---
+  const bossX = W / 2;
+  const bossY = H * 0.32;
+  const headR = 52;
+
+  // Boss body (suit)
+  drawBossBody(bossX, bossY + headR + 10);
+
+  // Head shadow
+  ctx.beginPath();
+  ctx.ellipse(bossX + 4, bossY + 6, headR, headR * 0.9, 0, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(0,0,0,0.3)';
+  ctx.fill();
+
+  // Head
+  ctx.beginPath();
+  ctx.arc(bossX, bossY, headR, 0, Math.PI * 2);
+  const lvl = getLevel(score);
+  const faceGrad = ctx.createRadialGradient(bossX - 10, bossY - 10, 10, bossX, bossY, headR);
+  faceGrad.addColorStop(0, '#ffd9b0');
+  faceGrad.addColorStop(1, '#e8a870');
+  ctx.fillStyle = faceGrad;
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // Eyes
+  drawEyes(bossX, bossY, headR, angle);
+
+  // Eyebrows
+  ctx.strokeStyle = '#5a3a1a';
+  ctx.lineWidth = 4;
+  ctx.lineCap = 'round';
+  const eyeOffsetX = 18 * Math.sin(angle);
+  ctx.beginPath();
+  ctx.moveTo(bossX - 28 + eyeOffsetX * 0.5, bossY - 26);
+  ctx.lineTo(bossX - 10 + eyeOffsetX * 0.5, bossY - 28);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(bossX + 10 + eyeOffsetX * 0.5, bossY - 28);
+  ctx.lineTo(bossX + 28 + eyeOffsetX * 0.5, bossY - 26);
+  ctx.stroke();
+
+  // Nose
+  ctx.beginPath();
+  ctx.arc(bossX + eyeOffsetX * 0.3, bossY + 6, 5, 0, Math.PI * 2);
+  ctx.fillStyle = '#c8855a';
+  ctx.fill();
+
+  // Mouth - stern expression
+  ctx.beginPath();
+  ctx.moveTo(bossX - 18 + eyeOffsetX * 0.2, bossY + 26);
+  ctx.lineTo(bossX + 18 + eyeOffsetX * 0.2, bossY + 24);
+  ctx.strokeStyle = '#7a4a2a';
+  ctx.lineWidth = 3;
+  ctx.stroke();
+
+  // Hair
+  ctx.beginPath();
+  ctx.arc(bossX, bossY, headR, Math.PI * 1.1, Math.PI * 1.9);
+  ctx.strokeStyle = '#3a2a1a';
+  ctx.lineWidth = 14;
+  ctx.lineCap = 'round';
+  ctx.stroke();
+
+  // Looking direction arrow (subtle cue)
+  drawDirectionCue(bossX, bossY, headR, angle);
+
+  // Level badge
+  ctx.font = '700 13px "Noto Sans KR", sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillStyle = lvl.color;
+  ctx.fillText(`[${lvl.name}]`, bossX, bossY - headR - 16);
+
+  // "LOOKING..." label when dangerous
+  const dangerous = isDangerous(angle);
+  if (gameState === 'running') {
+    ctx.font = '700 14px "Noto Sans KR", sans-serif';
+    ctx.fillStyle = dangerous ? '#e74c3c' : '#2ecc71';
+    ctx.fillText(dangerous ? '👁 이쪽 보는 중...' : '↩ 딴 곳 보는 중', W / 2, H * 0.68);
+  }
+
+  // Player area hint
+  if (gameState === 'idle') {
+    ctx.font = '600 15px "Noto Sans KR", sans-serif';
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    ctx.textAlign = 'center';
+    ctx.fillText('시작 버튼을 눌러주세요', W / 2, H * 0.68);
+  }
+}
+
+function drawBossBody(x, y) {
+  // Suit jacket
+  ctx.beginPath();
+  ctx.moveTo(x - 45, y);
+  ctx.bezierCurveTo(x - 50, y + 30, x - 55, y + 70, x - 50, y + 90);
+  ctx.lineTo(x + 50, y + 90);
+  ctx.bezierCurveTo(x + 55, y + 70, x + 50, y + 30, x + 45, y);
+  ctx.closePath();
+  ctx.fillStyle = '#1a1a3a';
+  ctx.fill();
+
+  // Tie
+  ctx.beginPath();
+  ctx.moveTo(x - 8, y);
+  ctx.lineTo(x + 8, y);
+  ctx.lineTo(x + 5, y + 50);
+  ctx.lineTo(x, y + 58);
+  ctx.lineTo(x - 5, y + 50);
+  ctx.closePath();
+  ctx.fillStyle = '#cc3333';
+  ctx.fill();
+
+  // Shirt
+  ctx.beginPath();
+  ctx.moveTo(x - 20, y);
+  ctx.lineTo(x + 20, y);
+  ctx.lineTo(x + 18, y + 55);
+  ctx.lineTo(x - 18, y + 55);
+  ctx.closePath();
+  ctx.fillStyle = '#f0f0f0';
+  ctx.fill();
+}
+
+function drawEyes(cx, cy, r, ang) {
+  const ey = cy - 8;
+  const ex_l = cx - 20;
+  const ex_r = cx + 20;
+  const eyeR = 14;
+
+  // Shift pupils based on angle (positive angle = looking right, negative = looking left)
+  const pupilShiftX = Math.sin(ang) * 6;
+  const pupilShiftY = Math.cos(ang) > 0 ? -3 : 3; // looking away = up, looking at player = slightly down
+
+  // Whites
+  ctx.beginPath();
+  ctx.ellipse(ex_l, ey, eyeR, eyeR * 0.85, 0, 0, Math.PI * 2);
+  ctx.fillStyle = '#fff';
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.ellipse(ex_r, ey, eyeR, eyeR * 0.85, 0, 0, Math.PI * 2);
+  ctx.fillStyle = '#fff';
+  ctx.fill();
+  ctx.stroke();
+
+  // Pupils
+  const pR = 7;
+  ctx.beginPath();
+  ctx.arc(ex_l + pupilShiftX, ey + pupilShiftY, pR, 0, Math.PI * 2);
+  ctx.fillStyle = '#2a1a0a';
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.arc(ex_r + pupilShiftX, ey + pupilShiftY, pR, 0, Math.PI * 2);
+  ctx.fillStyle = '#2a1a0a';
+  ctx.fill();
+
+  // Pupils highlight
+  ctx.beginPath();
+  ctx.arc(ex_l + pupilShiftX - 2, ey + pupilShiftY - 2, 2.5, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(255,255,255,0.8)';
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.arc(ex_r + pupilShiftX - 2, ey + pupilShiftY - 2, 2.5, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(255,255,255,0.8)';
+  ctx.fill();
+}
+
+function drawDirectionCue(cx, cy, r, ang) {
+  if (gameState !== 'running') return;
+  // Subtle arc indicator around boss head
+  const dangerous = isDangerous(ang);
+  const arcColor = dangerous ? 'rgba(231,76,60,0.5)' : 'rgba(46,204,113,0.5)';
+
+  ctx.beginPath();
+  ctx.arc(cx, cy, r + 14, -Math.PI / 2 - 0.3, -Math.PI / 2 + 0.3);
+  ctx.strokeStyle = arcColor;
+  ctx.lineWidth = 5;
+  ctx.lineCap = 'round';
+  ctx.stroke();
+
+  // Direction indicator dot
+  const indicatorAng = ang - Math.PI / 2;
+  const ix = cx + Math.cos(indicatorAng) * (r + 22);
+  const iy = cy + Math.sin(indicatorAng) * (r + 22);
+  ctx.beginPath();
+  ctx.arc(ix, iy, 7, 0, Math.PI * 2);
+  ctx.fillStyle = dangerous ? '#e74c3c' : '#2ecc71';
+  ctx.fill();
+}
+
+// Boss looks toward player when angle is near 0 (sin(0)=0, cos(0)=1 → looking straight down)
+// Actually we define: angle oscillates. When |sin(angle)| < 0.35 boss looks somewhat forward
+// More intuitive: dangerous = pupils pointing DOWN (toward player button)
+// angle fed into sin to shift pupils. When angle near 0 or 2π, sin≈0, pupils centered → looking at you
+function isDangerous(ang) {
+  // Normalize sin value: pupils are centered (looking at player) when sin is near 0
+  const s = Math.abs(Math.sin(ang));
+  return s < 0.38; // within ~22° of straight forward
+}
+
+function gameLoop() {
+  if (gameState !== 'running') return;
+  t += 1;
+  const lvl = getLevel(score);
+  angleSpeed = lvl.speed;
+  // Oscillate angle: boss looks left and right, occasionally pauses
+  angle = Math.sin(t * angleSpeed) * Math.PI * 0.85;
+
+  const dangerous = isDangerous(angle);
+  if (dangerous) {
+    statusEl.className = 'status-indicator status-danger';
+    statusEl.textContent = '⚠️ 위험! 상사가 이쪽을 봅니다!';
+  } else {
+    statusEl.className = 'status-indicator status-safe';
+    statusEl.textContent = '✅ 안전! 지금 클릭하세요!';
+  }
+
+  drawScene();
+  animId = requestAnimationFrame(gameLoop);
+}
+
+function startGame() {
+  gameState = 'running';
+  score = 0;
+  t = 0;
+  angle = Math.PI * 0.8; // start looking away
+  scoreEl.textContent = '0';
+  levelEl.textContent = getLevel(0).name;
+  gameoverOverlay.classList.remove('show');
+  clickBtn.disabled = false;
+  document.getElementById('startBtn').textContent = '↺ 재시작';
+
+  cancelAnimationFrame(animId);
+  gameLoop();
+}
+
+function handleClick(e) {
+  if (gameState !== 'running') return;
+
+  if (isDangerous(angle)) {
+    // Caught!
+    gameState = 'over';
+    cancelAnimationFrame(animId);
+    clickBtn.disabled = true;
+    statusEl.className = 'status-indicator status-danger';
+    statusEl.textContent = '😱 들켰습니다! 게임 오버!';
+
+    // Flash screen red
+    caughtFlash.classList.remove('flash');
+    void caughtFlash.offsetWidth;
+    caughtFlash.classList.add('flash');
+
+    const prev = getBest();
+    if (score > prev) setBest(score);
+    bestEl.textContent = getBest();
+
+    document.getElementById('finalScore').textContent = score;
+    const lvl = getLevel(score);
+    document.getElementById('finalLevel').textContent = `점 — ${lvl.name} 달성!`;
+    gameoverOverlay.classList.add('show');
+    drawScene();
+  } else {
+    // Safe click!
+    score++;
+    scoreEl.textContent = score;
+    const lvl = getLevel(score);
+    levelEl.textContent = lvl.name;
+
+    // Floating +1 feedback
+    const wrap = document.getElementById('clickBtnWrap');
+    const fb = document.createElement('div');
+    fb.className = 'click-feedback';
+    fb.textContent = '+1 ✓';
+    fb.style.color = '#2ecc71';
+    fb.style.left = (Math.random() * 60 + 20) + '%';
+    fb.style.top = '0';
+    wrap.appendChild(fb);
+    setTimeout(() => fb.remove(), 700);
+  }
+}
+
+function showRules() {
+  alert('📖 게임 규칙\n\n• 상사의 눈이 딴 곳을 볼 때 클릭하세요\n• 상사가 이쪽을 보고 있을 때 클릭하면 GAME OVER!\n• 점수가 높아질수록 상사가 더 빠르게 움직입니다\n\n직급: 신입(0~9) → 대리(10~24) → 과장(25~49) → 부장(50+)');
+}
+
+// Initial draw
+drawScene();
+</script>
+</body>
+</html>

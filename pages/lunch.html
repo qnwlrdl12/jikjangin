@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>점심 메뉴 룰렛 - 월급루팡 게임 - 직장인닷컴</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .game-wrap {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 24px 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .wheel-container {
+      position: relative;
+      width: min(380px, 90vw);
+      height: min(380px, 90vw);
+    }
+    #wheelCanvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      filter: drop-shadow(0 8px 32px rgba(0,0,0,0.5));
+    }
+
+    /* Pointer triangle above wheel */
+    .pointer {
+      position: absolute;
+      top: -14px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 14px solid transparent;
+      border-right: 14px solid transparent;
+      border-top: 28px solid var(--primary);
+      filter: drop-shadow(0 3px 6px rgba(255,107,53,0.6));
+      z-index: 10;
+    }
+
+    /* Spin button (center of wheel drawn via canvas; external button below) */
+    .spin-btn-wrap { text-align: center; }
+    #spinBtn {
+      padding: 14px 40px;
+      font-size: 1.2rem;
+      font-weight: 900;
+      font-family: inherit;
+      background: linear-gradient(135deg, var(--primary), #ff9f43);
+      color: #fff;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      box-shadow: 0 6px 24px rgba(255,107,53,0.4);
+      transition: transform 0.15s, box-shadow 0.15s;
+      min-width: 180px;
+    }
+    #spinBtn:hover:not(:disabled) { transform: translateY(-3px); box-shadow: 0 10px 32px rgba(255,107,53,0.5); }
+    #spinBtn:active:not(:disabled) { transform: scale(0.97); }
+    #spinBtn:disabled { background: var(--card); color: var(--text-muted); box-shadow: none; cursor: not-allowed; }
+
+    /* Winner banner */
+    .winner-banner {
+      display: none;
+      background: linear-gradient(135deg, rgba(255,215,0,0.15), rgba(255,107,53,0.15));
+      border: 2px solid var(--secondary);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      text-align: center;
+      width: 100%;
+      animation: winnerPop 0.4s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    .winner-banner.show { display: block; }
+    @keyframes winnerPop { from { transform: scale(0.7); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .winner-label { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 6px; }
+    .winner-name { font-size: 2rem; font-weight: 900; color: var(--secondary); }
+    .winner-emoji { font-size: 2.5rem; }
+
+    /* Menu editor */
+    .menu-editor {
+      width: 100%;
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 20px;
+      border: 1px solid rgba(255,255,255,0.07);
+    }
+    .menu-editor h3 { font-size: 1rem; font-weight: 700; color: var(--white); margin-bottom: 14px; }
+    .menu-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .menu-tag {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 20px;
+      padding: 5px 12px;
+      font-size: 0.85rem;
+      color: var(--text);
+    }
+    .menu-tag .remove-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 0.9rem;
+      padding: 0;
+      line-height: 1;
+      transition: color 0.15s;
+    }
+    .menu-tag .remove-btn:hover { color: #e74c3c; }
+    .add-menu-row { display: flex; gap: 8px; }
+    #newMenuInput {
+      flex: 1;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 0.9rem;
+      font-family: inherit;
+      padding: 9px 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    #newMenuInput:focus { border-color: var(--accent); }
+    .btn-add {
+      background: var(--accent);
+      color: var(--dark);
+      border: none;
+      border-radius: 8px;
+      padding: 9px 18px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: filter 0.15s;
+    }
+    .btn-add:hover { filter: brightness(1.1); }
+
+    /* History */
+    .history-box {
+      width: 100%;
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      border: 1px solid rgba(255,255,255,0.07);
+    }
+    .history-box h3 { font-size: 1rem; font-weight: 700; color: var(--white); margin-bottom: 12px; }
+    .history-list { display: flex; flex-direction: column; gap: 6px; }
+    .history-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .history-item:last-child { border-bottom: none; }
+    .history-num { width: 22px; height: 22px; border-radius: 50%; background: var(--primary); color: #fff; font-size: 0.72rem; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .history-name { color: var(--text); font-weight: 600; }
+    .history-empty { color: var(--text-muted); font-size: 0.85rem; }
+  </style>
+</head>
+<body>
+<nav>
+  <a href="../index.html" class="logo">💼 <span>직장인</span>닷컴</a>
+  <ul class="nav-links">
+    <li><a href="../index.html#calculators">계산기</a></li>
+    <li><a href="../index.html#tools">업무도구</a></li>
+    <li><a href="../index.html#games" class="active">루팡게임</a></li>
+    <li><a href="../index.html#tests">테스트</a></li>
+    <li><a href="../index.html#info">정보</a></li>
+  </ul>
+</nav>
+
+<div class="page-header">
+  <div class="breadcrumb"><a href="../index.html">홈</a> › 월급루팡 게임</div>
+  <h1>🍽️ 점심 메뉴 룰렛</h1>
+  <p>오늘 점심 메뉴를 못 정하겠다면? 룰렛에게 맡겨요!</p>
+</div>
+
+<main>
+  <div class="ad-banner">광고 영역 (Google AdSense)</div>
+
+  <div class="game-wrap">
+
+    <div class="wheel-container">
+      <div class="pointer"></div>
+      <canvas id="wheelCanvas" width="380" height="380"></canvas>
+    </div>
+
+    <div class="winner-banner" id="winnerBanner">
+      <div class="winner-emoji" id="winnerEmoji">🍽️</div>
+      <div class="winner-label">오늘의 점심 메뉴</div>
+      <div class="winner-name" id="winnerName"></div>
+    </div>
+
+    <div class="spin-btn-wrap">
+      <button id="spinBtn" onclick="spin()">🎯 돌리기!</button>
+    </div>
+
+    <div class="menu-editor">
+      <h3>🍴 메뉴 편집 (최소 2개, 최대 12개)</h3>
+      <div class="menu-tags" id="menuTags"></div>
+      <div class="add-menu-row">
+        <input type="text" id="newMenuInput" placeholder="메뉴 추가..." maxlength="10">
+        <button class="btn-add" onclick="addMenu()">+ 추가</button>
+      </div>
+    </div>
+
+    <div class="history-box">
+      <h3>📋 최근 결과</h3>
+      <div class="history-list" id="historyList">
+        <div class="history-empty">아직 돌린 결과가 없습니다</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ad-banner">광고 영역 (Google AdSense)</div>
+</main>
+
+<footer><p><strong>직장인닷컴</strong> — 직장인을 위한 올인원 도구 사이트</p></footer>
+
+<script>
+const SEGMENT_COLORS = [
+  '#FF6B35', '#FFD700', '#4ECDC4', '#45B7D1', '#96CEB4',
+  '#FFEAA7', '#DDA0DD', '#98D8C8', '#F7DC6F', '#BB8FCE',
+  '#82E0AA', '#F1948A'
+];
+
+const FOOD_EMOJIS = {
+  '삼겹살': '🥩', '순대국밥': '🍲', '짜장면': '🍜', '김치찌개': '🍲',
+  '된장찌개': '🥘', '제육볶음': '🍳', '비빔밥': '🥗', '냉면': '🍜',
+  '칼국수': '🍝', '돈까스': '🍱', '치킨': '🍗', '초밥': '🍣',
+};
+
+function getEmoji(name) { return FOOD_EMOJIS[name] || '🍽️'; }
+
+let menus = ['삼겹살', '순대국밥', '짜장면', '김치찌개', '된장찌개', '제육볶음', '비빔밥', '냉면', '칼국수', '돈까스', '치킨', '초밥'];
+let history = [];
+let isSpinning = false;
+let currentAngle = 0;
+let spinVelocity = 0;
+let animId = null;
+let targetSegment = -1;
+
+const canvas = document.getElementById('wheelCanvas');
+const ctx = canvas.getContext('2d');
+const W = canvas.width;
+const H = canvas.height;
+const CX = W / 2;
+const CY = H / 2;
+const RADIUS = W / 2 - 14;
+
+function drawWheel(angle) {
+  ctx.clearRect(0, 0, W, H);
+  const n = menus.length;
+  const arc = (Math.PI * 2) / n;
+
+  // Outer glow ring
+  ctx.beginPath();
+  ctx.arc(CX, CY, RADIUS + 8, 0, Math.PI * 2);
+  const glowGrad = ctx.createRadialGradient(CX, CY, RADIUS, CX, CY, RADIUS + 8);
+  glowGrad.addColorStop(0, 'rgba(255,107,53,0.4)');
+  glowGrad.addColorStop(1, 'transparent');
+  ctx.fillStyle = glowGrad;
+  ctx.fill();
+
+  for (let i = 0; i < n; i++) {
+    const startA = angle + i * arc;
+    const endA = startA + arc;
+    const midA = startA + arc / 2;
+
+    // Segment
+    ctx.beginPath();
+    ctx.moveTo(CX, CY);
+    ctx.arc(CX, CY, RADIUS, startA, endA);
+    ctx.closePath();
+    ctx.fillStyle = SEGMENT_COLORS[i % SEGMENT_COLORS.length];
+    ctx.fill();
+
+    // Segment border
+    ctx.strokeStyle = 'rgba(0,0,0,0.25)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Text
+    ctx.save();
+    ctx.translate(CX, CY);
+    ctx.rotate(midA);
+    ctx.textAlign = 'right';
+    ctx.font = `700 ${n > 8 ? 13 : 15}px "Noto Sans KR", sans-serif`;
+    ctx.fillStyle = '#fff';
+    ctx.shadowColor = 'rgba(0,0,0,0.5)';
+    ctx.shadowBlur = 4;
+    ctx.fillText(menus[i], RADIUS - 14, 5);
+    ctx.restore();
+  }
+
+  // Center hub
+  ctx.beginPath();
+  ctx.arc(CX, CY, 28, 0, Math.PI * 2);
+  const hubGrad = ctx.createRadialGradient(CX - 6, CY - 6, 4, CX, CY, 28);
+  hubGrad.addColorStop(0, '#3a3a5a');
+  hubGrad.addColorStop(1, '#1a1a3a');
+  ctx.fillStyle = hubGrad;
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  ctx.font = '700 12px "Noto Sans KR", sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#e0e0e0';
+  ctx.shadowBlur = 0;
+  ctx.fillText('GO!', CX, CY + 5);
+}
+
+function getWinnerIndex(angle) {
+  const n = menus.length;
+  const arc = (Math.PI * 2) / n;
+  // Pointer is at top (−π/2). Normalize angle.
+  const normalized = ((-angle - Math.PI / 2) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2);
+  return Math.floor(normalized / arc) % n;
+}
+
+function spin() {
+  if (isSpinning || menus.length < 2) return;
+  isSpinning = true;
+  document.getElementById('winnerBanner').classList.remove('show');
+  document.getElementById('spinBtn').disabled = true;
+  document.getElementById('spinBtn').textContent = '돌아가는 중...';
+
+  // Random speed: 15–30 radians total, deceleration factor
+  spinVelocity = (Math.random() * 8 + 12) * 0.08; // radians per frame
+  cancelAnimationFrame(animId);
+  animateWheel();
+}
+
+function animateWheel() {
+  spinVelocity *= 0.985; // friction
+  currentAngle += spinVelocity;
+
+  drawWheel(currentAngle);
+
+  if (spinVelocity > 0.003) {
+    animId = requestAnimationFrame(animateWheel);
+  } else {
+    // Done spinning
+    spinVelocity = 0;
+    isSpinning = false;
+    const winnerIdx = getWinnerIndex(currentAngle);
+    showWinner(winnerIdx);
+    document.getElementById('spinBtn').disabled = false;
+    document.getElementById('spinBtn').textContent = '🎯 다시 돌리기!';
+  }
+}
+
+function showWinner(idx) {
+  const name = menus[idx];
+  document.getElementById('winnerName').textContent = name;
+  document.getElementById('winnerEmoji').textContent = getEmoji(name);
+  document.getElementById('winnerBanner').classList.add('show');
+
+  // Add to history
+  history.unshift(name);
+  if (history.length > 5) history.pop();
+  renderHistory();
+}
+
+function renderHistory() {
+  const list = document.getElementById('historyList');
+  if (history.length === 0) {
+    list.innerHTML = '<div class="history-empty">아직 돌린 결과가 없습니다</div>';
+    return;
+  }
+  list.innerHTML = history.map((name, i) =>
+    `<div class="history-item">
+      <div class="history-num">${i + 1}</div>
+      <span>${getEmoji(name)}</span>
+      <span class="history-name">${name}</span>
+    </div>`
+  ).join('');
+}
+
+function renderMenuTags() {
+  const container = document.getElementById('menuTags');
+  container.innerHTML = menus.map((m, i) =>
+    `<div class="menu-tag">
+      ${m}
+      <button class="remove-btn" onclick="removeMenu(${i})" title="삭제">✕</button>
+    </div>`
+  ).join('');
+  drawWheel(currentAngle);
+}
+
+function removeMenu(idx) {
+  if (menus.length <= 2) { alert('메뉴는 최소 2개 이상 있어야 합니다.'); return; }
+  menus.splice(idx, 1);
+  renderMenuTags();
+}
+
+function addMenu() {
+  const input = document.getElementById('newMenuInput');
+  const name = input.value.trim();
+  if (!name) return;
+  if (menus.length >= 12) { alert('메뉴는 최대 12개까지 추가할 수 있습니다.'); return; }
+  if (menus.includes(name)) { alert('이미 있는 메뉴입니다.'); return; }
+  menus.push(name);
+  input.value = '';
+  renderMenuTags();
+}
+
+document.getElementById('newMenuInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') addMenu();
+});
+
+// Init
+renderMenuTags();
+renderHistory();
+drawWheel(currentAngle);
+</script>
+</body>
+</html>

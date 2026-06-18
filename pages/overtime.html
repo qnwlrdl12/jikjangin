@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>야근수당 계산기 2026 - 직장인닷컴</title>
+  <meta name="description" content="2026년 야근수당 계산기. 연장근로수당·야간수당·휴일근로수당을 한번에 계산하세요. 주52시간제 기준 반영.">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .breakdown-table { width:100%; border-collapse:collapse; margin-top:12px; font-size:0.88rem; }
+    .breakdown-table th { text-align:left; color:var(--text-muted); font-weight:600; padding:8px 10px; border-bottom:1px solid rgba(255,255,255,0.08); }
+    .breakdown-table td { padding:10px 10px; border-bottom:1px solid rgba(255,255,255,0.05); color:var(--text); }
+    .breakdown-table td:last-child { text-align:right; font-weight:700; color:var(--white); }
+    .breakdown-table tr.zero td { color:rgba(160,160,176,0.4); }
+    .breakdown-table tr.zero td:last-child { color:rgba(160,160,176,0.4); font-weight:400; }
+    .total-row-big { background:rgba(255,107,53,0.1); border:1px solid rgba(255,107,53,0.35); border-radius:12px; padding:20px 24px; margin-top:16px; display:flex; justify-content:space-between; align-items:center; }
+    .total-row-big .lbl { color:var(--text-muted); font-size:0.9rem; }
+    .total-row-big .val { font-size:1.6rem; font-weight:900; color:var(--secondary); }
+    .annual-row { background:rgba(78,205,196,0.07); border:1px solid rgba(78,205,196,0.25); border-radius:12px; padding:16px 24px; margin-top:10px; display:flex; justify-content:space-between; align-items:center; }
+    .annual-row .lbl { color:var(--text-muted); font-size:0.9rem; }
+    .annual-row .val { font-size:1.2rem; font-weight:800; color:var(--accent); }
+    .tip-box { background:rgba(255,215,0,0.07); border:1px solid rgba(255,215,0,0.25); border-radius:12px; padding:18px 20px; margin-top:20px; font-size:0.85rem; line-height:1.7; color:var(--text); }
+    .tip-box strong { color:var(--secondary); }
+    .info-card { background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:20px; margin-top:24px; font-size:0.83rem; line-height:1.8; color:var(--text-muted); max-width:600px; margin-left:auto; margin-right:auto; }
+    .info-card h3 { color:var(--white); font-size:0.95rem; margin-bottom:10px; }
+    .info-card ul { padding-left:18px; }
+    .info-card li { margin-bottom:4px; }
+    .result-hidden { display:none; }
+    .result-hidden.show { display:block; }
+    .hourly-badge { display:inline-flex; align-items:center; gap:8px; background:rgba(78,205,196,0.1); border:1px solid rgba(78,205,196,0.3); border-radius:8px; padding:6px 14px; font-size:0.82rem; color:var(--accent); margin-top:12px; margin-bottom:4px; }
+  </style>
+</head>
+<body>
+<nav>
+  <a href="../index.html" class="logo">💼 <span>직장인</span>닷컴</a>
+  <ul class="nav-links">
+    <li><a href="../index.html#calculators" class="active">계산기</a></li>
+    <li><a href="../index.html#tools">업무도구</a></li>
+    <li><a href="../index.html#games">루팡게임</a></li>
+    <li><a href="../index.html#tests">테스트</a></li>
+    <li><a href="../index.html#info">정보</a></li>
+  </ul>
+</nav>
+
+<div class="page-header">
+  <div class="breadcrumb"><a href="../index.html">홈</a> › 직장인 계산기</div>
+  <h1>🌙 야근수당 계산기</h1>
+  <p>2026년 근로기준법 기준 연장·야간·휴일근로수당을 한번에 계산합니다</p>
+</div>
+
+<main>
+  <div class="ad-banner">광고 영역 (Google AdSense)</div>
+
+  <div class="tool-card">
+    <label>월 기본급 (만원)</label>
+    <input type="number" id="baseSalary" placeholder="예: 300" min="0" oninput="clearResult()">
+
+    <label>연장근로 시간 <span style="font-size:0.78rem;color:var(--text-muted)">(이번 달 평일 야근 — 주 40시간 초과분)</span></label>
+    <input type="number" id="extHours" placeholder="예: 15" min="0" step="0.5" oninput="clearResult()">
+
+    <label>야간근로 시간 <span style="font-size:0.78rem;color:var(--text-muted)">(22:00~06:00 근무 — 추가 0.5 가산)</span></label>
+    <input type="number" id="nightHours" placeholder="예: 5" min="0" step="0.5" oninput="clearResult()">
+
+    <label>휴일근로 시간 (8시간 이내)</label>
+    <input type="number" id="holidayNormal" placeholder="예: 8" min="0" step="0.5" oninput="clearResult()">
+
+    <label>휴일근로 시간 (8시간 초과분)</label>
+    <input type="number" id="holidayExtra" placeholder="예: 2" min="0" step="0.5" oninput="clearResult()">
+
+    <button class="btn-primary" onclick="calculate()">야근수당 계산하기</button>
+
+    <div class="result-hidden" id="result">
+      <div class="hourly-badge" id="hourlyBadge">통상시급: —</div>
+
+      <table class="breakdown-table">
+        <thead>
+          <tr>
+            <th>항목</th>
+            <th>계산식</th>
+            <th>금액</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+
+      <div class="total-row-big">
+        <div>
+          <div class="lbl">💰 이번 달 추가 수당 합계</div>
+        </div>
+        <div class="val" id="totalPay">—</div>
+      </div>
+
+      <div class="annual-row">
+        <div class="lbl">📅 연간 예상 추가 수당 (× 12개월)</div>
+        <div class="val" id="annualPay">—</div>
+      </div>
+
+      <div class="tip-box">
+        <strong>💡 주52시간제 안내</strong><br>
+        2018년 7월부터 300인 이상 사업장에 주52시간제(기본 40시간 + 연장 12시간)가 도입되었습니다.
+        50인 이상은 2020년 1월, 5~49인은 2021년 7월부터 적용됩니다.
+        주 52시간을 초과하는 연장근로를 지시하면 사용자에게 <strong>2년 이하 징역 또는 2천만원 이하 벌금</strong>이 부과될 수 있습니다.
+        야간·휴일수당은 통상임금 기준으로 계산되며, 포괄임금제 계약이라도 실제 수당이 부족하면 차액을 청구할 수 있습니다.
+      </div>
+    </div>
+  </div>
+
+  <div class="info-card">
+    <h3>📋 수당 계산 기준 (근로기준법 제56조)</h3>
+    <ul>
+      <li><strong style="color:var(--primary)">통상시급</strong> = 월 기본급 ÷ 209시간 (법정 월 근로시간)</li>
+      <li><strong style="color:var(--primary)">연장근로수당</strong> = 통상시급 × 1.5 × 연장시간 (주 40시간 초과)</li>
+      <li><strong style="color:var(--accent)">야간가산수당</strong> = 통상시급 × 0.5 × 야간시간 (22:00~06:00, 가산분만)</li>
+      <li><strong style="color:var(--secondary)">연장+야간 중복</strong> = 통상시급 × 2.0 × 시간 (1.5 + 0.5 합산)</li>
+      <li><strong style="color:var(--primary)">휴일근로 (8h 이내)</strong> = 통상시급 × 1.5 × 시간</li>
+      <li><strong style="color:var(--primary)">휴일근로 (8h 초과)</strong> = 통상시급 × 2.0 × 초과시간</li>
+    </ul>
+    <p style="margin-top:10px;color:rgba(160,160,176,0.7)">※ 야간근로 시간이 연장근로 시간 내에 포함된 경우 2.0배를 적용합니다. 본 계산기는 야간시간을 독립 입력으로 처리합니다.</p>
+  </div>
+
+  <div class="ad-banner" style="margin-top:24px">광고 영역 (Google AdSense)</div>
+</main>
+
+<footer>
+  <p><strong>직장인닷컴</strong> — 모든 계산은 참고용이며 법적 효력이 없습니다.</p>
+</footer>
+
+<script>
+function won(n) { return Math.round(n).toLocaleString('ko-KR') + '원'; }
+
+function clearResult() {
+  document.getElementById('result').classList.remove('show');
+}
+
+function calculate() {
+  const base        = parseFloat(document.getElementById('baseSalary').value) * 10000;
+  const extHours    = parseFloat(document.getElementById('extHours').value)    || 0;
+  const nightHours  = parseFloat(document.getElementById('nightHours').value)  || 0;
+  const holNormal   = parseFloat(document.getElementById('holidayNormal').value)|| 0;
+  const holExtra    = parseFloat(document.getElementById('holidayExtra').value) || 0;
+
+  if (!base || base <= 0) { alert('월 기본급을 입력해주세요.'); return; }
+
+  const hourlyRate = base / 209;
+
+  // 각 수당 계산
+  const extPay      = hourlyRate * 1.5 * extHours;       // 연장근로
+  const nightPay    = hourlyRate * 0.5 * nightHours;     // 야간 가산분만
+  const holNormPay  = hourlyRate * 1.5 * holNormal;      // 휴일 8h 이내
+  const holExtraPay = hourlyRate * 2.0 * holExtra;       // 휴일 8h 초과
+  const total       = extPay + nightPay + holNormPay + holExtraPay;
+
+  // 테이블 행 생성
+  const rows = [
+    {
+      label: '연장근로수당',
+      formula: `${hourlyRate.toLocaleString('ko-KR',{maximumFractionDigits:0})}원 × 1.5 × ${extHours}h`,
+      amount: extPay,
+      active: extHours > 0
+    },
+    {
+      label: '야간가산수당 (22:00~06:00)',
+      formula: `${hourlyRate.toLocaleString('ko-KR',{maximumFractionDigits:0})}원 × 0.5 × ${nightHours}h`,
+      amount: nightPay,
+      active: nightHours > 0
+    },
+    {
+      label: '휴일근로수당 (8h 이내)',
+      formula: `${hourlyRate.toLocaleString('ko-KR',{maximumFractionDigits:0})}원 × 1.5 × ${holNormal}h`,
+      amount: holNormPay,
+      active: holNormal > 0
+    },
+    {
+      label: '휴일근로수당 (8h 초과)',
+      formula: `${hourlyRate.toLocaleString('ko-KR',{maximumFractionDigits:0})}원 × 2.0 × ${holExtra}h`,
+      amount: holExtraPay,
+      active: holExtra > 0
+    }
+  ];
+
+  const tbody = document.getElementById('tableBody');
+  tbody.innerHTML = rows.map(r => `
+    <tr class="${r.active ? '' : 'zero'}">
+      <td>${r.label}</td>
+      <td style="color:var(--text-muted);font-size:0.82rem">${r.active ? r.formula : '—'}</td>
+      <td>${r.active ? won(r.amount) : '0원'}</td>
+    </tr>
+  `).join('');
+
+  document.getElementById('hourlyBadge').textContent =
+    `통상시급: ${hourlyRate.toLocaleString('ko-KR', {maximumFractionDigits: 0})}원 (${base.toLocaleString('ko-KR')}원 ÷ 209h)`;
+  document.getElementById('totalPay').textContent  = won(total);
+  document.getElementById('annualPay').textContent = won(total * 12);
+
+  document.getElementById('result').classList.add('show');
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') calculate();
+});
+</script>
+</body>
+</html>
