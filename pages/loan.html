@@ -8,32 +8,34 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../css/style.css">
   <style>
-    .tab-row{display:flex;gap:8px;margin-bottom:20px}
-    .tab-b{flex:1;padding:10px;background:var(--card);border:1px solid rgba(255,255,255,0.1);color:var(--text-muted);border-radius:10px;cursor:pointer;font-size:0.92rem;font-weight:700;transition:all 0.2s}
-    .tab-b.on{background:var(--primary);color:var(--white);border-color:var(--primary)}
-    .summary-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:16px}
-    .s-card{background:rgba(255,255,255,0.04);border-radius:10px;padding:14px}
-    .s-card .lbl{font-size:0.78rem;color:var(--text-muted);margin-bottom:4px}
-    .s-card .val{font-size:1.05rem;font-weight:700;color:var(--white)}
-    .s-card.highlight .val{color:var(--secondary)}
-    .chart-wrap{margin-top:20px}
-    .chart-label{font-size:0.82rem;color:var(--text-muted);margin-bottom:8px;font-weight:600}
-    .bar-chart{display:flex;flex-direction:column;gap:4px;max-height:180px;overflow-y:auto}
-    .bar-row{display:flex;align-items:center;gap:6px;font-size:0.72rem}
-    .bar-row .yr{color:var(--text-muted);min-width:28px;text-align:right}
-    .bar-track2{flex:1;background:rgba(255,255,255,0.06);border-radius:4px;height:14px;display:flex;overflow:hidden}
-    .bar-prin{background:#4ECDC4;height:100%}
-    .bar-int {background:#FF6B35;height:100%}
-    .pie-wrap{display:flex;gap:16px;align-items:center;margin-top:8px}
-    .pie-legend{display:flex;flex-direction:column;gap:6px}
-    .pie-legend .item{display:flex;align-items:center;gap:6px;font-size:0.8rem;color:var(--text-muted)}
-    .pie-dot{width:12px;height:12px;border-radius:3px}
-    .schedule-table{width:100%;border-collapse:collapse;font-size:0.8rem}
-    .schedule-table th{background:rgba(255,255,255,0.05);padding:8px;text-align:center;color:var(--text-muted);position:sticky;top:0}
-    .schedule-table td{padding:7px;text-align:right;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--text)}
-    .schedule-table td:first-child{text-align:center}
-    .table-wrap{max-height:260px;overflow-y:auto;border-radius:10px;border:1px solid rgba(255,255,255,0.06)}
-    @media(max-width:480px){.summary-grid{grid-template-columns:1fr}}
+.summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 18px 24px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.s-card { background: rgba(255,255,255,0.04); border-radius: 10px; padding: 12px 14px; }
+.s-card .sl { font-size: 0.74rem; color: var(--text-muted); margin-bottom: 4px; }
+.s-card .sv { font-size: 1rem; font-weight: 700; color: var(--white); }
+.s-card.hi .sv { color: var(--secondary); }
+.s-card.red .sv { color: #e74c3c; }
+.chart-section { padding: 16px 24px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.chart-section-label { font-size: 0.74rem; font-weight: 700; color: var(--text-muted); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 12px; }
+.pie-row { display: flex; align-items: center; gap: 16px; }
+.pie-legend { display: flex; flex-direction: column; gap: 7px; }
+.pie-legend .item { display: flex; align-items: center; gap: 7px; font-size: 0.8rem; color: var(--text-muted); }
+.pie-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+.bar-chart { display: flex; flex-direction: column; gap: 4px; max-height: 160px; overflow-y: auto; }
+.bar-row { display: flex; align-items: center; gap: 6px; font-size: 0.72rem; }
+.bar-row .yr { color: var(--text-muted); min-width: 26px; text-align: right; }
+.bar-track2 { flex: 1; background: rgba(255,255,255,0.06); border-radius: 4px; height: 12px; display: flex; overflow: hidden; }
+.bar-prin { background: #4ECDC4; height: 100%; }
+.bar-int  { background: #FF6B35; height: 100%; }
+.bar-legend { display: flex; gap: 12px; margin-top: 8px; }
+.bar-legend span { display: flex; align-items: center; gap: 5px; font-size: 0.74rem; color: var(--text-muted); }
+.bar-legend .dot { width: 8px; height: 8px; border-radius: 2px; }
+.schedule-section { padding: 0 24px 16px; }
+.schedule-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+.schedule-table th { background: rgba(255,255,255,0.04); padding: 7px 6px; text-align: center; color: var(--text-muted); position: sticky; top: 0; }
+.schedule-table td { padding: 6px; text-align: right; border-bottom: 1px solid rgba(255,255,255,0.04); color: var(--text); }
+.schedule-table td:first-child { text-align: center; }
+.table-wrap { max-height: 200px; overflow-y: auto; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06); }
+@media(max-width:480px) { .summary-grid { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
@@ -47,168 +49,246 @@
     <li><a href="../index.html#info">정보</a></li>
   </ul>
 </nav>
+
 <div class="page-header">
   <div class="breadcrumb"><a href="../index.html">홈</a> › 직장인 계산기</div>
   <h1>🏦 대출 이자 계산기</h1>
   <p>원리금균등 / 원금균등 상환 비교 + 월별 스케줄</p>
 </div>
+
 <main>
   <div class="ad-banner">광고 영역 (Google AdSense)</div>
-  <div class="tool-card">
-    <div class="tab-row">
-      <button class="tab-b on" id="tab-equal"   onclick="switchMethod('equal')">원리금균등<br><small style="font-weight:400;font-size:0.75rem">매달 같은 금액</small></button>
-      <button class="tab-b"   id="tab-principal" onclick="switchMethod('principal')">원금균등<br><small style="font-weight:400;font-size:0.75rem">초반에 더 많이</small></button>
-    </div>
 
-    <label>대출 원금 (만원)</label>
-    <input type="number" id="principal" placeholder="예: 30000" oninput="clearResult()">
-    <label>연 이자율 (%)</label>
-    <input type="number" id="rate" placeholder="예: 4.5" step="0.01" oninput="clearResult()">
-    <label>대출 기간 (개월)</label>
-    <input type="number" id="months" placeholder="예: 120  (10년 = 120개월)" oninput="clearResult()">
+  <div class="calc-shell">
 
-    <button class="btn-primary" onclick="calculate()">계산하기</button>
+    <!-- LEFT: 입력 -->
+    <div class="input-panel">
 
-    <div class="result-box" id="result">
-      <div class="summary-grid">
-        <div class="s-card"><div class="lbl">대출 원금</div><div class="val" id="r-p">-</div></div>
-        <div class="s-card"><div class="lbl">총 이자</div><div class="val" id="r-i" style="color:#e74c3c">-</div></div>
-        <div class="s-card highlight"><div class="lbl">총 상환금액</div><div class="val" id="r-t">-</div></div>
-        <div class="s-card"><div class="lbl">첫 달 납부액</div><div class="val" id="r-f">-</div></div>
+      <div class="pill-group">
+        <span class="field-label">상환 방식</span>
+        <div class="pills">
+          <button class="pill active" data-m="equal"     onclick="setMethod(this)">원리금균등 — 매달 같은 금액</button>
+          <button class="pill"        data-m="principal" onclick="setMethod(this)">원금균등 — 초반에 더 많이</button>
+        </div>
       </div>
 
-      <div class="chart-wrap">
-        <div class="chart-label">📊 원금 vs 이자 상환 비율</div>
-        <canvas id="pieChart" width="120" height="120" style="max-width:120px"></canvas>
-        <div class="pie-wrap">
-          <div class="pie-legend">
-            <div class="item"><div class="pie-dot" style="background:#4ECDC4"></div><span>원금 <strong id="pie-p-pct" style="color:var(--white)">-</strong></span></div>
-            <div class="item"><div class="pie-dot" style="background:#FF6B35"></div><span>이자 <strong id="pie-i-pct" style="color:var(--white)">-</strong></span></div>
+      <div class="num-field">
+        <span class="field-label">대출 원금</span>
+        <div class="num-wrap">
+          <input type="number" id="principal" placeholder="30000" min="0" oninput="liveCalc()">
+          <span class="unit">만원</span>
+        </div>
+      </div>
+
+      <div class="num-field">
+        <span class="field-label">연 이자율</span>
+        <div class="sm-wrap">
+          <input type="number" id="rate" placeholder="4.5" step="0.01" min="0" oninput="liveCalc()">
+          <span class="unit">%</span>
+        </div>
+      </div>
+
+      <div class="num-field">
+        <span class="field-label">대출 기간</span>
+        <div class="sm-wrap">
+          <input type="number" id="months" placeholder="120" min="1" oninput="liveCalc()">
+          <span class="unit">개월</span>
+        </div>
+        <div class="pills" style="margin-top:6px">
+          <button class="pill" onclick="setMonths(12)">1년</button>
+          <button class="pill" onclick="setMonths(36)">3년</button>
+          <button class="pill" onclick="setMonths(60)">5년</button>
+          <button class="pill" onclick="setMonths(120)">10년</button>
+          <button class="pill" onclick="setMonths(240)">20년</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT: 결과 -->
+    <div class="result-panel">
+      <div class="res-empty" id="resEmpty">
+        <div class="res-empty-icon">🏦</div>
+        <p>대출 정보를 입력하면<br>상환 계획이 바로 계산됩니다</p>
+      </div>
+
+      <div class="res-filled" id="resFilled">
+        <div class="res-hero">
+          <span class="res-hero-label">총 상환금액 (원금 + 이자)</span>
+          <span class="res-hero-value" id="r-total">—</span>
+          <div class="res-hero-sub" id="r-method-label">—</div>
+          <div class="res-hero-badge">
+            <span class="bl">💸 총 이자</span>
+            <span class="bv" id="r-interest">—</span>
+          </div>
+        </div>
+
+        <div class="summary-grid">
+          <div class="s-card"><div class="sl">대출 원금</div><div class="sv" id="r-p">—</div></div>
+          <div class="s-card"><div class="sl">첫 달 납부액</div><div class="sv" id="r-first">—</div></div>
+          <div class="s-card hi"><div class="sl">원금 비율</div><div class="sv" id="pie-p-pct">—</div></div>
+          <div class="s-card red"><div class="sl">이자 비율</div><div class="sv" id="pie-i-pct">—</div></div>
+        </div>
+
+        <div class="chart-section">
+          <div class="chart-section-label">원금 vs 이자 비율</div>
+          <div class="pie-row">
+            <canvas id="pieChart" width="90" height="90" style="max-width:90px;flex-shrink:0"></canvas>
+            <div class="pie-legend">
+              <div class="item"><div class="pie-dot" style="background:#4ECDC4"></div>원금 <strong id="pie-p-pct2" style="color:var(--white);margin-left:4px">—</strong></div>
+              <div class="item"><div class="pie-dot" style="background:#FF6B35"></div>이자 <strong id="pie-i-pct2" style="color:var(--white);margin-left:4px">—</strong></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="chart-section">
+          <div class="chart-section-label">연도별 상환 현황</div>
+          <div class="bar-chart" id="barChart"></div>
+          <div class="bar-legend">
+            <span><div class="dot" style="background:#4ECDC4"></div>원금</span>
+            <span><div class="dot" style="background:#FF6B35"></div>이자</span>
+          </div>
+        </div>
+
+        <div class="schedule-section">
+          <button class="res-toggle" id="schedToggle" onclick="toggleSched()" style="border-radius:0;padding-left:0;padding-right:0">
+            <span>📋 월별 상환 스케줄 (처음 24개월)</span><span class="arr">▾</span>
+          </button>
+          <div id="schedRows" style="display:none;margin-top:8px">
+            <div class="table-wrap">
+              <table class="schedule-table">
+                <thead><tr><th>회차</th><th>납부액</th><th>원금</th><th>이자</th><th>잔금</th></tr></thead>
+                <tbody id="scheduleBody"></tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>
-
-      <div class="chart-wrap">
-        <div class="chart-label">📈 연도별 상환 현황 (원금 vs 이자)</div>
-        <div class="bar-chart" id="barChart"></div>
-        <div style="display:flex;gap:12px;margin-top:6px">
-          <div style="display:flex;align-items:center;gap:5px;font-size:0.75rem;color:var(--text-muted)"><div style="width:10px;height:10px;border-radius:2px;background:#4ECDC4"></div>원금</div>
-          <div style="display:flex;align-items:center;gap:5px;font-size:0.75rem;color:var(--text-muted)"><div style="width:10px;height:10px;border-radius:2px;background:#FF6B35"></div>이자</div>
-        </div>
-      </div>
-
-      <div class="chart-wrap">
-        <div class="chart-label">📋 월별 상환 스케줄 (처음 24개월)</div>
-        <div class="table-wrap">
-          <table class="schedule-table">
-            <thead><tr><th>회차</th><th>납부액</th><th>원금</th><th>이자</th><th>잔금</th></tr></thead>
-            <tbody id="scheduleBody"></tbody>
-          </table>
-        </div>
-      </div>
     </div>
+
   </div>
+
   <div class="ad-banner" style="margin-top:24px">광고 영역 (Google AdSense)</div>
 </main>
-<footer><p><strong>직장인닷컴</strong> — 모든 계산은 참고용입니다.</p></footer>
-<script>
-function won(n){ return Math.round(n).toLocaleString('ko-KR')+'원'; }
-let method='equal';
 
-function switchMethod(m){
-  method=m;
-  ['equal','principal'].forEach(k=>{
-    document.getElementById('tab-'+k).classList.toggle('on',k===m);
-  });
-  clearResult();
+<footer>
+  <p><strong>직장인닷컴</strong> — 모든 계산은 참고용입니다.</p>
+</footer>
+
+<script>
+function won(n) { return Math.round(n).toLocaleString('ko-KR') + '원'; }
+let method = 'equal';
+
+function setMethod(btn) {
+  document.querySelectorAll('.pills .pill[data-m]').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  method = btn.dataset.m;
+  liveCalc();
 }
 
-function clearResult(){ document.getElementById('result').classList.remove('show'); }
+function setMonths(m) {
+  document.getElementById('months').value = m;
+  liveCalc();
+}
 
-function calculate(){
-  const P = parseFloat(document.getElementById('principal').value)*10000;
-  const r = parseFloat(document.getElementById('rate').value)/100/12;
+function toggleSched() {
+  const rows = document.getElementById('schedRows');
+  const btn  = document.getElementById('schedToggle');
+  const open = rows.style.display === 'none';
+  rows.style.display = open ? '' : 'none';
+  btn.classList.toggle('open', open);
+}
+
+function liveCalc() {
+  const P = parseFloat(document.getElementById('principal').value);
+  const r = parseFloat(document.getElementById('rate').value);
   const n = parseInt(document.getElementById('months').value);
-  if(!P||!r||!n){ alert('모든 값을 입력하세요.'); return; }
+  if (!P || !r || !n) {
+    document.getElementById('resEmpty').style.display  = '';
+    document.getElementById('resFilled').style.display = 'none';
+    return;
+  }
+  calculate();
+}
 
-  const rows=[]; let totalInt=0, remaining=P;
+function calculate() {
+  const P = parseFloat(document.getElementById('principal').value) * 10000;
+  const r = parseFloat(document.getElementById('rate').value) / 100 / 12;
+  const n = parseInt(document.getElementById('months').value);
+  if (!P || !r || !n) return;
 
-  if(method==='equal'){
-    const monthly = P*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1);
-    for(let i=1;i<=n;i++){
-      const int=remaining*r, prin=monthly-int;
-      totalInt+=int; remaining-=prin;
-      rows.push([i, monthly, prin, int, Math.max(0,remaining)]);
+  const rows = []; let totalInt = 0, remaining = P;
+
+  if (method === 'equal') {
+    const monthly = P * r * Math.pow(1 + r, n) / (Math.pow(1 + r, n) - 1);
+    for (let i = 1; i <= n; i++) {
+      const int = remaining * r, prin = monthly - int;
+      totalInt += int; remaining -= prin;
+      rows.push([i, monthly, prin, int, Math.max(0, remaining)]);
     }
   } else {
-    const monthlyPrin=P/n;
-    for(let i=1;i<=n;i++){
-      const int=remaining*r, payment=monthlyPrin+int;
-      totalInt+=int; remaining-=monthlyPrin;
-      rows.push([i, payment, monthlyPrin, int, Math.max(0,remaining)]);
+    const monthlyPrin = P / n;
+    for (let i = 1; i <= n; i++) {
+      const int = remaining * r, payment = monthlyPrin + int;
+      totalInt += int; remaining -= monthlyPrin;
+      rows.push([i, payment, monthlyPrin, int, Math.max(0, remaining)]);
     }
   }
 
-  document.getElementById('r-p').textContent=won(P);
-  document.getElementById('r-i').textContent=won(totalInt);
-  document.getElementById('r-t').textContent=won(P+totalInt);
-  document.getElementById('r-f').textContent=won(rows[0][1]);
+  const pp = (P / (P + totalInt) * 100).toFixed(1);
+  const ip = (totalInt / (P + totalInt) * 100).toFixed(1);
 
-  // 파이차트
+  document.getElementById('r-total').textContent       = won(P + totalInt);
+  document.getElementById('r-interest').textContent    = won(totalInt);
+  document.getElementById('r-p').textContent           = won(P);
+  document.getElementById('r-first').textContent       = won(rows[0][1]);
+  document.getElementById('r-method-label').textContent = method === 'equal' ? '원리금균등 · 매달 고정 납부' : '원금균등 · 초반 납부 많음';
+  document.getElementById('pie-p-pct').textContent     = pp + '%';
+  document.getElementById('pie-i-pct').textContent     = ip + '%';
+  document.getElementById('pie-p-pct2').textContent    = pp + '%';
+  document.getElementById('pie-i-pct2').textContent    = ip + '%';
+
   drawPie(P, totalInt);
-  const pp=(P/(P+totalInt)*100).toFixed(1), ip=(totalInt/(P+totalInt)*100).toFixed(1);
-  document.getElementById('pie-p-pct').textContent=pp+'%';
-  document.getElementById('pie-i-pct').textContent=ip+'%';
 
-  // 연도별 바 차트
-  const years = Math.ceil(n/12);
+  const years = Math.ceil(n / 12);
   const yrData = [];
-  for(let y=0;y<years;y++){
-    const yr = rows.slice(y*12, (y+1)*12);
-    const p  = yr.reduce((a,r)=>a+r[2],0);
-    const i  = yr.reduce((a,r)=>a+r[3],0);
-    yrData.push({y:y+1,p,i});
+  for (let y = 0; y < years; y++) {
+    const yr = rows.slice(y * 12, (y + 1) * 12);
+    yrData.push({ y: y + 1, p: yr.reduce((a, r) => a + r[2], 0), i: yr.reduce((a, r) => a + r[3], 0) });
   }
-  const maxVal = Math.max(...yrData.map(d=>d.p+d.i));
-  document.getElementById('barChart').innerHTML = yrData.map(d=>`
+  const maxVal = Math.max(...yrData.map(d => d.p + d.i));
+  document.getElementById('barChart').innerHTML = yrData.map(d => `
     <div class="bar-row">
       <span class="yr">${d.y}년</span>
       <div class="bar-track2">
-        <div class="bar-prin" style="width:${d.p/maxVal*100}%"></div>
-        <div class="bar-int"  style="width:${d.i/maxVal*100}%"></div>
+        <div class="bar-prin" style="width:${d.p / maxVal * 100}%"></div>
+        <div class="bar-int"  style="width:${d.i / maxVal * 100}%"></div>
       </div>
     </div>`).join('');
 
-  // 스케줄 테이블
-  const display=rows.slice(0,24);
-  document.getElementById('scheduleBody').innerHTML=display.map(r=>`
+  document.getElementById('scheduleBody').innerHTML = rows.slice(0, 24).map(r => `
     <tr>
-      <td>${r[0]}</td>
-      <td>${won(r[1])}</td>
-      <td>${won(r[2])}</td>
-      <td style="color:#f39c12">${won(r[3])}</td>
-      <td>${won(r[4])}</td>
+      <td>${r[0]}</td><td>${won(r[1])}</td><td>${won(r[2])}</td>
+      <td style="color:#f39c12">${won(r[3])}</td><td>${won(r[4])}</td>
     </tr>`).join('');
 
-  document.getElementById('result').classList.add('show');
+  document.getElementById('resEmpty').style.display  = 'none';
+  document.getElementById('resFilled').style.display = 'flex';
 }
 
-function drawPie(principal, interest){
-  const canvas=document.getElementById('pieChart');
-  const ctx=canvas.getContext('2d');
-  const total=principal+interest;
-  const pAngle=(principal/total)*Math.PI*2;
-  const cx=60,cy=60,r=50;
-  ctx.clearRect(0,0,120,120);
-  // 이자 (빨강)
-  ctx.beginPath(); ctx.moveTo(cx,cy);
-  ctx.arc(cx,cy,r,0,Math.PI*2); ctx.fillStyle='#FF6B35'; ctx.fill();
-  // 원금 (민트)
-  ctx.beginPath(); ctx.moveTo(cx,cy);
-  ctx.arc(cx,cy,r,-Math.PI/2,-Math.PI/2+pAngle); ctx.fillStyle='#4ECDC4'; ctx.fill();
-  // 중앙 원 (CSS 변수는 canvas에서 동작 안 하므로 getComputedStyle 사용)
+function drawPie(principal, interest) {
+  const canvas = document.getElementById('pieChart');
+  const ctx = canvas.getContext('2d');
+  const total = principal + interest;
+  const pAngle = (principal / total) * Math.PI * 2;
+  const cx = 45, cy = 45, r = 38;
+  ctx.clearRect(0, 0, 90, 90);
+  ctx.beginPath(); ctx.moveTo(cx, cy);
+  ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fillStyle = '#FF6B35'; ctx.fill();
+  ctx.beginPath(); ctx.moveTo(cx, cy);
+  ctx.arc(cx, cy, r, -Math.PI / 2, -Math.PI / 2 + pAngle); ctx.fillStyle = '#4ECDC4'; ctx.fill();
   const bg = getComputedStyle(document.documentElement).getPropertyValue('--card').trim() || '#0f3460';
-  ctx.beginPath(); ctx.arc(cx,cy,28,0,Math.PI*2); ctx.fillStyle=bg||'#0f3460'; ctx.fill();
+  ctx.beginPath(); ctx.arc(cx, cy, 20, 0, Math.PI * 2); ctx.fillStyle = bg; ctx.fill();
 }
 </script>
 </body>
