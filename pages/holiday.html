@@ -181,7 +181,8 @@ function renderCalendars() {
       const dateStr = `${year}-${String(month).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
       const dow = (firstDay + d - 1) % 7;
       const hol = holMap[dateStr];
-      const isToday = dateStr === today.toISOString().slice(0,10);
+      const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+      const isToday = dateStr === todayStr;
       const isPast  = new Date(dateStr) < today;
       let cls = '';
       if      (isToday) cls = 'today';

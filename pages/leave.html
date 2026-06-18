@@ -184,7 +184,7 @@ function calcEarn(){
     const days=getAnnualLeave(y);
     if(y===1) cumul=11+days; else cumul+=days; // 첫 해 포함 누적은 단순 참고
     const isCurr = y===years;
-    rows+=`<tr class="${isCurr?'current-yr':''}"><td>${y}년차${isCurr?' ★':''}</td><td>${days}일</td><td style="color:var(--text-muted)">${days}일/년 한도</td></tr>`;
+    rows+=`<tr class="${isCurr?'current-yr':''}"><td>${y}년차${isCurr?' ★':''}</td><td>${days}일</td><td style="color:var(--text-muted)">${cumul}일</td></tr>`;
   }
   tbl.innerHTML=rows;
   document.getElementById('result-earn').classList.add('show');

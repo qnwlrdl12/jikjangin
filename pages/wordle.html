@@ -203,9 +203,9 @@ const WORDS = [
   '잘부탁해요','이해합니다','확인해볼게','보고드릴게','완료했어요',
   '퇴사하고파','야근하지마','월급올려줘','연차쓸거야','출근하기싫',
   '점심뭐먹어','커피한잔해','회의하기싫','칼퇴하고파','업무많아요',
-  '내일봐요봐','열심히했어','화이팅해요','파이팅해봐','잠깐만요요',
-  '스트레스야','번아웃왔어','발표잘했어','프로젝완료','마감지켰어',
+  '열심히했어','화이팅해요','스트레스야','번아웃왔어','마감지켰어',
   '연봉올랐어','보너스받았','승진했어요','팀장됐어요','이직해볼까',
+  '야근수당줘','연차다썼어','워라밸중요','점심메뉴뭐','퇴근하고파',
 ];
 
 /* ── 게임 상태 ───────────────────────────────────────────────── */
@@ -270,17 +270,12 @@ function pressKey(k) {
   // jamo 입력
   const { commit, current } = ime.push(k);
   if (commit) {
-    // 직전 타일 확정
-    const col = currentTiles.filter(x=>x).length - 1;
-    if (col >= 0 && currentTiles[col] === '') {
-      // 현재 조합 타일
-    }
     commitChar(commit);
   }
-  // 현재 조합 타일 업데이트
-  const filled = currentTiles.filter(x=>x).length;
+  // 조합 중 타일 위치: 확정된 글자 수 (placeholder '​' 제외)
+  const filled = currentTiles.filter(x => x && x !== '​').length;
   if (filled < COLS) {
-    currentTiles[filled] = '​'; // placeholder
+    currentTiles[filled] = '​'; // zero-width space placeholder
     setTile(currentRow, filled, current, 'composing active');
   }
   syncCurrentRow();

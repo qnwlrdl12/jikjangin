@@ -168,7 +168,6 @@ function render(){
 
 function answer(qi, score){
   answers[qi]=score;
-  dimScores[questions[qi].dim]=(dimScores[questions[qi].dim]||0)+(qi<questions.length&&answers[qi]!==undefined&&qi<answers.length?0:0);
 
   document.querySelectorAll(`#q${qi} .option-btn`).forEach((b,i)=>{
     b.classList.toggle('selected',i===score);
