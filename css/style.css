@@ -269,6 +269,10 @@ footer strong { color: var(--primary); }
   outline: none;
   transition: border-color 0.2s;
 }
+.tool-card select option {
+  background: #1a1a2e;
+  color: #e0e0e0;
+}
 .tool-card input:focus, .tool-card select:focus {
   border-color: var(--primary);
 }
