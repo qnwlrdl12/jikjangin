@@ -35,9 +35,11 @@
     @keyframes boom{0%{transform:scale(1)}50%{transform:scale(1.4)}100%{transform:scale(1)}}
     .n1{color:#4ECDC4}.n2{color:#2ecc71}.n3{color:#FF6B35}.n4{color:#9b59b6}
     .n5{color:#e74c3c}.n6{color:#1abc9c}.n7{color:#f39c12}.n8{color:#ecf0f1}
-    .res-msg{text-align:center;margin-top:12px;font-size:1.1rem;font-weight:700;padding:12px;border-radius:10px;display:none}
+    .res-msg{text-align:center;margin-top:12px;font-size:1.1rem;font-weight:700;padding:16px 12px;border-radius:10px;display:none}
     .res-msg.win{background:rgba(46,204,113,.12);color:#2ecc71;border:1px solid rgba(46,204,113,.2)}
     .res-msg.lose{background:rgba(255,107,53,.12);color:#FF6B35;border:1px solid rgba(255,107,53,.2)}
+    .retry-btn{display:inline-block;margin-top:10px;padding:9px 24px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:.9rem;font-weight:700;font-family:inherit;cursor:pointer;transition:opacity .2s}
+    .retry-btn:hover{opacity:.85}
     .best-row{display:flex;gap:10px;font-size:.78rem;color:var(--text-muted);flex-wrap:wrap;justify-content:center;margin-top:6px}
     .best-item strong{color:var(--text)}
     /* Confetti */
@@ -215,7 +217,7 @@ function triggerBoom(r,c){
     minePos.forEach(i=>revealed[i]=true);
     render();
     const msg=document.getElementById('resMsg');
-    msg.textContent='💥 펑! 지뢰를 밟았습니다. 다시 도전!';
+    msg.innerHTML='💥 펑! 지뢰를 밟았습니다.<br><button class="retry-btn" onclick="initBoard()">🔄 다시도전</button>';
     msg.className='res-msg lose';msg.style.display='block';
   },400);
 }
@@ -231,7 +233,7 @@ function checkWin(){
     document.getElementById('mineCount').textContent='0';
     saveBest();spawnConfetti();render();
     const msg=document.getElementById('resMsg');
-    msg.textContent=`🎉 클리어! ${timerVal}초 · ${DIFFS[diffIdx].label}`;
+    msg.innerHTML=`🎉 클리어! ${timerVal}초 · ${DIFFS[diffIdx].label}<br><button class="retry-btn" onclick="initBoard()">🔄 다시도전</button>`;
     msg.className='res-msg win';msg.style.display='block';
     updateBestRow();
   }

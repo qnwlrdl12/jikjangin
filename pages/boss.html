@@ -136,7 +136,10 @@
     .gameover-overlay.show { display: flex; }
     .gameover-overlay h2 { font-size: 1.6rem; color: var(--white); }
     .gameover-overlay p { color: var(--text-muted); font-size: 0.9rem; text-align: center; padding: 0 16px; }
-    .gameover-score { font-size: 3rem; font-weight: 900; color: var(--secondary); }
+    .gameover-score { font-size: 3.5rem; font-weight: 900; color: var(--secondary); line-height: 1; }
+    .gameover-score-label { font-size: 0.9rem; color: rgba(255,215,0,0.7); font-weight: 700; margin-top: 2px; letter-spacing: 0.05em; }
+    @keyframes scorePop { 0%{transform:scale(1)} 50%{transform:scale(1.15)} 100%{transform:scale(1)} }
+    .score-pop { animation: scorePop 0.2s ease; }
 
     /* Caught flash */
     .caught-flash {
@@ -186,7 +189,8 @@
         <div style="font-size:3rem">😱</div>
         <h2>들켰다!</h2>
         <div class="gameover-score" id="finalScore">0</div>
-        <p id="finalLevel">점 획득</p>
+        <div class="gameover-score-label">점 획득</div>
+        <p id="finalLevel"></p>
         <button class="btn-game primary" onclick="startGame()" style="width:160px;margin-top:8px;">▶ 다시하기</button>
       </div>
     </div>
@@ -534,13 +538,16 @@ function handleClick(e) {
 
     document.getElementById('finalScore').textContent = score;
     const lvl = getLevel(score);
-    document.getElementById('finalLevel').textContent = `점 — ${lvl.name} 달성!`;
+    document.getElementById('finalLevel').textContent = `${lvl.name} 달성!`;
     gameoverOverlay.classList.add('show');
     drawScene();
   } else {
     // Safe click!
     score++;
     scoreEl.textContent = score;
+    scoreEl.classList.remove('score-pop');
+    void scoreEl.offsetWidth;
+    scoreEl.classList.add('score-pop');
     const lvl = getLevel(score);
     levelEl.textContent = lvl.name;
 
