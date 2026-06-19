@@ -146,21 +146,25 @@ async function doRemoveBg() {
 
   try {
     if (!removeBgFn) {
-      progressMsg.textContent = 'AI 모델 불러오는 중...';
-      progFill.style.width = '10%';
-      const mod = await import('https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.5/+esm');
+      progressMsg.textContent = 'AI 모델 불러오는 중... (첫 실행은 30초~1분 소요)';
+      progFill.style.width = '5%';
+      const mod = await import('https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.5/dist/index.mjs');
       removeBgFn = mod.removeBackground;
-      progFill.style.width = '30%';
+      progFill.style.width = '15%';
     }
 
     progressMsg.textContent = '배경 분석 중...';
 
     const blob = await removeBgFn(currentFile, {
-      publicPath: 'https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.5/dist/',
+      model: 'small',
       progress: (key, current, total) => {
-        if (key === 'compute:inference') {
-          const pct = total > 0 ? Math.round(30 + (current / total) * 65) : 60;
-          progFill.style.width = pct + '%';
+        if (key.startsWith('fetch:')) {
+          const pct = total > 0 ? Math.round(15 + (current / total) * 50) : 40;
+          progFill.style.width = Math.min(pct, 65) + '%';
+          progressMsg.textContent = '모델 다운로드 중...';
+        } else if (key.startsWith('compute:')) {
+          const pct = total > 0 ? Math.round(65 + (current / total) * 30) : 80;
+          progFill.style.width = Math.min(pct, 95) + '%';
           progressMsg.textContent = '배경 제거 중...';
         }
       }
@@ -180,7 +184,8 @@ async function doRemoveBg() {
 
     setTimeout(() => { progressSection.style.display = 'none'; progFill.style.width = '0%'; }, 1500);
   } catch (err) {
-    progressMsg.textContent = '오류가 발생했습니다. 다른 이미지로 다시 시도해주세요.';
+    progressMsg.textContent = `오류: ${err?.message || String(err)}`;
+    progFill.style.width = '0%';
     console.error(err);
   }
 
