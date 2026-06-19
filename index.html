@@ -329,7 +329,7 @@ footer {
     </h1>
     <p class="hero-sub">연봉 계산, 야근수당, 점심 메뉴 룰렛까지.<br>직장에서 필요한 건 다 있습니다.</p>
     <div class="hero-stats">
-      <div class="stat"><span class="stat-num" data-target="24">0</span><div class="stat-lbl">유용한 도구</div></div>
+      <div class="stat"><span class="stat-num" data-target="34">0</span><div class="stat-lbl">유용한 도구</div></div>
       <div class="stat"><span class="stat-num" data-target="100">0</span><div class="stat-lbl">무료 이용 %</div></div>
       <div class="stat"><span class="stat-num" style="-webkit-text-fill-color:var(--gold);background:none">⚡</span><div class="stat-lbl">빠른 계산</div></div>
     </div>
@@ -395,6 +395,25 @@ footer {
         <div class="card-title">전월세 전환 계산기</div>
         <div class="card-desc">전세 ↔ 월세 전환 + 비용 비교 분석</div>
         <span class="tag t-free">무료</span>
+      </a>
+      <!-- row 4 -->
+      <a href="pages/unemployment.html" class="card bento-wide" style="--card-ac:#FF6B35">
+        <div class="ci">📋</div>
+        <div class="card-title">실업급여 모의 계산기</div>
+        <div class="card-desc">1일 상한 68,100원 · 피보험기간·나이별 소정급여일수 자동 계산 (2026년 기준)</div>
+        <span class="tag t-new">✨ 신규</span>
+      </a>
+      <a href="pages/parental-leave.html" class="card" style="--card-ac:#FF6B35">
+        <div class="ci">👶</div>
+        <div class="card-title">육아휴직 급여 계산기</div>
+        <div class="card-desc">기간별 상한 250·200·160만원 + 6+6 부모육아휴직제 반영</div>
+        <span class="tag t-new">✨ 신규</span>
+      </a>
+      <a href="pages/salary-negotiation.html" class="card" style="--card-ac:#FF6B35">
+        <div class="ci">💼</div>
+        <div class="card-title">연봉 협상 계산기</div>
+        <div class="card-desc">인상률 · 실수령액 변화 · 월급 차이 한눈에 비교</div>
+        <span class="tag t-new">✨ 신규</span>
       </a>
     </div>
   </section>
@@ -476,6 +495,31 @@ footer {
         <div class="card-title">동영상 용량 줄이기</div>
         <div class="card-desc">영상 파일 압축 — 브라우저에서 바로, 서버 전송 없음</div>
         <span class="tag t-free">무료</span>
+      </a>
+      <!-- row 5 -->
+      <a href="pages/pomodoro.html" class="card" style="--card-ac:#4ECDC4">
+        <div class="ci">🍅</div>
+        <div class="card-title">뽀모도로 타이머</div>
+        <div class="card-desc">집중 25분 · 휴식 5분 — 번아웃 없이 일하는 법</div>
+        <span class="tag t-new">✨ 신규</span>
+      </a>
+      <a href="pages/imgcompress.html" class="card" style="--card-ac:#4ECDC4">
+        <div class="ci">🗜️</div>
+        <div class="card-title">이미지 압축기</div>
+        <div class="card-desc">JPEG·PNG·WebP 용량 줄이기 — 서버 전송 없이 바로</div>
+        <span class="tag t-new">✨ 신규</span>
+      </a>
+      <a href="pages/pdf.html" class="card" style="--card-ac:#4ECDC4">
+        <div class="ci">📄</div>
+        <div class="card-title">PDF 합치기 / 페이지 추출</div>
+        <div class="card-desc">여러 PDF 합치기 또는 원하는 페이지만 추출 — 브라우저에서 바로</div>
+        <span class="tag t-new">✨ 신규</span>
+      </a>
+      <a href="pages/resignation.html" class="card" style="--card-ac:#4ECDC4">
+        <div class="ci">📝</div>
+        <div class="card-title">사직서 / 경위서 생성기</div>
+        <div class="card-desc">사직서 · 경위서 · 시말서 자동 완성 → 바로 출력</div>
+        <span class="tag t-new">✨ 신규</span>
       </a>
     </div>
   </section>
@@ -644,7 +688,7 @@ function animCount(el) {
   function step(now) {
     const p = Math.min((now - start) / dur, 1);
     const ease = 1 - Math.pow(1 - p, 3);
-    el.textContent = Math.round(ease * target) + (p === 1 && el.dataset.target === '24' ? '+' : p === 1 ? '%' : '');
+    el.textContent = Math.round(ease * target) + (p === 1 && el.dataset.target === '34' ? '+' : p === 1 ? '%' : '');
     if (p < 1) requestAnimationFrame(step);
   }
   requestAnimationFrame(step);

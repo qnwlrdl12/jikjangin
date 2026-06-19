@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>실업급여 모의 계산기 2026 - 직장인닷컴</title>
+  <meta name="description" content="2026년 실업급여(구직급여) 예상 수령액을 계산하세요. 1일 상한 68,100원·하한 66,048원 반영. 피보험기간·나이별 소정급여일수 자동 계산.">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .calc-card { background:var(--card); border:1px solid rgba(255,255,255,0.06); border-radius:var(--radius); padding:28px; margin-bottom:16px; max-width:640px; margin-left:auto; margin-right:auto; }
+    .calc-card h3 { font-size:1rem; font-weight:700; color:var(--white); margin-bottom:18px; display:flex; align-items:center; gap:8px; }
+    .form-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px; }
+    .form-group label { display:block; font-size:0.83rem; color:var(--text-muted); margin-bottom:6px; }
+    .form-group input, .form-group select {
+      width:100%; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1);
+      border-radius:10px; padding:11px 14px; color:var(--white); font-size:0.95rem;
+      outline:none; font-family:inherit; transition:border-color 0.2s;
+    }
+    .form-group input:focus, .form-group select:focus { border-color:var(--primary); }
+    .form-group select option { background:#1a1a2e; color:#fff; }
+    .calc-btn { width:100%; background:var(--primary); color:#fff; border:none; border-radius:10px; padding:14px; font-size:1rem; font-weight:700; cursor:pointer; transition:opacity 0.2s; margin-top:6px; font-family:inherit; }
+    .calc-btn:hover { opacity:0.85; }
+
+    .result-box { display:none; background:rgba(255,107,53,0.07); border:1px solid rgba(255,107,53,0.2); border-radius:12px; padding:22px; margin-top:16px; }
+    .result-main { text-align:center; margin-bottom:20px; }
+    .result-label { font-size:0.82rem; color:var(--text-muted); margin-bottom:6px; }
+    .result-value { font-size:2.4rem; font-weight:900; color:var(--secondary); line-height:1.1; }
+    .result-sub { font-size:0.82rem; color:var(--text-muted); margin-top:4px; }
+    .result-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .result-item { background:rgba(255,255,255,0.04); border-radius:10px; padding:12px 14px; }
+    .result-item .rlbl { font-size:0.76rem; color:var(--text-muted); margin-bottom:4px; }
+    .result-item .rval { font-size:1rem; font-weight:700; color:var(--white); }
+
+    .info-card { background:var(--card); border:1px solid rgba(255,255,255,0.06); border-radius:var(--radius); padding:22px 26px; max-width:640px; margin:16px auto; }
+    .info-card h3 { font-size:0.95rem; font-weight:700; color:var(--white); margin-bottom:14px; }
+    .day-table { width:100%; border-collapse:collapse; font-size:0.82rem; }
+    .day-table th { text-align:left; color:var(--text-muted); font-weight:600; padding:7px 6px; border-bottom:1px solid rgba(255,255,255,0.08); }
+    .day-table td { padding:8px 6px; border-bottom:1px solid rgba(255,255,255,0.04); color:var(--text); }
+    .day-table tr:last-child td { border:none; }
+    .day-table .hl { color:var(--secondary); font-weight:700; }
+    .notice { font-size:0.78rem; color:var(--text-muted); line-height:1.65; margin-top:12px; padding:12px 14px; background:rgba(255,255,255,0.02); border-radius:8px; border-left:3px solid var(--primary); }
+    @media(max-width:480px) { .form-row { grid-template-columns:1fr; } .result-grid { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+<nav>
+  <a href="../index.html" class="logo">💼 <span>직장인</span>닷컴</a>
+  <ul class="nav-links">
+    <li><a href="../index.html#calculators" class="active">계산기</a></li>
+    <li><a href="../index.html#tools">업무도구</a></li>
+    <li><a href="../index.html#games">루팡게임</a></li>
+    <li><a href="../index.html#tests">테스트</a></li>
+    <li><a href="../index.html#info">정보</a></li>
+  </ul>
+</nav>
+
+<div class="page-header">
+  <div class="breadcrumb"><a href="../index.html">홈</a> › 계산기</div>
+  <h1>📋 실업급여 모의 계산기</h1>
+  <p>2026년 기준 · 퇴직 후 받을 수 있는 구직급여를 미리 계산하세요</p>
+</div>
+
+<main>
+  <div class="ad-banner">광고 영역 (Google AdSense)</div>
+
+  <div class="calc-card">
+    <h3>📊 기본 정보 입력</h3>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>퇴직 전 3개월 평균 월급 (만원)</label>
+        <input type="number" id="avgSalary" placeholder="예: 320" min="1">
+      </div>
+      <div class="form-group">
+        <label>1일 근로시간 (시간)</label>
+        <select id="workHour">
+          <option value="8" selected>8시간 (풀타임)</option>
+          <option value="7">7시간</option>
+          <option value="6">6시간</option>
+          <option value="5">5시간</option>
+          <option value="4">4시간</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>고용보험 피보험 기간</label>
+        <select id="insuredPeriod">
+          <option value="lt1">1년 미만</option>
+          <option value="1to3" selected>1년 이상 ~ 3년 미만</option>
+          <option value="3to5">3년 이상 ~ 5년 미만</option>
+          <option value="5to10">5년 이상 ~ 10년 미만</option>
+          <option value="gte10">10년 이상</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>퇴직 당시 나이</label>
+        <select id="age">
+          <option value="under50" selected>50세 미만</option>
+          <option value="gte50">50세 이상</option>
+        </select>
+      </div>
+    </div>
+
+    <button class="calc-btn" onclick="calculate()">계산하기</button>
+
+    <div class="result-box" id="resultBox">
+      <div class="result-main">
+        <div class="result-label">예상 총 수령액</div>
+        <div class="result-value" id="totalAmount">—</div>
+        <div class="result-sub" id="daysDesc">—</div>
+      </div>
+      <div class="result-grid">
+        <div class="result-item">
+          <div class="rlbl">1일 구직급여액</div>
+          <div class="rval" id="dailyAmount">—</div>
+        </div>
+        <div class="result-item">
+          <div class="rlbl">소정급여일수</div>
+          <div class="rval" id="totalDays">—</div>
+        </div>
+        <div class="result-item">
+          <div class="rlbl">1일 평균임금</div>
+          <div class="rval" id="dailyWage">—</div>
+        </div>
+        <div class="result-item">
+          <div class="rlbl">월 예상 수령</div>
+          <div class="rval" id="monthlyEst">—</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="info-card">
+    <h3>📅 소정급여일수표 (2026년 기준)</h3>
+    <table class="day-table">
+      <thead>
+        <tr>
+          <th>피보험 기간</th>
+          <th>50세 미만</th>
+          <th>50세 이상</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>1년 미만</td><td class="hl">120일</td><td class="hl">120일</td></tr>
+        <tr><td>1년 ~ 3년 미만</td><td class="hl">150일</td><td class="hl">180일</td></tr>
+        <tr><td>3년 ~ 5년 미만</td><td class="hl">180일</td><td class="hl">210일</td></tr>
+        <tr><td>5년 ~ 10년 미만</td><td class="hl">210일</td><td class="hl">240일</td></tr>
+        <tr><td>10년 이상</td><td class="hl">240일</td><td class="hl">270일</td></tr>
+      </tbody>
+    </table>
+    <div class="notice">
+      ※ 수급 자격: 비자발적 퇴사 + 이직 전 18개월 중 피보험 180일 이상<br>
+      ※ 1일 상한액 68,100원 / 하한액 66,048원 (최저임금 10,320원 × 8시간 × 80%) 기준<br>
+      ※ 수급 기간: 퇴직 다음날부터 12개월 이내. 이 기간이 지나면 소멸됩니다.<br>
+      ※ 이 계산기는 참고용입니다. 정확한 금액은 고용복지플러스센터에서 확인하세요.
+    </div>
+  </div>
+
+  <div class="ad-banner" style="margin-top:24px">광고 영역 (Google AdSense)</div>
+</main>
+
+<footer>
+  <p><strong>직장인닷컴</strong> — 모든 계산은 참고용이며 법적 효력이 없습니다.</p>
+</footer>
+
+<script>
+const DAY_TABLE = {
+  lt1:   { under50: 120, gte50: 120 },
+  '1to3':  { under50: 150, gte50: 180 },
+  '3to5':  { under50: 180, gte50: 210 },
+  '5to10': { under50: 210, gte50: 240 },
+  gte10:   { under50: 240, gte50: 270 },
+};
+
+const MAX_DAILY = 68100;
+
+function fw(n) { return Math.round(n).toLocaleString('ko-KR') + '원'; }
+
+function calculate() {
+  const salaryWon = (parseFloat(document.getElementById('avgSalary').value) || 0) * 10000;
+  const wh = parseInt(document.getElementById('workHour').value);
+  const period = document.getElementById('insuredPeriod').value;
+  const ageKey = document.getElementById('age').value;
+
+  if (!salaryWon) { alert('평균 월급을 입력해주세요.'); return; }
+
+  // 1일 평균임금 = 월급 / 30일 (간이 계산)
+  const avgDailyWage = salaryWon / 30;
+
+  // 구직급여 1일액 = 1일 평균임금 × 60%
+  let dailyBenefit = avgDailyWage * 0.6;
+
+  // 하한 적용: 최저임금 × 근로시간 × 80%
+  const minDaily = 10320 * wh * 0.8;
+  // 상한 적용: 68,100원 고정
+  dailyBenefit = Math.min(Math.max(dailyBenefit, minDaily), MAX_DAILY);
+
+  const days = DAY_TABLE[period][ageKey];
+  const total = dailyBenefit * days;
+  const monthlyEst = dailyBenefit * 30;
+
+  document.getElementById('dailyWage').textContent = fw(avgDailyWage);
+  document.getElementById('dailyAmount').textContent = fw(dailyBenefit);
+  document.getElementById('totalDays').textContent = days + '일';
+  document.getElementById('totalAmount').textContent = fw(total);
+  document.getElementById('monthlyEst').textContent = fw(monthlyEst);
+  document.getElementById('daysDesc').textContent = `소정급여일수 ${days}일 기준 (약 ${Math.round(days/30)}개월)`;
+
+  document.getElementById('resultBox').style.display = 'block';
+}
+</script>
+</body>
+</html>

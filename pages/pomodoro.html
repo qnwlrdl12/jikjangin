@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>뽀모도로 타이머 - 직장인닷컴</title>
+  <meta name="description" content="집중 25분 + 휴식 5분 뽀모도로 타이머. 업무 집중력을 높이고 번아웃을 예방하세요.">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .pomo-wrap { max-width:480px; margin:0 auto; }
+    .mode-tabs { display:flex; gap:8px; margin-bottom:20px; }
+    .mode-tab { flex:1; padding:10px; border:none; border-radius:10px; font-size:0.88rem; font-weight:700; cursor:pointer; transition:all 0.2s; background:rgba(255,255,255,0.05); color:var(--text-muted); font-family:inherit; }
+    .mode-tab.active { background:var(--primary); color:#fff; }
+    .mode-tab:hover:not(.active) { background:rgba(255,255,255,0.1); color:var(--white); }
+
+    .timer-face {
+      background:var(--card); border:1px solid rgba(255,255,255,0.06);
+      border-radius:24px; padding:40px 30px 32px; text-align:center; margin-bottom:16px;
+      position:relative; overflow:hidden;
+    }
+    .timer-face::before {
+      content:''; position:absolute; inset:0;
+      background:radial-gradient(circle at 50% 0%, rgba(255,107,53,0.08) 0%, transparent 65%);
+      pointer-events:none;
+    }
+    .timer-ring-wrap { position:relative; width:200px; height:200px; margin:0 auto 20px; }
+    .timer-ring { transform:rotate(-90deg); }
+    .ring-bg { fill:none; stroke:rgba(255,255,255,0.06); stroke-width:10; }
+    .ring-prog { fill:none; stroke:var(--primary); stroke-width:10; stroke-linecap:round; transition:stroke-dashoffset 1s linear, stroke 0.4s; }
+    .timer-text { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+    .timer-clock { font-size:3.2rem; font-weight:900; color:var(--white); font-variant-numeric:tabular-nums; letter-spacing:-1px; line-height:1; }
+    .timer-mode-label { font-size:0.78rem; color:var(--text-muted); margin-top:6px; letter-spacing:0.06em; text-transform:uppercase; }
+
+    .session-count { font-size:0.85rem; color:var(--text-muted); margin-bottom:16px; }
+    .session-dots { display:flex; justify-content:center; gap:6px; margin-bottom:24px; }
+    .dot { width:10px; height:10px; border-radius:50%; background:rgba(255,255,255,0.12); transition:background 0.3s; }
+    .dot.done { background:var(--primary); }
+    .dot.current { background:var(--secondary); }
+
+    .btn-row { display:flex; gap:10px; justify-content:center; }
+    .btn-start { background:var(--primary); color:#fff; border:none; border-radius:12px; padding:14px 36px; font-size:1rem; font-weight:700; cursor:pointer; font-family:inherit; transition:opacity 0.2s; }
+    .btn-start:hover { opacity:0.85; }
+    .btn-reset { background:rgba(255,255,255,0.07); color:var(--text-muted); border:none; border-radius:12px; padding:14px 20px; font-size:0.9rem; font-weight:600; cursor:pointer; font-family:inherit; transition:all 0.2s; }
+    .btn-reset:hover { background:rgba(255,255,255,0.12); color:var(--white); }
+    .btn-skip { background:rgba(255,255,255,0.07); color:var(--text-muted); border:none; border-radius:12px; padding:14px 20px; font-size:0.9rem; font-weight:600; cursor:pointer; font-family:inherit; transition:all 0.2s; }
+    .btn-skip:hover { background:rgba(255,255,255,0.12); color:var(--white); }
+
+    .settings-card { background:var(--card); border:1px solid rgba(255,255,255,0.06); border-radius:var(--radius); padding:22px 24px; margin-bottom:16px; }
+    .settings-card h3 { font-size:0.9rem; font-weight:700; color:var(--white); margin-bottom:16px; }
+    .setting-row { display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.05); }
+    .setting-row:last-child { border:none; }
+    .setting-row label { font-size:0.85rem; color:var(--text-muted); }
+    .setting-row input[type=number] {
+      width:70px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1);
+      border-radius:8px; padding:6px 10px; color:var(--white); font-size:0.9rem;
+      text-align:center; outline:none; font-family:inherit;
+    }
+    .setting-row input[type=number]:focus { border-color:var(--primary); }
+
+    .stats-card { background:var(--card); border:1px solid rgba(255,255,255,0.06); border-radius:var(--radius); padding:20px 24px; }
+    .stats-card h3 { font-size:0.9rem; font-weight:700; color:var(--white); margin-bottom:14px; }
+    .stats-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+    .stat-item { background:rgba(255,255,255,0.04); border-radius:10px; padding:12px; text-align:center; }
+    .stat-item .sv { font-size:1.4rem; font-weight:900; color:var(--secondary); }
+    .stat-item .sl { font-size:0.72rem; color:var(--text-muted); margin-top:3px; }
+  </style>
+</head>
+<body>
+<nav>
+  <a href="../index.html" class="logo">💼 <span>직장인</span>닷컴</a>
+  <ul class="nav-links">
+    <li><a href="../index.html#calculators">계산기</a></li>
+    <li><a href="../index.html#tools" class="active">업무도구</a></li>
+    <li><a href="../index.html#games">루팡게임</a></li>
+    <li><a href="../index.html#tests">테스트</a></li>
+    <li><a href="../index.html#info">정보</a></li>
+  </ul>
+</nav>
+
+<div class="page-header">
+  <div class="breadcrumb"><a href="../index.html">홈</a> › 업무도구</div>
+  <h1>🍅 뽀모도로 타이머</h1>
+  <p>집중 25분 · 휴식 5분 — 번아웃 없이 일하는 법</p>
+</div>
+
+<main>
+  <div class="ad-banner">광고 영역 (Google AdSense)</div>
+
+  <div class="pomo-wrap">
+    <div class="mode-tabs">
+      <button class="mode-tab active" onclick="switchMode('work',this)">집중</button>
+      <button class="mode-tab" onclick="switchMode('short',this)">짧은 휴식</button>
+      <button class="mode-tab" onclick="switchMode('long',this)">긴 휴식</button>
+    </div>
+
+    <div class="timer-face">
+      <div class="timer-ring-wrap">
+        <svg class="timer-ring" width="200" height="200" viewBox="0 0 200 200">
+          <circle class="ring-bg" cx="100" cy="100" r="88"/>
+          <circle class="ring-prog" id="ringProg" cx="100" cy="100" r="88"
+            stroke-dasharray="553" stroke-dashoffset="0"/>
+        </svg>
+        <div class="timer-text">
+          <div class="timer-clock" id="timerClock">25:00</div>
+          <div class="timer-mode-label" id="modeLabel">집중 시간</div>
+        </div>
+      </div>
+
+      <div class="session-dots" id="sessionDots"></div>
+      <div class="session-count" id="sessionCount">세션 0 / 4</div>
+
+      <div class="btn-row">
+        <button class="btn-reset" onclick="resetTimer()" title="처음으로">↺</button>
+        <button class="btn-start" id="btnStart" onclick="toggleTimer()">▶ 시작</button>
+        <button class="btn-skip" onclick="skipPhase()" title="다음 단계로">⏭</button>
+      </div>
+    </div>
+
+    <div class="settings-card">
+      <h3>⚙️ 시간 설정 (분)</h3>
+      <div class="setting-row">
+        <label>집중 시간</label>
+        <input type="number" id="setWork" value="25" min="1" max="60" onchange="applySettings()">
+      </div>
+      <div class="setting-row">
+        <label>짧은 휴식</label>
+        <input type="number" id="setShort" value="5" min="1" max="30" onchange="applySettings()">
+      </div>
+      <div class="setting-row">
+        <label>긴 휴식 (4세션마다)</label>
+        <input type="number" id="setLong" value="15" min="1" max="60" onchange="applySettings()">
+      </div>
+    </div>
+
+    <div class="stats-card">
+      <h3>📊 오늘 기록</h3>
+      <div class="stats-grid">
+        <div class="stat-item"><div class="sv" id="statSessions">0</div><div class="sl">완료 세션</div></div>
+        <div class="stat-item"><div class="sv" id="statMinutes">0</div><div class="sl">집중 분</div></div>
+        <div class="stat-item"><div class="sv" id="statPomos">0</div><div class="sl">완료 뽀모</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ad-banner" style="margin-top:24px">광고 영역 (Google AdSense)</div>
+</main>
+
+<footer>
+  <p><strong>직장인닷컴</strong> — 모든 계산은 참고용이며 법적 효력이 없습니다.</p>
+</footer>
+
+<script>
+const CIRCUMFERENCE = 553; // stroke-dasharray must match SVG value
+
+let state = {
+  mode: 'work',         // work | short | long
+  running: false,
+  remaining: 0,
+  total: 0,
+  session: 0,           // 0~3
+  completedPomos: 0,
+  completedSessions: 0,
+  totalFocusMin: 0,
+  interval: null,
+};
+
+let cfg = { work: 25, short: 5, long: 15 };
+
+const COLOR = { work: '#FF6B35', short: '#4ECDC4', long: '#a855f7' };
+const LABEL = { work: '집중 시간', short: '짧은 휴식', long: '긴 휴식' };
+
+function applySettings() {
+  cfg.work  = parseInt(document.getElementById('setWork').value)  || 25;
+  cfg.short = parseInt(document.getElementById('setShort').value) || 5;
+  cfg.long  = parseInt(document.getElementById('setLong').value)  || 15;
+  if (!state.running) {
+    state.remaining = cfg[state.mode] * 60;
+    state.total = state.remaining;
+    render();
+  }
+}
+
+function switchMode(mode, btn) {
+  if (state.running) return;
+  state.mode = mode;
+  state.remaining = cfg[mode] * 60;
+  state.total = state.remaining;
+  document.querySelectorAll('.mode-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+}
+
+function toggleTimer() {
+  if (state.running) pause();
+  else start();
+}
+
+function start() {
+  if (!state.remaining) return;
+  state.running = true;
+  document.getElementById('btnStart').textContent = '⏸ 일시정지';
+  state.interval = setInterval(tick, 1000);
+}
+
+function pause() {
+  state.running = false;
+  clearInterval(state.interval);
+  document.getElementById('btnStart').textContent = '▶ 계속';
+}
+
+function tick() {
+  state.remaining--;
+  if (state.remaining <= 0) {
+    state.remaining = 0;
+    render();
+    phaseComplete();
+  } else {
+    render();
+  }
+}
+
+function phaseComplete() {
+  pause();
+  playBeep();
+  if (state.mode === 'work') {
+    state.completedSessions++;
+    state.totalFocusMin += cfg.work;
+    state.session = (state.session + 1) % 4;
+    if (state.session === 0) {
+      state.completedPomos++;
+      autoSwitch('long');
+    } else {
+      autoSwitch('short');
+    }
+  } else {
+    autoSwitch('work');
+  }
+  updateStats();
+}
+
+function autoSwitch(mode) {
+  state.mode = mode;
+  state.remaining = cfg[mode] * 60;
+  state.total = state.remaining;
+  document.querySelectorAll('.mode-tab').forEach((b, i) => {
+    b.classList.toggle('active', ['work','short','long'][i] === mode);
+  });
+  render();
+  document.getElementById('btnStart').textContent = '▶ 시작';
+}
+
+function resetTimer() {
+  pause();
+  state.remaining = cfg[state.mode] * 60;
+  state.total = state.remaining;
+  document.getElementById('btnStart').textContent = '▶ 시작';
+  render();
+}
+
+function skipPhase() {
+  pause();
+  state.remaining = 0;
+  phaseComplete();
+}
+
+function render() {
+  const min = String(Math.floor(state.remaining / 60)).padStart(2, '0');
+  const sec = String(state.remaining % 60).padStart(2, '0');
+  document.getElementById('timerClock').textContent = `${min}:${sec}`;
+  document.getElementById('modeLabel').textContent = LABEL[state.mode];
+
+  const prog = state.total > 0 ? (state.total - state.remaining) / state.total : 0;
+  const offset = CIRCUMFERENCE * (1 - prog);
+  const ring = document.getElementById('ringProg');
+  ring.style.strokeDashoffset = offset;
+  ring.style.stroke = COLOR[state.mode];
+
+  // dots
+  let dots = '';
+  for (let i = 0; i < 4; i++) {
+    let cls = 'dot';
+    if (i < state.session) cls += ' done';
+    else if (i === state.session && state.mode === 'work') cls += ' current';
+    dots += `<div class="${cls}"></div>`;
+  }
+  document.getElementById('sessionDots').innerHTML = dots;
+  document.getElementById('sessionCount').textContent = `세션 ${state.session} / 4`;
+
+  document.title = `${min}:${sec} — 뽀모도로 · 직장인닷컴`;
+}
+
+function updateStats() {
+  document.getElementById('statSessions').textContent = state.completedSessions;
+  document.getElementById('statMinutes').textContent = state.totalFocusMin;
+  document.getElementById('statPomos').textContent = state.completedPomos;
+}
+
+function playBeep() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.frequency.value = 660;
+    osc.type = 'sine';
+    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.8);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.8);
+  } catch (e) {}
+}
+
+// init
+state.remaining = cfg.work * 60;
+state.total = state.remaining;
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>이미지 압축기 - 직장인닷컴</title>
+  <meta name="description" content="이미지 파일을 브라우저에서 바로 압축하세요. 서버 전송 없이 안전하고 빠르게. JPEG·PNG·WebP 지원.">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .tool-wrap { max-width:640px; margin:0 auto; }
+    .drop-zone {
+      border:2px dashed rgba(255,255,255,0.15); border-radius:16px;
+      padding:40px 20px; text-align:center; cursor:pointer;
+      transition:border-color 0.2s, background 0.2s;
+      background:rgba(255,255,255,0.02);
+    }
+    .drop-zone:hover, .drop-zone.drag-over { border-color:var(--primary); background:rgba(255,107,53,0.04); }
+    .drop-icon { font-size:2.8rem; margin-bottom:10px; }
+    .drop-text { font-size:0.95rem; color:var(--text); margin-bottom:4px; font-weight:600; }
+    .drop-sub { font-size:0.8rem; color:var(--text-muted); }
+    #fileInput { display:none; }
+
+    .quality-card { background:var(--card); border:1px solid rgba(255,255,255,0.06); border-radius:var(--radius); padding:22px; margin-top:14px; }
+    .quality-card label { font-size:0.85rem; color:var(--text-muted); display:flex; justify-content:space-between; margin-bottom:10px; }
+    .quality-card label span { color:var(--secondary); font-weight:700; }
+    .quality-slider { width:100%; accent-color:var(--primary); height:6px; }
+    .preset-btns { display:flex; gap:8px; margin-top:12px; }
+    .preset-btn { flex:1; padding:8px; border:none; border-radius:8px; font-size:0.8rem; font-weight:600; cursor:pointer; font-family:inherit; background:rgba(255,255,255,0.06); color:var(--text-muted); transition:all 0.2s; }
+    .preset-btn:hover { background:rgba(255,255,255,0.12); color:var(--white); }
+    .preset-btn.active { background:var(--primary); color:#fff; }
+
+    .file-list { margin-top:14px; display:flex; flex-direction:column; gap:10px; }
+    .file-item { background:var(--card); border:1px solid rgba(255,255,255,0.06); border-radius:12px; padding:14px 16px; }
+    .fi-header { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+    .fi-thumb { width:50px; height:50px; border-radius:8px; object-fit:cover; flex-shrink:0; }
+    .fi-name { font-size:0.88rem; color:var(--white); font-weight:600; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .fi-sizes { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:10px; }
+    .fi-size { background:rgba(255,255,255,0.04); border-radius:8px; padding:8px 10px; text-align:center; }
+    .fi-size .fs-lbl { font-size:0.71rem; color:var(--text-muted); }
+    .fi-size .fs-val { font-size:0.92rem; font-weight:700; color:var(--white); margin-top:2px; }
+    .fi-size .fs-val.green { color:var(--success); }
+    .progress-bar { height:4px; background:rgba(255,255,255,0.08); border-radius:4px; overflow:hidden; margin-bottom:10px; }
+    .progress-fill { height:100%; background:var(--primary); border-radius:4px; transition:width 0.3s; }
+    .fi-btn { width:100%; padding:9px; border:none; border-radius:8px; background:var(--accent); color:#1a1a2e; font-size:0.85rem; font-weight:700; cursor:pointer; font-family:inherit; transition:opacity 0.2s; }
+    .fi-btn:hover { opacity:0.85; }
+    .fi-btn:disabled { opacity:0.4; cursor:not-allowed; }
+
+    .compress-all { width:100%; padding:13px; border:none; border-radius:10px; background:var(--primary); color:#fff; font-size:0.95rem; font-weight:700; cursor:pointer; font-family:inherit; margin-top:14px; transition:opacity 0.2s; display:none; }
+    .compress-all:hover { opacity:0.85; }
+    .notice { font-size:0.78rem; color:var(--text-muted); line-height:1.65; margin-top:14px; padding:12px; background:rgba(255,255,255,0.02); border-radius:8px; border-left:3px solid var(--primary); }
+  </style>
+</head>
+<body>
+<nav>
+  <a href="../index.html" class="logo">💼 <span>직장인</span>닷컴</a>
+  <ul class="nav-links">
+    <li><a href="../index.html#calculators">계산기</a></li>
+    <li><a href="../index.html#tools" class="active">업무도구</a></li>
+    <li><a href="../index.html#games">루팡게임</a></li>
+    <li><a href="../index.html#tests">테스트</a></li>
+    <li><a href="../index.html#info">정보</a></li>
+  </ul>
+</nav>
+
+<div class="page-header">
+  <div class="breadcrumb"><a href="../index.html">홈</a> › 업무도구</div>
+  <h1>🗜️ 이미지 압축기</h1>
+  <p>브라우저에서 바로 — 서버 전송 없이 안전하게</p>
+</div>
+
+<main>
+  <div class="ad-banner">광고 영역 (Google AdSense)</div>
+
+  <div class="tool-wrap">
+    <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+      <div class="drop-icon">🖼️</div>
+      <div class="drop-text">이미지를 여기에 놓거나 클릭해서 선택</div>
+      <div class="drop-sub">JPEG · PNG · WebP · 여러 파일 동시 가능</div>
+    </div>
+    <input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp" multiple>
+
+    <div class="quality-card">
+      <label>압축 품질 <span id="qualityLabel">80%</span></label>
+      <input type="range" class="quality-slider" id="qualitySlider" min="10" max="100" value="80" oninput="updateQuality(this.value)">
+      <div class="preset-btns">
+        <button class="preset-btn" onclick="setPreset(40, this)">강력 압축</button>
+        <button class="preset-btn active" onclick="setPreset(80, this)">균형 (권장)</button>
+        <button class="preset-btn" onclick="setPreset(95, this)">고품질</button>
+      </div>
+    </div>
+
+    <button class="compress-all" id="compressAll" onclick="compressAll()">전체 압축 및 다운로드</button>
+    <div class="file-list" id="fileList"></div>
+
+    <div class="notice">
+      ※ 모든 처리는 브라우저 내에서만 이루어지며 서버로 전송되지 않습니다.<br>
+      ※ PNG는 JPEG로 변환하여 압축합니다 (배경이 흰색으로 처리됩니다).<br>
+      ※ 이미지 크기·색상에 따라 결과가 다를 수 있습니다.
+    </div>
+  </div>
+
+  <div class="ad-banner" style="margin-top:24px">광고 영역 (Google AdSense)</div>
+</main>
+
+<footer>
+  <p><strong>직장인닷컴</strong> — 모든 계산은 참고용이며 법적 효력이 없습니다.</p>
+</footer>
+
+<script>
+let quality = 0.80;
+const files = [];
+
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('drag-over'); addFiles(e.dataTransfer.files); });
+fileInput.addEventListener('change', e => addFiles(e.target.files));
+
+function updateQuality(v) {
+  quality = v / 100;
+  document.getElementById('qualityLabel').textContent = v + '%';
+}
+
+function setPreset(v, btn) {
+  quality = v / 100;
+  document.getElementById('qualitySlider').value = v;
+  document.getElementById('qualityLabel').textContent = v + '%';
+  document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function fmtSize(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / 1024 / 1024).toFixed(2) + ' MB';
+}
+
+function addFiles(fileList) {
+  for (const f of fileList) {
+    if (!f.type.startsWith('image/')) continue;
+    const id = 'fi_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+    files.push({ id, file: f, blob: null });
+    renderItem({ id, file: f, blob: null });
+  }
+  document.getElementById('compressAll').style.display = files.length > 0 ? 'block' : 'none';
+}
+
+function renderItem(item) {
+  const li = document.createElement('div');
+  li.className = 'file-item';
+  li.id = item.id;
+  const url = URL.createObjectURL(item.file);
+  li.innerHTML = `
+    <div class="fi-header">
+      <img class="fi-thumb" src="${url}" alt="">
+      <div class="fi-name">${item.file.name}</div>
+    </div>
+    <div class="fi-sizes">
+      <div class="fi-size"><div class="fs-lbl">원본</div><div class="fs-val">${fmtSize(item.file.size)}</div></div>
+      <div class="fi-size"><div class="fs-lbl">압축 후</div><div class="fs-val" id="${item.id}_out">—</div></div>
+      <div class="fi-size"><div class="fs-lbl">절감</div><div class="fs-val green" id="${item.id}_pct">—</div></div>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="${item.id}_prog" style="width:0%"></div></div>
+    <button class="fi-btn" id="${item.id}_btn" onclick="compressSingle('${item.id}')">압축 및 다운로드</button>`;
+  document.getElementById('fileList').appendChild(li);
+}
+
+function compressSingle(id) {
+  const item = files.find(f => f.id === id);
+  if (!item) return;
+  doCompress(item, () => downloadBlob(item));
+}
+
+function compressAll() {
+  files.forEach(item => doCompress(item, () => downloadBlob(item)));
+}
+
+function doCompress(item, cb) {
+  const btn = document.getElementById(item.id + '_btn');
+  btn.disabled = true;
+  btn.textContent = '처리 중...';
+
+  const img = new Image();
+  img.onload = () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = img.width;
+    canvas.height = img.height;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(img, 0, 0);
+
+    document.getElementById(item.id + '_prog').style.width = '60%';
+
+    canvas.toBlob(blob => {
+      item.blob = blob;
+      const pct = Math.round((1 - blob.size / item.file.size) * 100);
+      document.getElementById(item.id + '_out').textContent = fmtSize(blob.size);
+      document.getElementById(item.id + '_pct').textContent = pct > 0 ? '-' + pct + '%' : '+' + Math.abs(pct) + '%';
+      document.getElementById(item.id + '_prog').style.width = '100%';
+      btn.textContent = '다시 다운로드';
+      btn.disabled = false;
+      cb();
+    }, 'image/jpeg', quality);
+  };
+  img.src = URL.createObjectURL(item.file);
+}
+
+function downloadBlob(item) {
+  if (!item.blob) return;
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(item.blob);
+  const baseName = item.file.name.replace(/\.[^.]+$/, '');
+  a.download = baseName + '_compressed.jpg';
+  a.click();
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>육아휴직 급여 계산기 2026 - 직장인닷컴</title>
+  <meta name="description" content="2026년 육아휴직 급여를 계산하세요. 통상임금 80%, 기간별 상한(250만원·200만원·160만원) 자동 반영. 6+6 부모육아휴직제 포함.">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .calc-card { background:var(--card); border:1px solid rgba(255,255,255,0.06); border-radius:var(--radius); padding:28px; margin-bottom:16px; max-width:640px; margin-left:auto; margin-right:auto; }
+    .calc-card h3 { font-size:1rem; font-weight:700; color:var(--white); margin-bottom:18px; }
+    .form-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px; }
+    .form-group label { display:block; font-size:0.83rem; color:var(--text-muted); margin-bottom:6px; }
+    .form-group input, .form-group select {
+      width:100%; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1);
+      border-radius:10px; padding:11px 14px; color:var(--white); font-size:0.95rem;
+      outline:none; font-family:inherit; transition:border-color 0.2s;
+    }
+    .form-group input:focus, .form-group select:focus { border-color:var(--accent); }
+    .form-group select option { background:#1a1a2e; color:#fff; }
+    .toggle-row { display:flex; align-items:center; gap:12px; margin-bottom:14px; padding:14px; background:rgba(78,205,196,0.06); border:1px solid rgba(78,205,196,0.15); border-radius:10px; }
+    .toggle-label { font-size:0.88rem; color:var(--text); flex:1; }
+    .toggle-label small { display:block; font-size:0.75rem; color:var(--text-muted); margin-top:2px; }
+    .toggle-switch { position:relative; width:46px; height:26px; flex-shrink:0; }
+    .toggle-switch input { opacity:0; width:0; height:0; }
+    .slider { position:absolute; inset:0; background:rgba(255,255,255,0.15); border-radius:99px; cursor:pointer; transition:background 0.2s; }
+    .slider::before { content:''; position:absolute; width:20px; height:20px; left:3px; top:3px; background:#fff; border-radius:50%; transition:transform 0.2s; }
+    input:checked + .slider { background:var(--accent); }
+    input:checked + .slider::before { transform:translateX(20px); }
+    .calc-btn { width:100%; background:var(--accent); color:#1a1a2e; border:none; border-radius:10px; padding:14px; font-size:1rem; font-weight:700; cursor:pointer; transition:opacity 0.2s; margin-top:6px; font-family:inherit; }
+    .calc-btn:hover { opacity:0.85; }
+
+    .result-box { display:none; margin-top:18px; }
+    .month-row { display:flex; align-items:center; gap:12px; padding:13px 16px; border-radius:10px; margin-bottom:8px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.07); }
+    .month-row.active { background:rgba(78,205,196,0.08); border-color:rgba(78,205,196,0.2); }
+    .month-badge { width:42px; height:42px; border-radius:10px; background:rgba(255,255,255,0.07); display:flex; align-items:center; justify-content:center; font-size:0.75rem; font-weight:700; color:var(--text-muted); flex-shrink:0; text-align:center; line-height:1.2; }
+    .month-badge.six { background:rgba(78,205,196,0.15); color:var(--accent); }
+    .month-info { flex:1; }
+    .month-info .mi-lbl { font-size:0.78rem; color:var(--text-muted); }
+    .month-info .mi-val { font-size:1rem; font-weight:700; color:var(--white); margin-top:2px; }
+    .month-info .mi-calc { font-size:0.74rem; color:var(--text-muted); margin-top:1px; }
+    .total-box { background:rgba(255,215,0,0.08); border:1px solid rgba(255,215,0,0.2); border-radius:12px; padding:18px; text-align:center; margin-top:12px; }
+    .total-box .tlbl { font-size:0.82rem; color:var(--text-muted); }
+    .total-box .tval { font-size:2.2rem; font-weight:900; color:var(--secondary); }
+
+    .info-card { background:var(--card); border:1px solid rgba(255,255,255,0.06); border-radius:var(--radius); padding:22px 26px; max-width:640px; margin:0 auto 16px; }
+    .info-card h3 { font-size:0.95rem; font-weight:700; color:var(--white); margin-bottom:12px; }
+    .info-list li { font-size:0.84rem; color:var(--text-muted); line-height:1.65; padding:5px 0; border-bottom:1px solid rgba(255,255,255,0.04); list-style:none; display:flex; gap:8px; }
+    .info-list li::before { content:'▸'; color:var(--accent); flex-shrink:0; }
+    .info-list li:last-child { border:none; }
+    .hl { color:var(--secondary); font-weight:700; }
+    .notice { font-size:0.78rem; color:var(--text-muted); line-height:1.65; margin-top:12px; padding:12px 14px; background:rgba(255,255,255,0.02); border-radius:8px; border-left:3px solid var(--accent); }
+    @media(max-width:480px) { .form-row { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+<nav>
+  <a href="../index.html" class="logo">💼 <span>직장인</span>닷컴</a>
+  <ul class="nav-links">
+    <li><a href="../index.html#calculators" class="active">계산기</a></li>
+    <li><a href="../index.html#tools">업무도구</a></li>
+    <li><a href="../index.html#games">루팡게임</a></li>
+    <li><a href="../index.html#tests">테스트</a></li>
+    <li><a href="../index.html#info">정보</a></li>
+  </ul>
+</nav>
+
+<div class="page-header">
+  <div class="breadcrumb"><a href="../index.html">홈</a> › 계산기</div>
+  <h1>👶 육아휴직 급여 계산기</h1>
+  <p>2026년 기준 · 통상임금과 사용 기간에 따른 월별 급여를 계산하세요</p>
+</div>
+
+<main>
+  <div class="ad-banner">광고 영역 (Google AdSense)</div>
+
+  <div class="calc-card">
+    <h3>📊 기본 정보 입력</h3>
+    <div class="form-row">
+      <div class="form-group">
+        <label>통상임금 (월, 만원)</label>
+        <input type="number" id="salary" placeholder="예: 350" min="1">
+      </div>
+      <div class="form-group">
+        <label>육아휴직 사용 기간</label>
+        <select id="months">
+          <option value="3">3개월</option>
+          <option value="6">6개월</option>
+          <option value="9">9개월</option>
+          <option value="12" selected>12개월 (최대)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="toggle-row">
+      <div class="toggle-label">
+        6+6 부모육아휴직제 적용
+        <small>부모 모두 육아휴직 시 첫 6개월 통상임금 100%, 상한 최대 450만원</small>
+      </div>
+      <label class="toggle-switch">
+        <input type="checkbox" id="sixSix" onchange="calculate()">
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <button class="calc-btn" onclick="calculate()">계산하기</button>
+
+    <div class="result-box" id="resultBox">
+      <div id="monthRows"></div>
+      <div class="total-box">
+        <div class="tlbl">총 예상 수령액</div>
+        <div class="tval" id="totalAmount">—</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="info-card">
+    <h3>📌 육아휴직 급여 기준 (2026년)</h3>
+    <ul class="info-list">
+      <li>일반 육아휴직: 통상임금의 <span class="hl">80%</span> (하한 70만원)</li>
+      <li>1~3개월차 상한: <span class="hl">250만원</span></li>
+      <li>4~6개월차 상한: <span class="hl">200만원</span></li>
+      <li>7개월차 이후 상한: <span class="hl">160만원</span></li>
+      <li>6+6제도 — 부모 각 1~6개월: 통상임금 <span class="hl">100%</span>, 상한 최대 <span class="hl">450만원</span></li>
+      <li>사후지급제 폐지 — 전액 당월 지급</li>
+      <li>사용 기간: 만 8세 이하(초등학교 2학년 이하) 자녀, 부모 각각 최대 1년</li>
+    </ul>
+    <div class="notice">
+      ※ 이 계산기는 참고용입니다. 정확한 금액은 고용보험 사이트(ei.go.kr) 또는 관할 고용복지플러스센터에서 확인하세요.<br>
+      ※ 통상임금에는 기본급, 고정 수당 등이 포함됩니다.
+    </div>
+  </div>
+
+  <div class="ad-banner">광고 영역 (Google AdSense)</div>
+</main>
+
+<footer>
+  <p><strong>직장인닷컴</strong> — 모든 계산은 참고용이며 법적 효력이 없습니다.</p>
+</footer>
+
+<script>
+// 일반 육아휴직 구간별 상한 (만원)
+const REGULAR_CAP = [250, 250, 250, 200, 200, 200, 160, 160, 160, 160, 160, 160];
+// 6+6 부모육아휴직제 상한 (만원): 1~6개월
+const SIX_SIX_CAP = [250, 250, 300, 350, 400, 450];
+
+function fw(manwon) { return Math.round(manwon * 10000).toLocaleString('ko-KR') + '원'; }
+
+function calculate() {
+  const sal = parseFloat(document.getElementById('salary').value) || 0;
+  const months = parseInt(document.getElementById('months').value);
+  const isSixSix = document.getElementById('sixSix').checked;
+
+  if (!sal) { return; }
+
+  let rows = '';
+  let total = 0;
+
+  for (let m = 1; m <= months; m++) {
+    let rate, cap, amountMw;
+    if (isSixSix && m <= 6) {
+      rate = 1.0;
+      cap = SIX_SIX_CAP[m - 1];
+    } else {
+      rate = 0.8;
+      cap = REGULAR_CAP[m - 1] || 160;
+    }
+    const MIN_MW = 70; // 하한 70만원
+    amountMw = Math.min(Math.max(sal * rate, MIN_MW), cap);
+    total += amountMw;
+
+    const tag = isSixSix && m <= 6 ? 'six' : '';
+    const label = isSixSix && m <= 6 ? `6+6\n${m}개월` : `${m}개월`;
+    const calcText = `${sal}만원 × ${Math.round(rate * 100)}% → 상한 ${cap}만원 적용`;
+    rows += `
+      <div class="month-row ${tag ? 'active' : ''}">
+        <div class="month-badge ${tag}">${label.replace('\n', '<br>')}</div>
+        <div class="month-info">
+          <div class="mi-lbl">${m}개월차 육아휴직 급여</div>
+          <div class="mi-val">${fw(amountMw)}</div>
+          <div class="mi-calc">${calcText}</div>
+        </div>
+      </div>`;
+  }
+
+  document.getElementById('monthRows').innerHTML = rows;
+  document.getElementById('totalAmount').textContent = fw(total);
+  document.getElementById('resultBox').style.display = 'block';
+}
+</script>
+</body>
+</html>
