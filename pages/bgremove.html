@@ -156,7 +156,7 @@ async function doRemoveBg() {
     progressMsg.textContent = '배경 분석 중...';
 
     const blob = await removeBgFn(currentFile, {
-      model: 'small',
+      model: 'medium',
       progress: (key, current, total) => {
         if (key.startsWith('fetch:')) {
           const pct = total > 0 ? Math.round(15 + (current / total) * 50) : 40;
