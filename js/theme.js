@@ -35,23 +35,27 @@
     document.head.appendChild(link);
   }
 
-  // 개인정보처리방침 링크 footer에 자동 주입
-  function injectPrivacyLink() {
+  // footer에 정책 링크 자동 주입
+  function injectFooterLinks() {
     const footer = document.querySelector('footer');
-    if (!footer || footer.querySelector('.privacy-link')) return;
-    const isInPages = window.location.pathname.includes('/pages/');
-    const privacyHref = isInPages ? './privacy.html' : 'pages/privacy.html';
-    const link = document.createElement('p');
-    link.className = 'privacy-link';
-    link.style.cssText = 'margin-top:8px;font-size:0.78rem;opacity:0.55;';
-    link.innerHTML = '<a href="' + privacyHref + '" style="color:inherit;text-decoration:none;">개인정보처리방침</a>';
-    footer.appendChild(link);
+    if (!footer || footer.querySelector('.footer-policy-links')) return;
+    const base = window.location.pathname.includes('/pages/') ? '.' : 'pages';
+    const wrap = document.createElement('p');
+    wrap.className = 'footer-policy-links';
+    wrap.style.cssText = 'margin-top:8px;font-size:0.78rem;opacity:0.55;display:flex;gap:16px;justify-content:center;flex-wrap:wrap;';
+    const links = [
+      { href: base + '/about.html',   label: '사이트 소개' },
+      { href: base + '/contact.html', label: '문의하기' },
+      { href: base + '/privacy.html', label: '개인정보처리방침' },
+    ];
+    wrap.innerHTML = links.map(l => '<a href="' + l.href + '" style="color:inherit;text-decoration:none;">' + l.label + '</a>').join('');
+    footer.appendChild(wrap);
   }
 
   function init() {
     buildButton();
     injectFavicon();
-    injectPrivacyLink();
+    injectFooterLinks();
   }
 
   if (document.readyState === 'loading') {

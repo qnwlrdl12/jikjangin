@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <script>if(localStorage.getItem('theme')==='light')document.documentElement.classList.add('light')</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>사이트 소개 - 직장인닷컴</title>
+  <meta name="description" content="직장인닷컴 소개. 대한민국 직장인을 위한 연봉계산기, 퇴직금계산기, 업무도구, 게임을 무료로 제공합니다.">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .about-wrap { max-width:780px; margin:0 auto; }
+    .about-section { background:var(--card); border:1px solid rgba(255,255,255,0.06); border-radius:var(--radius); padding:28px 32px; margin-bottom:16px; }
+    .about-section h2 { font-size:1rem; font-weight:700; color:var(--accent); margin-bottom:14px; padding-bottom:10px; border-bottom:1px solid rgba(255,255,255,0.06); }
+    .about-section p { font-size:0.88rem; color:var(--text); line-height:1.85; }
+    .about-section ul { padding-left:20px; margin-top:8px; }
+    .about-section li { font-size:0.88rem; color:var(--text); line-height:1.85; margin-bottom:4px; }
+    .about-section strong { color:var(--white); }
+    .feature-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:14px; }
+    .feature-item { background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:12px; padding:16px; }
+    .feature-item .fi-icon { font-size:1.6rem; margin-bottom:8px; }
+    .feature-item .fi-title { font-size:0.88rem; font-weight:700; color:var(--white); margin-bottom:4px; }
+    .feature-item .fi-desc { font-size:0.78rem; color:var(--text-muted); line-height:1.6; }
+    @media(max-width:480px) { .feature-grid { grid-template-columns:1fr; } .about-section { padding:20px; } }
+  </style>
+</head>
+<body>
+<nav>
+  <a href="../index.html" class="logo">💼 <span>직장인</span>닷컴</a>
+  <ul class="nav-links">
+    <li><a href="../index.html">홈</a></li>
+  </ul>
+</nav>
+
+<div class="page-header">
+  <div class="breadcrumb"><a href="../index.html">홈</a> › 사이트 소개</div>
+  <h1>💼 직장인닷컴 소개</h1>
+  <p>대한민국 직장인을 위한 올인원 도구 사이트</p>
+</div>
+
+<main>
+  <div class="about-wrap">
+
+    <div class="about-section">
+      <h2>직장인닷컴이란?</h2>
+      <p>직장인닷컴은 <strong>대한민국 직장인들이 매일 필요로 하는 도구들을 한 곳에서 무료로 제공</strong>하는 사이트입니다.</p>
+      <p style="margin-top:10px">연봉 실수령액 계산, 퇴직금 계산, 4대보험 조회부터 업무 효율을 높여주는 실용 도구, 잠깐의 여유를 위한 게임까지 — 직장인의 하루에 필요한 모든 것을 담았습니다.</p>
+      <p style="margin-top:10px">모든 계산은 <strong>브라우저에서 즉시 처리</strong>되며, 별도 회원가입이나 앱 설치 없이 바로 사용할 수 있습니다.</p>
+    </div>
+
+    <div class="about-section">
+      <h2>주요 기능</h2>
+      <div class="feature-grid">
+        <div class="feature-item">
+          <div class="fi-icon">🧮</div>
+          <div class="fi-title">직장인 계산기</div>
+          <div class="fi-desc">연봉 실수령액, 퇴직금, 4대보험, 야근수당, 실업급여, 국민연금 등 2026년 최신 기준 계산기 16종</div>
+        </div>
+        <div class="feature-item">
+          <div class="fi-icon">🛠️</div>
+          <div class="fi-title">업무 도구</div>
+          <div class="fi-desc">사직서 생성, 메일 템플릿, 회의록, 포모도로 타이머, 이미지 압축, QR 코드 등 실무 도구 20종</div>
+        </div>
+        <div class="feature-item">
+          <div class="fi-icon">🎮</div>
+          <div class="fi-title">루팡게임</div>
+          <div class="fi-desc">테트리스, 지뢰찾기, 스네이크, 워들, 2048 등 회의 중 한 판 할 수 있는 미니게임</div>
+        </div>
+        <div class="feature-item">
+          <div class="fi-icon">📊</div>
+          <div class="fi-title">테스트 & 정보</div>
+          <div class="fi-desc">번아웃 자가진단, 직장인 유형 테스트, 스트레스 지수 측정, 근로기준법 요약 등</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="about-section">
+      <h2>이런 분들에게 추천합니다</h2>
+      <ul>
+        <li>연봉 협상 전에 세후 실수령액을 미리 계산해보고 싶은 분</li>
+        <li>퇴직·이직을 앞두고 퇴직금과 실업급여를 알고 싶은 분</li>
+        <li>전세·월세 이사를 앞두고 비용을 비교해보고 싶은 분</li>
+        <li>연말정산 시즌에 공제 항목을 체크리스트로 확인하고 싶은 분</li>
+        <li>업무 중 잠깐 머리를 식히고 싶은 모든 직장인</li>
+      </ul>
+    </div>
+
+    <div class="about-section">
+      <h2>운영 원칙</h2>
+      <ul>
+        <li><strong>무료:</strong> 모든 기능을 회원가입 없이 무료로 제공합니다.</li>
+        <li><strong>정확성:</strong> 세율·보험료율 등 수치는 매년 최신 법령 기준으로 업데이트합니다.</li>
+        <li><strong>개인정보 보호:</strong> 입력한 수치는 브라우저 내에서만 처리되며 서버에 저장되지 않습니다.</li>
+        <li><strong>참고용 안내:</strong> 모든 계산 결과는 참고용이며, 정확한 내용은 관계 기관에 확인하시기 바랍니다.</li>
+      </ul>
+    </div>
+
+  </div>
+</main>
+
+<footer>
+  <p><strong>직장인닷컴</strong> — 모든 계산은 참고용이며 법적 효력이 없습니다.</p>
+</footer>
+
+<script src="../js/theme.js"></script>
+</body>
+</html>
