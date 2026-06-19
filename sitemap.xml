@@ -1,9 +1,6 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <!-- ?꾨찓?몄쓣 ?ㅼ젣 ?댁쁺 ?꾨찓?몄쑝濡?援먯껜?섏꽭??-->
   <url><loc>https://jikjangin.hoon3395.workers.dev/</loc><priority>1.0</priority><changefreq>weekly</changefreq></url>
-
-  <!-- 怨꾩궛湲?-->
   <url><loc>https://jikjangin.hoon3395.workers.dev/pages/salary.html</loc><priority>0.9</priority><changefreq>monthly</changefreq></url>
   <url><loc>https://jikjangin.hoon3395.workers.dev/pages/salary-negotiation.html</loc><priority>0.9</priority><changefreq>monthly</changefreq></url>
   <url><loc>https://jikjangin.hoon3395.workers.dev/pages/insurance-calc.html</loc><priority>0.9</priority><changefreq>monthly</changefreq></url>
@@ -20,8 +17,6 @@
   <url><loc>https://jikjangin.hoon3395.workers.dev/pages/jeonse.html</loc><priority>0.8</priority><changefreq>monthly</changefreq></url>
   <url><loc>https://jikjangin.hoon3395.workers.dev/pages/housing-compare.html</loc><priority>0.8</priority><changefreq>monthly</changefreq></url>
   <url><loc>https://jikjangin.hoon3395.workers.dev/pages/salary-level.html</loc><priority>0.8</priority><changefreq>monthly</changefreq></url>
-
-  <!-- ?낅Т ?꾧뎄 -->
   <url><loc>https://jikjangin.hoon3395.workers.dev/pages/resignation.html</loc><priority>0.7</priority><changefreq>monthly</changefreq></url>
   <url><loc>https://jikjangin.hoon3395.workers.dev/pages/mailtemplate.html</loc><priority>0.7</priority><changefreq>monthly</changefreq></url>
   <url><loc>https://jikjangin.hoon3395.workers.dev/pages/meeting.html</loc><priority>0.7</priority><changefreq>monthly</changefreq></url>
@@ -44,16 +39,12 @@
   <url><loc>https://jikjangin.hoon3395.workers.dev/pages/videocompress.html</loc><priority>0.6</priority><changefreq>monthly</changefreq></url>
   <url><loc>https://jikjangin.hoon3395.workers.dev/pages/bgremove.html</loc><priority>0.6</priority><changefreq>monthly</changefreq></url>
   <url><loc>https://jikjangin.hoon3395.workers.dev/pages/lunch.html</loc><priority>0.6</priority><changefreq>monthly</changefreq></url>
-
-  <!-- 寃뚯엫 -->
   <url><loc>https://jikjangin.hoon3395.workers.dev/pages/tetris.html</loc><priority>0.6</priority><changefreq>monthly</changefreq></url>
   <url><loc>https://jikjangin.hoon3395.workers.dev/pages/minesweeper.html</loc><priority>0.6</priority><changefreq>monthly</changefreq></url>
   <url><loc>https://jikjangin.hoon3395.workers.dev/pages/snake.html</loc><priority>0.6</priority><changefreq>monthly</changefreq></url>
   <url><loc>https://jikjangin.hoon3395.workers.dev/pages/wordle.html</loc><priority>0.6</priority><changefreq>monthly</changefreq></url>
   <url><loc>https://jikjangin.hoon3395.workers.dev/pages/2048.html</loc><priority>0.6</priority><changefreq>monthly</changefreq></url>
   <url><loc>https://jikjangin.hoon3395.workers.dev/pages/typing.html</loc><priority>0.6</priority><changefreq>monthly</changefreq></url>
-
-  <!-- ?뚯뒪??-->
   <url><loc>https://jikjangin.hoon3395.workers.dev/pages/burnout.html</loc><priority>0.7</priority><changefreq>monthly</changefreq></url>
   <url><loc>https://jikjangin.hoon3395.workers.dev/pages/worktype.html</loc><priority>0.7</priority><changefreq>monthly</changefreq></url>
   <url><loc>https://jikjangin.hoon3395.workers.dev/pages/stress-test.html</loc><priority>0.7</priority><changefreq>monthly</changefreq></url>
@@ -61,10 +52,5 @@
   <url><loc>https://jikjangin.hoon3395.workers.dev/pages/kkondae.html</loc><priority>0.6</priority><changefreq>monthly</changefreq></url>
   <url><loc>https://jikjangin.hoon3395.workers.dev/pages/boss.html</loc><priority>0.6</priority><changefreq>monthly</changefreq></url>
   <url><loc>https://jikjangin.hoon3395.workers.dev/pages/interview-questions.html</loc><priority>0.6</priority><changefreq>monthly</changefreq></url>
-
-  <!-- ?뺣낫 -->
-  <url><loc>https://jikjangin.hoon3395.workers.dev/pages/laborlaw.html</loc><priority>0.7</priority><changefreq>monthly</changefreq></url>
-
-  <!-- ?뺤콉 -->
   <url><loc>https://jikjangin.hoon3395.workers.dev/pages/privacy.html</loc><priority>0.3</priority><changefreq>yearly</changefreq></url>
 </urlset>
