@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://jikjangin.pages.dev/sitemap.xml
+Sitemap: https://jikjangin.hoon3395.workers.dev/sitemap.xml
