@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>이미지 변환기 - 직장인닷컴</title>
+  <meta name="description" content="PNG, JPG, WebP 이미지 포맷 무료 변환. 파일이 서버로 전송되지 않아 안전합니다.">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .wrap{max-width:580px;margin:0 auto}
+    .drop-zone{border:2px dashed rgba(255,255,255,0.18);border-radius:16px;padding:52px 24px;text-align:center;cursor:pointer;transition:all 0.2s;background:rgba(255,255,255,0.02)}
+    .drop-zone:hover,.drop-zone.over{border-color:var(--primary);background:rgba(255,107,53,0.05)}
+    .drop-icon{font-size:2.8rem;margin-bottom:10px}
+    .drop-zone strong{display:block;font-size:1rem;margin-bottom:6px}
+    .drop-zone p{color:var(--text-muted);margin:0;font-size:0.85rem}
+    .section-label{font-size:0.8rem;color:var(--text-muted);font-weight:700;letter-spacing:0.04em;margin:20px 0 8px;text-transform:uppercase}
+    .fmt-row{display:flex;gap:8px}
+    .fmt-btn{flex:1;background:var(--card);border:1px solid rgba(255,255,255,0.1);color:var(--text-muted);padding:11px 0;border-radius:10px;cursor:pointer;font-size:0.92rem;font-weight:700;transition:all 0.2s;text-align:center}
+    .fmt-btn.active{border-color:var(--primary);color:var(--primary);background:rgba(255,107,53,0.08)}
+    .quality-wrap{margin-top:14px}
+    .quality-wrap label{font-size:0.85rem;color:var(--text-muted);display:flex;justify-content:space-between;align-items:center}
+    .quality-wrap label span{font-weight:700;color:var(--text)}
+    input[type=range]{width:100%;margin-top:8px;accent-color:var(--primary);height:4px}
+    .preview-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px}
+    .preview-box{background:rgba(255,255,255,0.04);border-radius:14px;padding:14px;text-align:center}
+    .preview-box img{width:100%;max-height:180px;object-fit:contain;border-radius:8px;display:block}
+    .pv-label{font-size:0.75rem;color:var(--text-muted);margin-top:8px}
+    .pv-size{font-size:0.88rem;font-weight:700;color:var(--text);margin-top:3px}
+    .pv-empty{display:flex;align-items:center;justify-content:center;height:120px;color:rgba(255,255,255,0.15);font-size:0.85rem}
+    .btn-main{width:100%;margin-top:16px;padding:14px;background:var(--primary);color:#fff;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;transition:opacity 0.2s}
+    .btn-main:hover{opacity:0.88}
+    .btn-main:disabled{opacity:0.45;cursor:not-allowed}
+    .btn-dl{width:100%;margin-top:10px;padding:13px;background:var(--card);border:1px solid rgba(255,255,255,0.15);color:var(--text);border-radius:12px;font-size:0.95rem;font-weight:600;cursor:pointer;transition:all 0.2s}
+    .btn-dl:hover{background:var(--accent);color:var(--dark)}
+    .file-info{margin-top:14px;background:rgba(255,255,255,0.04);border-radius:10px;padding:12px 14px;font-size:0.83rem;color:var(--text-muted);display:flex;align-items:center;gap:8px}
+    .file-info strong{color:var(--text);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  </style>
+</head>
+<body>
+<nav>
+  <a href="../index.html" class="logo">💼 <span>직장인</span>닷컴</a>
+  <ul class="nav-links">
+    <li><a href="../index.html#calculators">계산기</a></li>
+    <li><a href="../index.html#tools" class="active">업무도구</a></li>
+    <li><a href="../index.html#games">루팡게임</a></li>
+    <li><a href="../index.html#tests">테스트</a></li>
+    <li><a href="../index.html#info">정보</a></li>
+  </ul>
+</nav>
+<div class="page-header">
+  <div class="breadcrumb"><a href="../index.html">홈</a> › 업무 도구</div>
+  <h1>🖼️ 이미지 변환기</h1>
+  <p>PNG · JPG · WebP 변환 — 파일이 서버로 전송되지 않아요</p>
+</div>
+<main>
+  <div class="ad-banner">광고 영역 (Google AdSense)</div>
+  <div class="tool-card wrap">
+
+    <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+      <div class="drop-icon">🖼️</div>
+      <strong>이미지를 끌어다 놓거나 클릭해서 선택</strong>
+      <p>PNG · JPG · JPEG · WebP · GIF · BMP 지원</p>
+    </div>
+    <input type="file" id="fileInput" accept="image/*" style="display:none">
+
+    <div id="fileInfo" class="file-info" style="display:none">
+      <span>📄</span><strong id="fileName"></strong><span id="fileSize" style="white-space:nowrap"></span>
+    </div>
+
+    <div class="section-label">변환할 형식</div>
+    <div class="fmt-row">
+      <div class="fmt-btn active" data-fmt="image/png" data-ext="png" onclick="selectFmt(this)">PNG</div>
+      <div class="fmt-btn" data-fmt="image/jpeg" data-ext="jpg" onclick="selectFmt(this)">JPG</div>
+      <div class="fmt-btn" data-fmt="image/webp" data-ext="webp" onclick="selectFmt(this)">WebP</div>
+    </div>
+
+    <div class="quality-wrap" id="qualityWrap" style="display:none">
+      <label>품질 <span id="qualityVal">85</span>%</label>
+      <input type="range" id="qualitySlider" min="10" max="100" value="85"
+        oninput="document.getElementById('qualityVal').textContent=this.value">
+    </div>
+
+    <div class="preview-grid" id="previewGrid" style="display:none">
+      <div class="preview-box">
+        <img id="origImg" src="" style="display:none">
+        <div class="pv-empty" id="origEmpty">원본 이미지</div>
+        <div class="pv-label">원본</div>
+        <div class="pv-size" id="origSize"></div>
+      </div>
+      <div class="preview-box">
+        <img id="resultImg" src="" style="display:none">
+        <div class="pv-empty" id="resultEmpty">변환 후 미리보기</div>
+        <div class="pv-label">변환 후</div>
+        <div class="pv-size" id="resultSize"></div>
+      </div>
+    </div>
+
+    <button class="btn-main" id="btnConvert" style="display:none" onclick="convert()">변환하기</button>
+    <button class="btn-dl" id="btnDl" style="display:none" onclick="download()">⬇️ 다운로드</button>
+  </div>
+  <div class="ad-banner">광고 영역 (Google AdSense)</div>
+</main>
+<footer>
+  <p><strong>직장인닷컴</strong> — 이미지는 서버에 전송되지 않으며 브라우저에서만 처리됩니다.</p>
+</footer>
+<script>
+let currentFile = null;
+let resultBlob = null;
+let selectedFmt = 'image/png';
+let selectedExt = 'png';
+
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('over'));
+dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('over'); loadFile(e.dataTransfer.files[0]); });
+fileInput.addEventListener('change', () => loadFile(fileInput.files[0]));
+
+function loadFile(file) {
+  if (!file || !file.type.startsWith('image/')) return;
+  currentFile = file;
+  resultBlob = null;
+
+  document.getElementById('fileName').textContent = file.name;
+  document.getElementById('fileSize').textContent = formatSize(file.size);
+  document.getElementById('fileInfo').style.display = 'flex';
+
+  const url = URL.createObjectURL(file);
+  const origImg = document.getElementById('origImg');
+  origImg.src = url;
+  origImg.style.display = 'block';
+  document.getElementById('origEmpty').style.display = 'none';
+  document.getElementById('origSize').textContent = formatSize(file.size);
+
+  document.getElementById('resultImg').style.display = 'none';
+  document.getElementById('resultEmpty').style.display = 'flex';
+  document.getElementById('resultSize').textContent = '';
+
+  document.getElementById('previewGrid').style.display = 'grid';
+  document.getElementById('btnConvert').style.display = 'block';
+  document.getElementById('btnDl').style.display = 'none';
+}
+
+function selectFmt(el) {
+  document.querySelectorAll('.fmt-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  selectedFmt = el.dataset.fmt;
+  selectedExt = el.dataset.ext;
+  const lossy = selectedFmt === 'image/jpeg' || selectedFmt === 'image/webp';
+  document.getElementById('qualityWrap').style.display = lossy ? 'block' : 'none';
+  resultBlob = null;
+  document.getElementById('btnDl').style.display = 'none';
+  document.getElementById('resultImg').style.display = 'none';
+  document.getElementById('resultEmpty').style.display = 'flex';
+  document.getElementById('resultSize').textContent = '';
+}
+
+async function convert() {
+  if (!currentFile) return;
+  const btn = document.getElementById('btnConvert');
+  btn.textContent = '변환 중...';
+  btn.disabled = true;
+
+  const quality = parseInt(document.getElementById('qualitySlider').value) / 100;
+
+  const img = new Image();
+  img.src = URL.createObjectURL(currentFile);
+  await new Promise(r => { img.onload = r; });
+
+  const canvas = document.createElement('canvas');
+  canvas.width = img.naturalWidth;
+  canvas.height = img.naturalHeight;
+  const ctx = canvas.getContext('2d');
+  if (selectedFmt === 'image/jpeg') {
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
+  ctx.drawImage(img, 0, 0);
+
+  resultBlob = await new Promise(r => canvas.toBlob(r, selectedFmt, quality));
+
+  const resultImg = document.getElementById('resultImg');
+  resultImg.src = URL.createObjectURL(resultBlob);
+  resultImg.style.display = 'block';
+  document.getElementById('resultEmpty').style.display = 'none';
+  document.getElementById('resultSize').textContent = formatSize(resultBlob.size);
+  document.getElementById('btnDl').style.display = 'block';
+
+  btn.textContent = '다시 변환';
+  btn.disabled = false;
+}
+
+function download() {
+  if (!resultBlob) return;
+  const baseName = currentFile.name.replace(/\.[^.]+$/, '');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(resultBlob);
+  a.download = `${baseName}.${selectedExt}`;
+  a.click();
+}
+
+function formatSize(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>배경 제거 - 직장인닷컴</title>
+  <meta name="description" content="AI가 사진 배경을 자동으로 제거해드립니다. 파일이 서버로 전송되지 않아 안전합니다.">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .wrap{max-width:620px;margin:0 auto}
+    .drop-zone{border:2px dashed rgba(255,255,255,0.18);border-radius:16px;padding:52px 24px;text-align:center;cursor:pointer;transition:all 0.2s;background:rgba(255,255,255,0.02)}
+    .drop-zone:hover,.drop-zone.over{border-color:var(--primary);background:rgba(255,107,53,0.05)}
+    .drop-icon{font-size:2.8rem;margin-bottom:10px}
+    .drop-zone strong{display:block;font-size:1rem;margin-bottom:6px}
+    .drop-zone p{color:var(--text-muted);margin:0;font-size:0.85rem}
+    .notice-box{background:rgba(255,200,0,0.07);border:1px solid rgba(255,200,0,0.2);border-radius:10px;padding:12px 14px;font-size:0.82rem;color:var(--text-muted);margin-top:14px;line-height:1.6}
+    .preview-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:20px}
+    .preview-box{border-radius:14px;padding:14px;text-align:center;background:rgba(255,255,255,0.04)}
+    .checker{background:repeating-conic-gradient(#444 0% 25%, #2a2a2a 0% 50%) 0 0 / 20px 20px}
+    .preview-box img{width:100%;max-height:220px;object-fit:contain;border-radius:8px;display:block}
+    .pv-empty{display:flex;align-items:center;justify-content:center;height:140px;color:rgba(255,255,255,0.15);font-size:0.85rem}
+    .pv-label{font-size:0.75rem;color:var(--text-muted);margin-top:8px}
+    .progress-section{margin-top:20px;display:none}
+    .progress-msg{font-size:0.88rem;color:var(--text-muted);margin-bottom:10px;text-align:center}
+    .prog-track{background:rgba(255,255,255,0.08);border-radius:99px;height:6px;overflow:hidden}
+    .prog-fill{height:100%;background:linear-gradient(90deg,var(--primary),#ff9a7b);border-radius:99px;transition:width 0.4s ease;width:0%}
+    .btn-main{width:100%;margin-top:16px;padding:14px;background:var(--primary);color:#fff;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;transition:opacity 0.2s;display:none}
+    .btn-main:hover:not(:disabled){opacity:0.88}
+    .btn-main:disabled{opacity:0.45;cursor:not-allowed}
+    .btn-dl{width:100%;margin-top:10px;padding:13px;background:var(--card);border:1px solid rgba(255,255,255,0.15);color:var(--text);border-radius:12px;font-size:0.95rem;font-weight:600;cursor:pointer;transition:all 0.2s;display:none}
+    .btn-dl:hover{background:var(--accent);color:var(--dark)}
+    .tip-list{margin-top:20px;padding:14px 16px;background:rgba(255,255,255,0.03);border-radius:12px;font-size:0.82rem;color:var(--text-muted);line-height:1.8}
+    .tip-list strong{color:var(--text);display:block;margin-bottom:4px}
+  </style>
+</head>
+<body>
+<nav>
+  <a href="../index.html" class="logo">💼 <span>직장인</span>닷컴</a>
+  <ul class="nav-links">
+    <li><a href="../index.html#calculators">계산기</a></li>
+    <li><a href="../index.html#tools" class="active">업무도구</a></li>
+    <li><a href="../index.html#games">루팡게임</a></li>
+    <li><a href="../index.html#tests">테스트</a></li>
+    <li><a href="../index.html#info">정보</a></li>
+  </ul>
+</nav>
+<div class="page-header">
+  <div class="breadcrumb"><a href="../index.html">홈</a> › 업무 도구</div>
+  <h1>✂️ 배경 제거</h1>
+  <p>AI가 배경을 자동으로 지워줍니다 — 사진이 서버로 전송되지 않아요</p>
+</div>
+<main>
+  <div class="ad-banner">광고 영역 (Google AdSense)</div>
+  <div class="tool-card wrap">
+
+    <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+      <div class="drop-icon">🖼️</div>
+      <strong>이미지를 끌어다 놓거나 클릭해서 선택</strong>
+      <p>JPG · PNG · WebP 지원 · 사람, 제품, 동물 사진에 잘 맞아요</p>
+    </div>
+    <input type="file" id="fileInput" accept="image/*" style="display:none">
+
+    <div class="notice-box">
+      ⚡ 처음 실행할 때 AI 모델을 불러오는 데 10~30초 정도 걸려요. 한 번 불러오면 이후엔 빠릅니다.
+    </div>
+
+    <div class="preview-grid" id="previewGrid" style="display:none">
+      <div class="preview-box">
+        <img id="origImg" src="" style="display:none">
+        <div class="pv-empty" id="origEmpty">원본 이미지</div>
+        <div class="pv-label">원본</div>
+      </div>
+      <div class="preview-box checker">
+        <img id="resultImg" src="" style="display:none">
+        <div class="pv-empty" id="resultEmpty">배경 제거 후</div>
+        <div class="pv-label">배경 제거 후 (투명)</div>
+      </div>
+    </div>
+
+    <div class="progress-section" id="progressSection">
+      <div class="progress-msg" id="progressMsg">처리 중...</div>
+      <div class="prog-track"><div class="prog-fill" id="progFill"></div></div>
+    </div>
+
+    <button class="btn-main" id="btnRemove" onclick="removeBg()">배경 제거하기</button>
+    <button class="btn-dl" id="btnDl" onclick="download()">⬇️ 투명 배경으로 다운로드 (PNG)</button>
+
+    <div class="tip-list">
+      <strong>잘 되는 사진</strong>
+      ✔ 배경이 단순한 인물 사진 &nbsp;✔ 제품 촬영 &nbsp;✔ 동물 사진<br>
+      <strong style="margin-top:8px">잘 안 될 수 있는 사진</strong>
+      ✘ 배경과 피사체 색이 비슷한 경우 &nbsp;✘ 복잡한 패턴 배경
+    </div>
+  </div>
+  <div class="ad-banner">광고 영역 (Google AdSense)</div>
+</main>
+<footer>
+  <p><strong>직장인닷컴</strong> — 사진은 서버에 전송되지 않으며 브라우저에서만 처리됩니다.</p>
+</footer>
+<script type="module">
+let currentFile = null;
+let resultObjectUrl = null;
+let removeBgFn = null;
+
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('over'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault(); dropZone.classList.remove('over');
+  if (e.dataTransfer.files[0]) loadFile(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener('change', () => { if (fileInput.files[0]) loadFile(fileInput.files[0]); });
+
+function loadFile(file) {
+  if (!file.type.startsWith('image/')) return;
+  currentFile = file;
+  resultObjectUrl = null;
+
+  const url = URL.createObjectURL(file);
+  const origImg = document.getElementById('origImg');
+  origImg.src = url;
+  origImg.style.display = 'block';
+  document.getElementById('origEmpty').style.display = 'none';
+
+  document.getElementById('resultImg').style.display = 'none';
+  document.getElementById('resultEmpty').style.display = 'flex';
+  document.getElementById('previewGrid').style.display = 'grid';
+  document.getElementById('btnRemove').style.display = 'block';
+  document.getElementById('btnDl').style.display = 'none';
+  document.getElementById('progressSection').style.display = 'none';
+}
+
+async function doRemoveBg() {
+  if (!currentFile) return;
+  const btn = document.getElementById('btnRemove');
+  btn.disabled = true;
+  btn.textContent = '처리 중...';
+
+  const progressSection = document.getElementById('progressSection');
+  const progressMsg = document.getElementById('progressMsg');
+  const progFill = document.getElementById('progFill');
+  progressSection.style.display = 'block';
+
+  try {
+    if (!removeBgFn) {
+      progressMsg.textContent = 'AI 모델 불러오는 중...';
+      progFill.style.width = '10%';
+      const mod = await import('https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.5/+esm');
+      removeBgFn = mod.removeBackground;
+      progFill.style.width = '30%';
+    }
+
+    progressMsg.textContent = '배경 분석 중...';
+
+    const blob = await removeBgFn(currentFile, {
+      publicPath: 'https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.5/dist/',
+      progress: (key, current, total) => {
+        if (key === 'compute:inference') {
+          const pct = total > 0 ? Math.round(30 + (current / total) * 65) : 60;
+          progFill.style.width = pct + '%';
+          progressMsg.textContent = '배경 제거 중...';
+        }
+      }
+    });
+
+    progFill.style.width = '100%';
+    progressMsg.textContent = '완료!';
+
+    if (resultObjectUrl) URL.revokeObjectURL(resultObjectUrl);
+    resultObjectUrl = URL.createObjectURL(blob);
+
+    const resultImg = document.getElementById('resultImg');
+    resultImg.src = resultObjectUrl;
+    resultImg.style.display = 'block';
+    document.getElementById('resultEmpty').style.display = 'none';
+    document.getElementById('btnDl').style.display = 'block';
+
+    setTimeout(() => { progressSection.style.display = 'none'; progFill.style.width = '0%'; }, 1500);
+  } catch (err) {
+    progressMsg.textContent = '오류가 발생했습니다. 다른 이미지로 다시 시도해주세요.';
+    console.error(err);
+  }
+
+  btn.textContent = '다시 제거';
+  btn.disabled = false;
+}
+
+function doDownload() {
+  if (!resultObjectUrl || !currentFile) return;
+  const baseName = currentFile.name.replace(/\.[^.]+$/, '');
+  const a = document.createElement('a');
+  a.href = resultObjectUrl;
+  a.download = `${baseName}_배경제거.png`;
+  a.click();
+}
+
+window.removeBg = doRemoveBg;
+window.download = doDownload;
+</script>
+</body>
+</html>
