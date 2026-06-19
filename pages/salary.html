@@ -334,7 +334,7 @@
       <div class="rate-note">
         <strong>2026년 4대보험 요율</strong><br>
         국민연금 4.75% · 건강보험 3.595% · 장기요양 13.14% · 고용보험 0.9%<br>
-        국민연금 기준소득월액 상한: 637만원
+        국민연금 기준소득월액 상한: <span id="pensionMaxNote">637만원</span>
       </div>
 
     </div>
@@ -402,7 +402,7 @@
     <div class="rate-row"><span class="rl">건강보험</span><span class="rv">3.595%</span></div>
     <div class="rate-row"><span class="rl">장기요양보험</span><span class="rv">건강보험료 × 13.14%</span></div>
     <div class="rate-row"><span class="rl">고용보험</span><span class="rv">0.9%</span></div>
-    <div class="rate-row"><span class="rl">국민연금 기준소득월액 상한</span><span class="rv" style="color:var(--white)">637만원</span></div>
+    <div class="rate-row"><span class="rl">국민연금 기준소득월액 상한</span><span class="rv" style="color:var(--white)" id="pensionMaxCard">637만원</span></div>
     <p class="rates-note">
       ※ 소득세는 근로소득공제 → 인적공제 → 4대보험공제 → 세율 적용 → 세액공제 순으로 계산합니다.<br>
       ※ 실제 원천징수액은 국세청 간이세액표 기준으로 다소 차이가 날 수 있습니다.<br>
@@ -460,10 +460,16 @@ function toggleBreakdown() {
   toggle.classList.toggle('open', open);
 }
 
+/* ── 국민연금 상한: 2026.7부터 659만원으로 인상 ── */
+const PENSION_MAX = new Date() >= new Date('2026-07-01') ? 6590000 : 6370000;
+const PENSION_MAX_LABEL = PENSION_MAX === 6590000 ? '659만원' : '637만원';
+document.getElementById('pensionMaxNote').textContent = PENSION_MAX_LABEL;
+document.getElementById('pensionMaxCard').textContent = PENSION_MAX_LABEL;
+
 /* ── 2026 rates ── */
 const RATES = {
   pension:    0.0475,
-  pensionMax: 6370000,
+  pensionMax: PENSION_MAX,
   health:     0.03595,
   ltc:        0.1314,
   employ:     0.009,

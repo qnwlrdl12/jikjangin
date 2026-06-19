@@ -184,10 +184,12 @@ function calcTax(annual, dep, child, annualIns) {
   return Math.max(tax, 0);
 }
 
+const PENSION_MAX = new Date() >= new Date('2026-07-01') ? 6590000 : 6370000;
+
 function calcInsurance(annual) {
   const monthly = annual / 12;
-  const pensionBase = Math.min(monthly, 6370000);
-  const pension = pensionBase * 0.0475;   // 국민연금 4.75% (상한 637만원)
+  const pensionBase = Math.min(monthly, PENSION_MAX);
+  const pension = pensionBase * 0.0475;   // 국민연금 4.75%
   const health = monthly * 0.03595;       // 건강보험 3.595%
   const ltc = health * 0.1314;            // 장기요양 13.14% of 건강보험
   const employ = monthly * 0.009;         // 고용보험 0.9%

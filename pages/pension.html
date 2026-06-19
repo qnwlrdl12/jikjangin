@@ -131,6 +131,8 @@
 function fw(n) { return Math.round(n).toLocaleString('ko-KR') + '원'; }
 function fmw(n) { return Math.round(n / 10000).toLocaleString() + '만원'; }
 
+const PENSION_MAX = new Date() >= new Date('2026-07-01') ? 6590000 : 6370000;
+
 function calculate() {
   const currentAge = parseInt(document.getElementById('age').value) || 35;
   const retireAge = parseInt(document.getElementById('retireAge').value);
@@ -145,7 +147,7 @@ function calculate() {
 
   // A값 (2026년 국민연금공단 고시)
   const A = 3193511;
-  const B = Math.min(Math.max(avgIncomeWon, 370000), 6370000);
+  const B = Math.min(Math.max(avgIncomeWon, 370000), PENSION_MAX);
 
   // 기본연금액 = (A + B) / 2 × 소득대체율 × (총납입년수 / 40)
   const replacementRate = 0.43; // 2026년 연금개혁 반영

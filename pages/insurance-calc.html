@@ -108,7 +108,7 @@
       <div style="font-size:0.76rem;color:var(--text-muted);margin-top:12px;line-height:1.6;padding:10px 12px;background:rgba(255,255,255,0.02);border-radius:8px">
         ※ 고용보험 사업자 부담: 실업급여 0.9% + 고용안정·직업능력개발 0.25% (150인 미만 기준)<br>
         ※ 장기요양보험료 = 건강보험료 × 13.14%<br>
-        ※ 국민연금 월 기준소득월액 상한: 637만원 (2025.7 개정 기준, 2026년 적용)
+        ※ 국민연금 월 기준소득월액 상한: <span id="pensionMaxNote">637만원</span> (2025.7 개정 기준)
       </div>
     </div>
   </div>
@@ -131,14 +131,17 @@
 
 <script src="../js/theme.js"></script>
 <script>
+const PENSION_MAX = new Date() >= new Date('2026-07-01') ? 6590000 : 6370000;
+document.getElementById('pensionMaxNote').textContent = PENSION_MAX === 6590000 ? '659만원' : '637만원';
+
 function fw(n) { return Math.round(n).toLocaleString('ko-KR') + '원'; }
 
 function calculate() {
   const salaryWon = (parseFloat(document.getElementById('salary').value) || 0) * 10000;
   if (!salaryWon) { document.getElementById('resultBox').style.display = 'none'; return; }
 
-  // 국민연금 (월 상한 6,370,000원, 2025.7 기준)
-  const pensionBase = Math.min(salaryWon, 6370000);
+  // 국민연금 상한: 2026.6까지 637만원, 2026.7부터 659만원
+  const pensionBase = Math.min(salaryWon, PENSION_MAX);
   const pension = pensionBase * 0.0475;
 
   // 건강보험
