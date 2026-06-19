@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <script>if(localStorage.getItem('theme')==='light')document.documentElement.classList.add('light')</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>텍스트 비교기 (Diff) - 직장인닷컴</title>
+  <meta name="description" content="두 텍스트를 붙여넣으면 변경된 부분을 색으로 강조. 계약서·문서 버전 비교에 유용한 무료 텍스트 비교 도구.">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .diff-wrap { max-width:900px; margin:0 auto; }
+    .input-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px; }
+    .input-box { background:var(--card); border:1px solid rgba(255,255,255,0.06); border-radius:var(--radius); padding:18px; }
+    .input-box label { display:block; font-size:0.84rem; font-weight:700; color:var(--text-muted); margin-bottom:10px; }
+    .input-box textarea { width:100%; height:200px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:12px 14px; color:var(--white); font-size:0.85rem; outline:none; font-family:'Noto Sans KR', sans-serif; resize:vertical; line-height:1.7; transition:border-color 0.2s; }
+    .input-box textarea:focus { border-color:var(--accent); }
+
+    .btn-row { display:flex; gap:10px; margin-bottom:16px; }
+    .comp-btn { flex:1; background:var(--primary); color:#fff; border:none; border-radius:10px; padding:13px; font-size:0.95rem; font-weight:700; cursor:pointer; transition:opacity 0.2s; font-family:inherit; }
+    .comp-btn:hover { opacity:0.85; }
+    .clear-btn { background:rgba(255,255,255,0.06); color:var(--text-muted); border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:13px 18px; font-size:0.9rem; cursor:pointer; font-family:inherit; transition:all 0.2s; }
+    .clear-btn:hover { color:var(--white); }
+
+    .mode-row { display:flex; gap:8px; margin-bottom:14px; }
+    .mode-btn { padding:7px 14px; border:1px solid rgba(255,255,255,0.1); border-radius:8px; font-size:0.82rem; font-weight:700; cursor:pointer; background:transparent; color:var(--text-muted); font-family:inherit; transition:all 0.2s; }
+    .mode-btn.active { background:var(--accent); border-color:var(--accent); color:#1a1a2e; }
+
+    .stats { display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap; }
+    .stat-pill { background:rgba(255,255,255,0.05); border-radius:8px; padding:6px 14px; font-size:0.82rem; color:var(--text-muted); }
+    .stat-pill span { font-weight:700; }
+    .stat-pill.added span { color:var(--success); }
+    .stat-pill.removed span { color:var(--primary); }
+    .stat-pill.changed span { color:#FFD700; }
+
+    .result-panel { background:var(--card); border:1px solid rgba(255,255,255,0.06); border-radius:var(--radius); padding:20px; display:none; }
+    .result-panel h3 { font-size:0.9rem; font-weight:700; color:var(--white); margin-bottom:14px; }
+    .diff-output { font-family:'Courier New', monospace; font-size:0.82rem; line-height:1.8; white-space:pre-wrap; word-break:break-all; }
+    .diff-output .added { background:rgba(46,204,113,0.15); color:#2ecc71; }
+    .diff-output .removed { background:rgba(255,107,53,0.15); color:var(--primary); text-decoration:line-through; }
+    .diff-output .equal { color:var(--text); }
+
+    .side-by-side { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .sbs-panel { background:rgba(255,255,255,0.02); border-radius:10px; padding:14px; }
+    .sbs-panel h4 { font-size:0.78rem; color:var(--text-muted); margin-bottom:10px; font-weight:700; }
+    .sbs-content { font-family:'Courier New', monospace; font-size:0.8rem; line-height:1.8; white-space:pre-wrap; word-break:break-all; }
+    .sbs-content .del-line { background:rgba(255,107,53,0.12); display:block; }
+    .sbs-content .add-line { background:rgba(46,204,113,0.12); display:block; }
+
+    .no-diff { text-align:center; padding:24px; color:var(--success); font-weight:700; font-size:1rem; }
+
+    @media(max-width:600px) { .input-row { grid-template-columns:1fr; } .side-by-side { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+<nav>
+  <a href="../index.html" class="logo">💼 <span>직장인</span>닷컴</a>
+  <ul class="nav-links">
+    <li><a href="../index.html#calculators">계산기</a></li>
+    <li><a href="../index.html#tools" class="active">업무도구</a></li>
+    <li><a href="../index.html#games">루팡게임</a></li>
+    <li><a href="../index.html#tests">테스트</a></li>
+    <li><a href="../index.html#info">정보</a></li>
+  </ul>
+</nav>
+
+<div class="page-header">
+  <div class="breadcrumb"><a href="../index.html">홈</a> › 업무도구</div>
+  <h1>🔍 텍스트 비교기</h1>
+  <p>두 텍스트를 붙여넣으면 변경·추가·삭제된 부분을 색으로 강조합니다</p>
+</div>
+
+<main>
+  <div class="ad-banner">광고 영역 (Google AdSense)</div>
+
+  <div class="diff-wrap">
+    <div class="input-row">
+      <div class="input-box">
+        <label>📄 원본 텍스트 (이전)</label>
+        <textarea id="textA" placeholder="원본 텍스트를 붙여넣으세요..."></textarea>
+      </div>
+      <div class="input-box">
+        <label>📝 수정된 텍스트 (이후)</label>
+        <textarea id="textB" placeholder="수정된 텍스트를 붙여넣으세요..."></textarea>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="comp-btn" onclick="compare()">비교하기</button>
+      <button class="clear-btn" onclick="clearAll()">초기화</button>
+    </div>
+
+    <div class="mode-row">
+      <button class="mode-btn active" id="modeInline" onclick="setMode('inline', this)">인라인 보기</button>
+      <button class="mode-btn" id="modeSide" onclick="setMode('side', this)">좌우 비교</button>
+    </div>
+
+    <div class="stats" id="stats" style="display:none"></div>
+    <div class="result-panel" id="result"></div>
+  </div>
+
+  <div class="ad-banner" style="margin-top:16px">광고 영역 (Google AdSense)</div>
+</main>
+
+<footer>
+  <p><strong>직장인닷컴</strong> — 텍스트는 서버로 전송되지 않습니다.</p>
+</footer>
+
+<script src="../js/theme.js"></script>
+<script>
+let currentMode = 'inline';
+let lastA = '', lastB = '';
+
+function setMode(mode, btn) {
+  currentMode = mode;
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  if (lastA || lastB) compare();
+}
+
+function clearAll() {
+  document.getElementById('textA').value = '';
+  document.getElementById('textB').value = '';
+  document.getElementById('stats').style.display = 'none';
+  document.getElementById('result').style.display = 'none';
+  lastA = ''; lastB = '';
+}
+
+// LCS-based line diff
+function lcs(a, b) {
+  const m = a.length, n = b.length;
+  const dp = Array.from({length: m + 1}, () => new Array(n + 1).fill(0));
+  for (let i = 1; i <= m; i++)
+    for (let j = 1; j <= n; j++)
+      dp[i][j] = a[i-1] === b[j-1] ? dp[i-1][j-1] + 1 : Math.max(dp[i-1][j], dp[i][j-1]);
+  return dp;
+}
+
+function diff(aLines, bLines) {
+  const dp = lcs(aLines, bLines);
+  const result = [];
+  let i = aLines.length, j = bLines.length;
+  while (i > 0 || j > 0) {
+    if (i > 0 && j > 0 && aLines[i-1] === bLines[j-1]) {
+      result.unshift({ type: 'equal', val: aLines[i-1] });
+      i--; j--;
+    } else if (j > 0 && (i === 0 || dp[i][j-1] >= dp[i-1][j])) {
+      result.unshift({ type: 'added', val: bLines[j-1] });
+      j--;
+    } else {
+      result.unshift({ type: 'removed', val: aLines[i-1] });
+      i--;
+    }
+  }
+  return result;
+}
+
+function compare() {
+  const a = document.getElementById('textA').value;
+  const b = document.getElementById('textB').value;
+  lastA = a; lastB = b;
+  if (!a && !b) return;
+
+  const aLines = a.split('\n');
+  const bLines = b.split('\n');
+  const changes = diff(aLines, bLines);
+
+  const added = changes.filter(c => c.type === 'added').length;
+  const removed = changes.filter(c => c.type === 'removed').length;
+  const equal = changes.filter(c => c.type === 'equal').length;
+
+  // Stats
+  const statsEl = document.getElementById('stats');
+  statsEl.style.display = 'flex';
+  if (added === 0 && removed === 0) {
+    statsEl.innerHTML = '<div class="stat-pill" style="color:var(--success)">✅ 두 텍스트가 동일합니다</div>';
+  } else {
+    statsEl.innerHTML = `
+      <div class="stat-pill added"><span>+${added}</span> 줄 추가</div>
+      <div class="stat-pill removed"><span>-${removed}</span> 줄 삭제</div>
+      <div class="stat-pill"><span>${equal}</span> 줄 동일</div>
+    `;
+  }
+
+  const result = document.getElementById('result');
+  result.style.display = 'block';
+
+  if (added === 0 && removed === 0) {
+    result.innerHTML = '<div class="no-diff">✅ 두 텍스트가 완전히 동일합니다</div>';
+    return;
+  }
+
+  if (currentMode === 'inline') {
+    const lines = changes.map(c => {
+      const prefix = c.type === 'added' ? '+ ' : c.type === 'removed' ? '- ' : '  ';
+      const cls = c.type === 'equal' ? 'equal' : c.type;
+      return `<span class="${cls}">${prefix}${escHtml(c.val)}\n</span>`;
+    }).join('');
+    result.innerHTML = `<h3>📋 변경 사항</h3><div class="diff-output">${lines}</div>`;
+  } else {
+    const aOut = changes.filter(c => c.type !== 'added').map(c =>
+      `<span class="${c.type === 'removed' ? 'del-line' : ''}">${escHtml(c.val)}\n</span>`).join('');
+    const bOut = changes.filter(c => c.type !== 'removed').map(c =>
+      `<span class="${c.type === 'added' ? 'add-line' : ''}">${escHtml(c.val)}\n</span>`).join('');
+    result.innerHTML = `
+      <h3>📋 좌우 비교</h3>
+      <div class="side-by-side">
+        <div class="sbs-panel"><h4>원본 (이전)</h4><div class="sbs-content">${aOut}</div></div>
+        <div class="sbs-panel"><h4>수정본 (이후)</h4><div class="sbs-content">${bOut}</div></div>
+      </div>`;
+  }
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <script>if(localStorage.getItem('theme')==='light')document.documentElement.classList.add('light')</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>4대보험 계산기 2026 - 직장인닷컴</title>
+  <meta name="description" content="2026년 최신 요율 적용. 월급 입력만으로 국민연금·건강보험·장기요양·고용보험 직원·사업자 부담분 즉시 계산.">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .calc-card { background:var(--card); border:1px solid rgba(255,255,255,0.06); border-radius:var(--radius); padding:28px; margin-bottom:16px; max-width:660px; margin-left:auto; margin-right:auto; }
+    .calc-card h3 { font-size:1rem; font-weight:700; color:var(--white); margin-bottom:18px; }
+    .form-group { margin-bottom:14px; }
+    .form-group label { display:block; font-size:0.83rem; color:var(--text-muted); margin-bottom:6px; }
+    .form-group input { width:100%; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:11px 14px; color:var(--white); font-size:1rem; outline:none; font-family:inherit; transition:border-color 0.2s; }
+    .form-group input:focus { border-color:var(--primary); }
+    .calc-btn { width:100%; background:var(--primary); color:#fff; border:none; border-radius:10px; padding:14px; font-size:1rem; font-weight:700; cursor:pointer; transition:opacity 0.2s; margin-top:4px; font-family:inherit; }
+    .calc-btn:hover { opacity:0.85; }
+
+    .result-box { display:none; margin-top:20px; }
+    .result-total { text-align:center; background:rgba(255,107,53,0.08); border:1px solid rgba(255,107,53,0.2); border-radius:12px; padding:18px; margin-bottom:14px; }
+    .result-total .lbl { font-size:0.8rem; color:var(--text-muted); margin-bottom:4px; }
+    .result-total .val { font-size:2rem; font-weight:900; color:var(--secondary); }
+
+    .ins-table { width:100%; border-collapse:collapse; font-size:0.85rem; }
+    .ins-table th { text-align:left; color:var(--text-muted); font-weight:700; padding:10px 10px; border-bottom:2px solid rgba(255,255,255,0.08); font-size:0.78rem; }
+    .ins-table td { padding:12px 10px; border-bottom:1px solid rgba(255,255,255,0.05); color:var(--text); }
+    .ins-table tr:last-child td { border:none; font-weight:700; color:var(--white); }
+    .ins-table .rate { font-size:0.76rem; color:var(--text-muted); }
+    .ins-table .emp-val { color:var(--primary); font-weight:700; }
+    .ins-table .erm-val { color:var(--accent); font-weight:700; }
+
+    .two-col { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:12px; }
+    .side-box { background:rgba(255,255,255,0.03); border-radius:10px; padding:14px; text-align:center; }
+    .side-box .s-lbl { font-size:0.75rem; color:var(--text-muted); margin-bottom:4px; }
+    .side-box .s-val { font-size:1.1rem; font-weight:800; }
+    .s-emp { color:var(--primary); }
+    .s-erm { color:var(--accent); }
+
+    .rate-card { background:var(--card); border:1px solid rgba(255,255,255,0.06); border-radius:var(--radius); padding:22px 24px; max-width:660px; margin:0 auto 16px; }
+    .rate-card h3 { font-size:0.95rem; font-weight:700; color:var(--white); margin-bottom:14px; }
+    .rate-row { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.05); font-size:0.84rem; }
+    .rate-row:last-child { border:none; }
+    .r-name { color:var(--text); }
+    .r-vals { display:flex; gap:20px; }
+    .r-emp { color:var(--primary); font-weight:700; }
+    .r-erm { color:var(--accent); font-weight:700; }
+    @media(max-width:480px) { .two-col { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+<nav>
+  <a href="../index.html" class="logo">💼 <span>직장인</span>닷컴</a>
+  <ul class="nav-links">
+    <li><a href="../index.html#calculators" class="active">계산기</a></li>
+    <li><a href="../index.html#tools">업무도구</a></li>
+    <li><a href="../index.html#games">루팡게임</a></li>
+    <li><a href="../index.html#tests">테스트</a></li>
+    <li><a href="../index.html#info">정보</a></li>
+  </ul>
+</nav>
+
+<div class="page-header">
+  <div class="breadcrumb"><a href="../index.html">홈</a> › 계산기</div>
+  <h1>🛡️ 4대보험 계산기</h1>
+  <p>2026년 최신 요율 · 월급 입력만으로 직원·회사 부담분 즉시 계산</p>
+</div>
+
+<main>
+  <div class="ad-banner">광고 영역 (Google AdSense)</div>
+
+  <div class="calc-card">
+    <h3>💰 월급 입력</h3>
+    <div class="form-group">
+      <label>세전 월급 (만원)</label>
+      <input type="number" id="salary" placeholder="예: 350" min="1" oninput="calculate()">
+    </div>
+
+    <div class="result-box" id="resultBox">
+      <div class="result-total">
+        <div class="lbl">직원 총 공제액 (4대보험)</div>
+        <div class="val" id="totalEmp">—</div>
+      </div>
+
+      <table class="ins-table">
+        <thead>
+          <tr>
+            <th>항목</th>
+            <th>요율</th>
+            <th class="emp-val">직원 부담</th>
+            <th class="erm-val">사업자 부담</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+
+      <div class="two-col">
+        <div class="side-box">
+          <div class="s-lbl">직원 월 공제 합계</div>
+          <div class="s-val s-emp" id="empTotal">—</div>
+        </div>
+        <div class="side-box">
+          <div class="s-lbl">사업자 월 부담 합계</div>
+          <div class="s-val s-erm" id="ermTotal">—</div>
+        </div>
+      </div>
+      <div style="font-size:0.76rem;color:var(--text-muted);margin-top:12px;line-height:1.6;padding:10px 12px;background:rgba(255,255,255,0.02);border-radius:8px">
+        ※ 고용보험 사업자 부담: 실업급여 0.9% + 고용안정·직업능력개발 0.25% (150인 미만 기준)<br>
+        ※ 장기요양보험료 = 건강보험료 × 13.14%<br>
+        ※ 국민연금 월 상한 소득: 617만원 / 하한: 37만원 (2025년 7월 기준)
+      </div>
+    </div>
+  </div>
+
+  <div class="rate-card">
+    <h3>📋 2026년 4대보험 요율표</h3>
+    <div class="rate-row"><span class="r-name">국민연금</span><div class="r-vals"><span class="r-emp">직원 4.75%</span><span class="r-erm">사업자 4.75%</span></div></div>
+    <div class="rate-row"><span class="r-name">건강보험</span><div class="r-vals"><span class="r-emp">직원 3.595%</span><span class="r-erm">사업자 3.595%</span></div></div>
+    <div class="rate-row"><span class="r-name">장기요양보험</span><div class="r-vals"><span class="r-emp">건강보험료 × 13.14%</span><span class="r-erm">건강보험료 × 13.14%</span></div></div>
+    <div class="rate-row"><span class="r-name">고용보험</span><div class="r-vals"><span class="r-emp">직원 0.9%</span><span class="r-erm">사업자 1.15%</span></div></div>
+    <div class="rate-row" style="font-weight:700;color:var(--white)"><span>합계</span><div class="r-vals"><span class="r-emp">약 9.45% + a</span><span class="r-erm">약 9.7% + a</span></div></div>
+  </div>
+
+  <div class="ad-banner" style="margin-top:8px">광고 영역 (Google AdSense)</div>
+</main>
+
+<footer>
+  <p><strong>직장인닷컴</strong> — 모든 계산은 참고용이며 법적 효력이 없습니다.</p>
+</footer>
+
+<script src="../js/theme.js"></script>
+<script>
+function fw(n) { return Math.round(n).toLocaleString('ko-KR') + '원'; }
+
+function calculate() {
+  const salaryWon = (parseFloat(document.getElementById('salary').value) || 0) * 10000;
+  if (!salaryWon) { document.getElementById('resultBox').style.display = 'none'; return; }
+
+  // 국민연금 (월 상한 6,170,000원)
+  const pensionBase = Math.min(salaryWon, 6170000);
+  const pension = pensionBase * 0.0475;
+
+  // 건강보험
+  const health = salaryWon * 0.03595;
+
+  // 장기요양 = 건강보험료 × 13.14%
+  const ltc = health * 0.1314;
+
+  // 고용보험
+  const employEmp = salaryWon * 0.009;
+  const employErm = salaryWon * 0.0115;
+
+  const rows = [
+    { name:'국민연금', rateEmp:'4.75%', rateErm:'4.75%', emp:pension, erm:pension },
+    { name:'건강보험', rateEmp:'3.595%', rateErm:'3.595%', emp:health, erm:health },
+    { name:'장기요양', rateEmp:'건강보험료×13.14%', rateErm:'건강보험료×13.14%', emp:ltc, erm:ltc },
+    { name:'고용보험', rateEmp:'0.9%', rateErm:'1.15%', emp:employEmp, erm:employErm },
+  ];
+
+  const totalEmpVal = pension + health + ltc + employEmp;
+  const totalErmVal = pension + health + ltc + employErm;
+
+  document.getElementById('totalEmp').textContent = fw(totalEmpVal);
+  document.getElementById('empTotal').textContent = fw(totalEmpVal);
+  document.getElementById('ermTotal').textContent = fw(totalErmVal);
+
+  document.getElementById('tbody').innerHTML = rows.map(r => `
+    <tr>
+      <td>${r.name}</td>
+      <td class="rate">${r.rateEmp}</td>
+      <td class="emp-val">${fw(r.emp)}</td>
+      <td class="erm-val">${fw(r.erm)}</td>
+    </tr>`).join('') + `
+    <tr>
+      <td>합계</td><td></td>
+      <td class="emp-val">${fw(totalEmpVal)}</td>
+      <td class="erm-val">${fw(totalErmVal)}</td>
+    </tr>`;
+
+  document.getElementById('resultBox').style.display = 'block';
+}
+</script>
+</body>
+</html>

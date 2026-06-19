@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <script>if(localStorage.getItem('theme')==='light')document.documentElement.classList.add('light')</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>내 연봉 수준 테스트 - 직장인닷컴</title>
+  <meta name="description" content="나이, 경력, 직군을 입력하면 동종 업계 대비 내 연봉이 상위 몇 %인지 분석합니다.">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .wrap { max-width:640px; margin:0 auto; }
+    .form-card { background:var(--card); border:1px solid rgba(255,255,255,0.06); border-radius:var(--radius); padding:28px; margin-bottom:14px; }
+    .form-card h3 { font-size:1rem; font-weight:700; color:var(--white); margin-bottom:18px; }
+    .form-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px; }
+    .form-group label { display:block; font-size:0.83rem; color:var(--text-muted); margin-bottom:6px; }
+    .form-group input, .form-group select { width:100%; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:11px 14px; color:var(--white); font-size:0.95rem; outline:none; font-family:inherit; transition:border-color 0.2s; }
+    .form-group input:focus { border-color:var(--primary); }
+    .form-group select option { background:#1a1a2e; color:#fff; }
+    .calc-btn { width:100%; background:var(--primary); color:#fff; border:none; border-radius:10px; padding:14px; font-size:1rem; font-weight:700; cursor:pointer; transition:opacity 0.2s; margin-top:4px; font-family:inherit; }
+    .calc-btn:hover { opacity:0.85; }
+
+    .result-box { display:none; }
+    .pct-hero { text-align:center; padding:28px 20px; background:rgba(255,107,53,0.07); border:1px solid rgba(255,107,53,0.15); border-radius:14px; margin-bottom:16px; }
+    .pct-label { font-size:0.82rem; color:var(--text-muted); margin-bottom:6px; }
+    .pct-val { font-size:3.5rem; font-weight:900; color:var(--secondary); line-height:1; }
+    .pct-sub { font-size:0.85rem; color:var(--text-muted); margin-top:8px; line-height:1.6; }
+    .pct-grade { display:inline-block; font-size:0.88rem; font-weight:700; padding:5px 14px; border-radius:20px; margin-top:8px; }
+
+    .compare-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:14px; }
+    .cmp-item { background:rgba(255,255,255,0.04); border-radius:10px; padding:12px 14px; text-align:center; }
+    .cmp-item.mine { border:1px solid rgba(255,215,0,0.3); background:rgba(255,215,0,0.06); }
+    .cmp-l { font-size:0.72rem; color:var(--text-muted); margin-bottom:4px; }
+    .cmp-v { font-size:0.95rem; font-weight:800; color:var(--white); }
+    .cmp-v.mine-val { color:#FFD700; }
+
+    .bar-section { margin-bottom:14px; }
+    .bar-label { display:flex; justify-content:space-between; font-size:0.78rem; color:var(--text-muted); margin-bottom:6px; }
+    .bar-track { background:rgba(255,255,255,0.06); border-radius:20px; height:14px; overflow:hidden; position:relative; }
+    .bar-fill { height:100%; border-radius:20px; background:linear-gradient(90deg, var(--primary), var(--secondary)); transition:width 0.8s ease; }
+    .bar-marker { position:absolute; top:50%; transform:translateY(-50%); width:3px; height:20px; background:#FFD700; border-radius:2px; }
+
+    .tips-section { background:var(--card); border:1px solid rgba(255,255,255,0.06); border-radius:var(--radius); padding:22px 24px; }
+    .tips-section h3 { font-size:0.95rem; font-weight:700; color:var(--white); margin-bottom:12px; }
+    .tip-item { display:flex; gap:10px; padding:9px 0; border-bottom:1px solid rgba(255,255,255,0.05); font-size:0.84rem; color:var(--text-muted); line-height:1.6; }
+    .tip-item:last-child { border:none; }
+    .tip-num { width:22px; height:22px; background:var(--primary); color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.7rem; font-weight:700; flex-shrink:0; margin-top:1px; }
+
+    @media(max-width:480px) { .form-row { grid-template-columns:1fr; } .compare-grid { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+<nav>
+  <a href="../index.html" class="logo">💼 <span>직장인</span>닷컴</a>
+  <ul class="nav-links">
+    <li><a href="../index.html#calculators">계산기</a></li>
+    <li><a href="../index.html#tools">업무도구</a></li>
+    <li><a href="../index.html#games">루팡게임</a></li>
+    <li><a href="../index.html#tests" class="active">테스트</a></li>
+    <li><a href="../index.html#info">정보</a></li>
+  </ul>
+</nav>
+
+<div class="page-header">
+  <div class="breadcrumb"><a href="../index.html">홈</a> › 직장인 테스트</div>
+  <h1>💰 내 연봉 수준 테스트</h1>
+  <p>나이·경력·직군 대비 내 연봉이 동종 업계에서 상위 몇 %인지 분석합니다</p>
+</div>
+
+<main>
+  <div class="ad-banner">광고 영역 (Google AdSense)</div>
+
+  <div class="wrap">
+    <div class="form-card">
+      <h3>📊 내 정보 입력</h3>
+      <div class="form-row">
+        <div class="form-group">
+          <label>현재 나이</label>
+          <input type="number" id="age" placeholder="예: 32" min="20" max="65" value="32">
+        </div>
+        <div class="form-group">
+          <label>경력 (년)</label>
+          <input type="number" id="exp" placeholder="예: 5" min="0" max="40" value="5">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>직군·업종</label>
+          <select id="industry">
+            <option value="IT">IT·소프트웨어</option>
+            <option value="finance">금융·보험</option>
+            <option value="mfg">제조·엔지니어링</option>
+            <option value="sales">영업·마케팅</option>
+            <option value="hr">인사·총무·경영지원</option>
+            <option value="service">서비스·유통</option>
+            <option value="medical">의료·제약</option>
+            <option value="edu">교육</option>
+            <option value="public">공기업·공공</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>현재 연봉 (만원)</label>
+          <input type="number" id="mySalary" placeholder="예: 4500" min="1000" value="">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>회사 규모</label>
+          <select id="compSize">
+            <option value="large">대기업 (1000인 이상)</option>
+            <option value="mid" selected>중견기업 (300~999인)</option>
+            <option value="small">중소기업 (~299인)</option>
+            <option value="startup">스타트업</option>
+          </select>
+        </div>
+      </div>
+      <button class="calc-btn" onclick="analyze()">분석하기</button>
+    </div>
+
+    <div class="result-box" id="resultBox">
+      <div class="pct-hero">
+        <div class="pct-label">동종 업계 경력자 대비</div>
+        <div class="pct-val" id="pctVal">—</div>
+        <div class="pct-sub" id="pctSub">—</div>
+        <div class="pct-grade" id="pctGrade"></div>
+      </div>
+
+      <div class="compare-grid">
+        <div class="cmp-item"><div class="cmp-l">하위 25%</div><div class="cmp-v" id="q1">—</div></div>
+        <div class="cmp-item mine"><div class="cmp-l">내 연봉</div><div class="cmp-v mine-val" id="myVal">—</div></div>
+        <div class="cmp-item"><div class="cmp-l">상위 25%</div><div class="cmp-v" id="q3">—</div></div>
+      </div>
+
+      <div class="compare-grid" style="margin-bottom:16px">
+        <div class="cmp-item"><div class="cmp-l">업계 중간값</div><div class="cmp-v" id="median">—</div></div>
+        <div class="cmp-item"><div class="cmp-l">업계 평균</div><div class="cmp-v" id="avg">—</div></div>
+        <div class="cmp-item"><div class="cmp-l">목표 연봉 (상위25%)</div><div class="cmp-v" id="target">—</div></div>
+      </div>
+
+      <div class="bar-section">
+        <div class="bar-label"><span>연봉 분포</span><span id="barPctLabel">—</span></div>
+        <div class="bar-track">
+          <div class="bar-fill" id="barFill" style="width:0"></div>
+          <div class="bar-marker" id="barMarker" style="left:0"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:0.72rem;color:var(--text-muted);margin-top:4px">
+          <span id="barMin">—</span><span id="barMax">—</span>
+        </div>
+      </div>
+
+      <div class="tips-section">
+        <h3>💡 연봉 협상 전략</h3>
+        <div id="tipsContent"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ad-banner" style="margin-top:16px">광고 영역 (Google AdSense)</div>
+</main>
+
+<footer>
+  <p><strong>직장인닷컴</strong> — 통계 기반 참고 데이터입니다. 실제 시장 데이터는 잡코리아·크레딧잡에서 확인하세요.</p>
+</footer>
+
+<script src="../js/theme.js"></script>
+<script>
+// 2024년 기준 업종별 경력 보정 평균 연봉 (만원)
+const BASE = {
+  IT:      { base: 4200, growth: 380, q1_pct: 0.75, q3_pct: 1.30, size: { large:1.25, mid:1.05, small:0.85, startup:1.10 } },
+  finance: { base: 4500, growth: 350, q1_pct: 0.78, q3_pct: 1.28, size: { large:1.30, mid:1.05, small:0.82, startup:0.95 } },
+  mfg:     { base: 3800, growth: 300, q1_pct: 0.78, q3_pct: 1.25, size: { large:1.20, mid:1.02, small:0.85, startup:0.90 } },
+  sales:   { base: 3600, growth: 280, q1_pct: 0.76, q3_pct: 1.30, size: { large:1.18, mid:1.02, small:0.86, startup:1.00 } },
+  hr:      { base: 3500, growth: 250, q1_pct: 0.78, q3_pct: 1.22, size: { large:1.22, mid:1.03, small:0.85, startup:0.92 } },
+  service: { base: 3200, growth: 220, q1_pct: 0.76, q3_pct: 1.25, size: { large:1.15, mid:1.00, small:0.88, startup:0.95 } },
+  medical: { base: 4000, growth: 300, q1_pct: 0.77, q3_pct: 1.26, size: { large:1.20, mid:1.03, small:0.88, startup:0.92 } },
+  edu:     { base: 3000, growth: 200, q1_pct: 0.79, q3_pct: 1.20, size: { large:1.10, mid:1.00, small:0.90, startup:0.90 } },
+  public:  { base: 4200, growth: 220, q1_pct: 0.85, q3_pct: 1.18, size: { large:1.15, mid:1.05, small:0.95, startup:0.90 } },
+};
+
+function fw(n) { return Math.round(n).toLocaleString() + '만원'; }
+
+function calcPercentile(mine, median, q1, q3) {
+  // Simple percentile estimate based on quartile positions
+  if (mine <= q1) return Math.round(25 * (mine - (q1 * 0.5)) / (q1 * 0.5));
+  if (mine <= median) return Math.round(25 + 25 * (mine - q1) / (median - q1));
+  if (mine <= q3) return Math.round(50 + 25 * (mine - median) / (q3 - median));
+  return Math.min(99, Math.round(75 + 24 * (mine - q3) / (q3 * 0.5)));
+}
+
+function analyze() {
+  const age = parseInt(document.getElementById('age').value) || 32;
+  const exp = parseInt(document.getElementById('exp').value) || 5;
+  const industry = document.getElementById('industry').value;
+  const mine = parseFloat(document.getElementById('mySalary').value) || 0;
+  const size = document.getElementById('compSize').value;
+
+  if (!mine) { alert('현재 연봉을 입력해주세요.'); return; }
+
+  const d = BASE[industry];
+  const sizeMult = d.size[size];
+  const median = Math.round((d.base + d.growth * Math.min(exp, 15)) * sizeMult / 100) * 100;
+  const q1 = Math.round(median * d.q1_pct / 100) * 100;
+  const q3 = Math.round(median * d.q3_pct / 100) * 100;
+  const avg = Math.round(median * 1.05 / 100) * 100;
+  const minSalary = Math.round(q1 * 0.7 / 100) * 100;
+  const maxSalary = Math.round(q3 * 1.5 / 100) * 100;
+
+  const pct = Math.max(1, Math.min(99, calcPercentile(mine, median, q1, q3)));
+  const topPct = 100 - pct;
+
+  document.getElementById('pctVal').textContent = '상위 ' + topPct + '%';
+  document.getElementById('pctSub').textContent = `${age}세 · 경력 ${exp}년 · ${['IT','finance','mfg','sales','hr','service','medical','edu','public'].find(k=>k===industry)||industry} 기준`;
+  document.getElementById('myVal').textContent = fw(mine);
+  document.getElementById('q1').textContent = fw(q1);
+  document.getElementById('q3').textContent = fw(q3);
+  document.getElementById('median').textContent = fw(median);
+  document.getElementById('avg').textContent = fw(avg);
+  document.getElementById('target').textContent = fw(q3);
+
+  const grade = document.getElementById('pctGrade');
+  if (topPct <= 10) { grade.textContent = '🏆 최상위권'; grade.style.background = 'rgba(255,215,0,0.15)'; grade.style.color = '#FFD700'; }
+  else if (topPct <= 25) { grade.textContent = '⭐ 상위권'; grade.style.background = 'rgba(78,205,196,0.15)'; grade.style.color = 'var(--accent)'; }
+  else if (topPct <= 50) { grade.textContent = '📈 평균 이상'; grade.style.background = 'rgba(46,204,113,0.12)'; grade.style.color = 'var(--success)'; }
+  else { grade.textContent = '📊 평균 이하 — 협상 기회'; grade.style.background = 'rgba(255,107,53,0.12)'; grade.style.color = 'var(--primary)'; }
+
+  const fillPct = Math.min(100, Math.max(0, (mine - minSalary) / (maxSalary - minSalary) * 100));
+  document.getElementById('barFill').style.width = fillPct + '%';
+  document.getElementById('barMarker').style.left = fillPct + '%';
+  document.getElementById('barPctLabel').textContent = '상위 ' + topPct + '%';
+  document.getElementById('barMin').textContent = fw(minSalary);
+  document.getElementById('barMax').textContent = fw(maxSalary);
+
+  const diff = q3 - mine;
+  const tips = [
+    { n:1, txt: mine >= q3 ? '이미 상위 25%에 해당합니다. 연봉 협상보다 스톡옵션·인센티브·복지 조건에 집중하세요.' : `상위 25% 연봉 ${fw(q3)}까지 <strong>${fw(diff)}</strong> 차이. 명확한 성과 수치로 협상 근거를 준비하세요.` },
+    { n:2, txt: '동종 업계 연봉 데이터는 잡코리아·크레딧잡·사람인에서 정확히 확인하고 면접/협상 때 근거로 제시하세요.' },
+    { n:3, txt: '이직을 고려한다면 현재 연봉 + 15~20% 기대값으로 제안을 검토하는 게 일반적입니다.' },
+    { n:4, txt: '연봉 협상 최적 타이밍: 새 직무 제안을 받았을 때 → 성과 리뷰 후 → 프로젝트 완료 직후.' },
+  ];
+
+  document.getElementById('tipsContent').innerHTML = tips.map(t => `
+    <div class="tip-item"><div class="tip-num">${t.n}</div><div>${t.txt}</div></div>`).join('');
+
+  document.getElementById('resultBox').style.display = 'block';
+}
+</script>
+</body>
+</html>

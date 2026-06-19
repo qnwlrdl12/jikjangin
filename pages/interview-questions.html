@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <script>if(localStorage.getItem('theme')==='light')document.documentElement.classList.add('light')</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>면접 예상 질문 뽑기 - 직장인닷컴</title>
+  <meta name="description" content="직군 선택 후 랜덤으로 면접 예상 질문을 뽑아드립니다. 공통·직군별·인성 면접 질문 200개 이상.">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .wrap { max-width:680px; margin:0 auto; }
+    .setup-card { background:var(--card); border:1px solid rgba(255,255,255,0.06); border-radius:var(--radius); padding:26px; margin-bottom:14px; }
+    .setup-card h3 { font-size:0.95rem; font-weight:700; color:var(--white); margin-bottom:14px; }
+    .cat-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:14px; }
+    .cat-btn { padding:10px 8px; border:1px solid rgba(255,255,255,0.1); border-radius:10px; font-size:0.78rem; font-weight:700; cursor:pointer; background:transparent; color:var(--text-muted); font-family:inherit; transition:all 0.2s; text-align:center; line-height:1.3; }
+    .cat-btn.active { background:var(--primary); border-color:var(--primary); color:#fff; }
+    .cat-btn:hover:not(.active) { border-color:var(--primary); color:var(--primary); }
+    .form-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px; }
+    .form-group label { display:block; font-size:0.8rem; color:var(--text-muted); margin-bottom:5px; }
+    .form-group select { width:100%; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:8px; padding:10px 12px; color:var(--white); font-size:0.88rem; outline:none; font-family:inherit; }
+    .form-group select option { background:#1a1a2e; color:#fff; }
+    .draw-btn { width:100%; background:var(--primary); color:#fff; border:none; border-radius:10px; padding:13px; font-size:1rem; font-weight:700; cursor:pointer; font-family:inherit; transition:all 0.2s; }
+    .draw-btn:hover { opacity:0.85; }
+
+    .q-list { display:flex; flex-direction:column; gap:10px; margin-bottom:14px; }
+    .q-item { background:var(--card); border:1px solid rgba(255,255,255,0.06); border-radius:12px; padding:18px 20px; position:relative; }
+    .q-num { font-size:0.72rem; color:var(--primary); font-weight:700; margin-bottom:6px; letter-spacing:0.06em; }
+    .q-text { font-size:0.92rem; font-weight:700; color:var(--white); line-height:1.55; margin-bottom:8px; }
+    .q-hint { font-size:0.78rem; color:var(--text-muted); line-height:1.5; }
+    .q-tag { display:inline-block; font-size:0.68rem; font-weight:700; padding:2px 8px; border-radius:5px; margin-left:6px; }
+    .tag-common { background:rgba(78,205,196,0.12); color:var(--accent); }
+    .tag-tech { background:rgba(255,107,53,0.12); color:var(--primary); }
+    .tag-hr { background:rgba(168,85,247,0.12); color:#a855f7; }
+
+    .toggle-btn { display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.8rem; color:var(--text-muted); background:none; border:none; font-family:inherit; padding:0; margin-top:6px; }
+    .toggle-btn:hover { color:var(--white); }
+
+    .answer-box { display:none; margin-top:10px; padding:12px 14px; background:rgba(78,205,196,0.06); border-left:3px solid var(--accent); border-radius:0 8px 8px 0; font-size:0.82rem; color:var(--text); line-height:1.65; }
+
+    .redraw-btn { width:100%; background:rgba(255,255,255,0.06); color:var(--white); border:1px solid rgba(255,255,255,0.12); border-radius:10px; padding:12px; font-size:0.9rem; font-weight:700; cursor:pointer; font-family:inherit; transition:all 0.2s; }
+    .redraw-btn:hover { background:rgba(255,255,255,0.1); }
+    @media(max-width:520px) { .cat-grid { grid-template-columns:repeat(2,1fr); } .form-row { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+<nav>
+  <a href="../index.html" class="logo">💼 <span>직장인</span>닷컴</a>
+  <ul class="nav-links">
+    <li><a href="../index.html#calculators">계산기</a></li>
+    <li><a href="../index.html#tools" class="active">업무도구</a></li>
+    <li><a href="../index.html#games">루팡게임</a></li>
+    <li><a href="../index.html#tests">테스트</a></li>
+    <li><a href="../index.html#info">정보</a></li>
+  </ul>
+</nav>
+
+<div class="page-header">
+  <div class="breadcrumb"><a href="../index.html">홈</a> › 업무도구</div>
+  <h1>🎤 면접 예상 질문 뽑기</h1>
+  <p>직군 선택 → 랜덤 면접 질문 + 답변 가이드 · 이직 준비에 바로 활용</p>
+</div>
+
+<main>
+  <div class="ad-banner">광고 영역 (Google AdSense)</div>
+
+  <div class="wrap">
+    <div class="setup-card">
+      <h3>🎯 직군 선택</h3>
+      <div class="cat-grid" id="catGrid"></div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>면접 유형</label>
+          <select id="interviewType">
+            <option value="all">전체 (공통+직군)</option>
+            <option value="common">공통 인성 면접</option>
+            <option value="tech">직군 전문 면접</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>질문 수</label>
+          <select id="qCount">
+            <option value="5">5개</option>
+            <option value="10" selected>10개</option>
+            <option value="15">15개</option>
+            <option value="20">20개</option>
+          </select>
+        </div>
+      </div>
+      <button class="draw-btn" onclick="draw()">🎲 질문 뽑기</button>
+    </div>
+
+    <div id="resultWrap" style="display:none">
+      <div class="q-list" id="qList"></div>
+      <button class="redraw-btn" onclick="draw()">🔄 다시 뽑기</button>
+    </div>
+  </div>
+
+  <div class="ad-banner" style="margin-top:16px">광고 영역 (Google AdSense)</div>
+</main>
+
+<footer>
+  <p><strong>직장인닷컴</strong> — 실제 면접 질문과 다를 수 있습니다.</p>
+</footer>
+
+<script src="../js/theme.js"></script>
+<script>
+const CATS = [
+  { id:'common', label:'🌐 공통' },
+  { id:'IT', label:'💻 IT·개발' },
+  { id:'marketing', label:'📣 마케팅' },
+  { id:'sales', label:'🤝 영업' },
+  { id:'hr', label:'👥 인사·HR' },
+  { id:'finance', label:'💰 재무·회계' },
+  { id:'design', label:'🎨 디자인' },
+  { id:'admin', label:'📋 관리·사무' },
+];
+
+let selectedCat = 'common';
+
+const QS = {
+  common: [
+    { type:'common', q:'자기소개를 해주세요.', hint:'1분 내외로 핵심 경력과 강점 위주로 말하세요. 지원 동기와 연결하면 좋습니다.' },
+    { type:'common', q:'왜 저희 회사에 지원하셨나요?', hint:'회사의 사업 방향, 제품, 문화를 조사해서 구체적으로 연결하세요.' },
+    { type:'common', q:'본인의 가장 큰 강점과 약점을 말해주세요.', hint:'약점은 인정하되 극복 중인 노력을 함께 언급하세요.' },
+    { type:'common', q:'5년 후 본인의 모습은?', hint:'회사 내 성장 경로와 연결해서 구체적인 목표를 제시하세요.' },
+    { type:'common', q:'가장 힘들었던 경험과 어떻게 극복했나요?', hint:'STAR 기법(상황-과제-행동-결과)으로 구체적으로 설명하세요.' },
+    { type:'common', q:'팀 프로젝트에서 갈등이 생겼을 때 어떻게 해결했나요?', hint:'협력과 소통을 강조하는 구체적 사례를 준비하세요.' },
+    { type:'common', q:'이직(혹은 지원) 이유가 무엇인가요?', hint:'이전 직장의 부정적인 면보다 새로운 도전·성장 욕구를 중심으로 말하세요.' },
+    { type:'common', q:'마지막으로 하고 싶은 말이 있나요?', hint:'면접에서 충분히 전달 못한 강점이나 입사 의지를 짧게 어필하세요.' },
+    { type:'common', q:'최근에 읽은 책이나 인상 깊었던 것은?', hint:'직무와 연관된 내용이면 더욱 좋습니다. 진솔하게 말하세요.' },
+    { type:'common', q:'본인이 생각하는 이상적인 조직 문화는?', hint:'지원 회사 문화에 맞추되 본인 스타일도 솔직하게 표현하세요.' },
+    { type:'common', q:'스트레스를 어떻게 해소하나요?', hint:'건강한 방법을 구체적으로 말하고, 업무에 부정적 영향이 없음을 어필하세요.' },
+    { type:'common', q:'본인의 업무 스타일을 설명해주세요.', hint:'계획적·꼼꼼함·빠른 실행 등 장점과 함께 협업 방식을 말하세요.' },
+  ],
+  IT: [
+    { type:'tech', q:'사용 가능한 기술 스택과 가장 자신 있는 언어·프레임워크는?', hint:'프로젝트에서 실제로 활용한 수준으로 설명하고 성과와 연결하세요.' },
+    { type:'tech', q:'최근 개발 트렌드 중 관심 있는 기술이 있다면?', hint:'LLM·AI 통합, 클라우드 네이티브, 웹어셈블리 등 구체적으로 의견을 말하세요.' },
+    { type:'tech', q:'가장 어려웠던 기술적 문제와 해결 과정을 설명해주세요.', hint:'문제 정의 → 시도한 방법 → 결과 순으로 구체적으로 말하세요.' },
+    { type:'tech', q:'코드 리뷰를 어떻게 진행하고 어떤 피드백을 중요하게 여기나요?', hint:'가독성·유지보수성·성능 관점에서 본인 기준을 말하세요.' },
+    { type:'tech', q:'REST API와 GraphQL의 차이점 및 언제 각각을 선택하나요?', hint:'각각의 장단점과 실제 사용 경험을 구체적으로 말하세요.' },
+    { type:'tech', q:'버전 관리(Git)를 팀에서 어떻게 활용하나요?', hint:'브랜치 전략(Git Flow, GitHub Flow 등)과 협업 경험을 말하세요.' },
+    { type:'tech', q:'성능 최적화를 진행한 경험이 있나요?', hint:'측정 지표(응답 시간, 쿼리 수 등)와 개선 결과를 구체적으로 말하세요.' },
+    { type:'tech', q:'테스트 코드를 어떻게 작성하나요? TDD를 사용해본 적 있나요?', hint:'단위 테스트·통합 테스트 경험과 TDD의 장단점에 대한 의견을 말하세요.' },
+  ],
+  marketing: [
+    { type:'tech', q:'진행했던 마케팅 캠페인 중 가장 성과가 좋았던 것과 이유는?', hint:'KPI와 달성 수치를 구체적으로 제시하세요.' },
+    { type:'tech', q:'데이터를 활용해 마케팅 의사결정을 내린 경험을 말해주세요.', hint:'GA·Meta Ads·검색 데이터 등 활용 도구와 결과를 말하세요.' },
+    { type:'tech', q:'SNS 채널별 콘텐츠 전략이 달라야 하는 이유는?', hint:'플랫폼 특성과 타겟 오디언스에 맞는 접근 방식을 설명하세요.' },
+    { type:'tech', q:'제한된 예산으로 최대 효율을 낸 경험이 있나요?', hint:'채널 선택 기준과 A/B 테스트 활용 경험을 말하세요.' },
+    { type:'tech', q:'우리 회사/브랜드의 마케팅을 어떻게 개선할 수 있다고 생각하나요?', hint:'사전 조사를 바탕으로 구체적인 제안을 준비하세요.' },
+    { type:'tech', q:'SEO/SEM 경험이 있다면 성과를 공유해주세요.', hint:'키워드 전략, 클릭률 개선, 전환율 등 수치로 말하세요.' },
+  ],
+  sales: [
+    { type:'tech', q:'본인의 최고 영업 성과를 말해주세요.', hint:'목표 대비 달성률, 계약 규모, 고객사 수 등 수치로 구체적으로 말하세요.' },
+    { type:'tech', q:'거절당한 고객을 설득해 성사시킨 경험이 있나요?', hint:'고객의 핵심 우려를 파악하고 해결한 과정을 STAR로 말하세요.' },
+    { type:'tech', q:'신규 고객을 발굴하는 본인만의 방법이 있나요?', hint:'리드 발굴·소개·콜드 아웃리치 등 구체적 전략을 말하세요.' },
+    { type:'tech', q:'장기 고객 관계를 유지하기 위해 어떻게 하나요?', hint:'정기 체크인, 가치 제공, 애로사항 선제적 해결 사례를 말하세요.' },
+    { type:'tech', q:'경쟁사 대비 우리 제품의 약점이 있을 때 어떻게 대응하나요?', hint:'솔직함과 대안 제시 능력을 보여주세요.' },
+  ],
+  hr: [
+    { type:'tech', q:'채용 프로세스를 어떻게 설계하고 개선한 경험이 있나요?', hint:'JD 작성·스크리닝·면접 구조화 등 구체적 경험을 말하세요.' },
+    { type:'tech', q:'퇴직률이 높은 부서가 있다면 어떻게 분석하고 접근하겠나요?', hint:'데이터 수집 → 원인 분석 → 개선 방안 순으로 말하세요.' },
+    { type:'tech', q:'직원 몰입도 향상을 위해 진행한 프로그램이 있나요?', hint:'진행 배경, 내용, 결과(참여율·만족도 등)를 구체적으로 말하세요.' },
+    { type:'tech', q:'노무 관련 법규에서 가장 주의해야 할 부분은 무엇이라고 생각하나요?', hint:'근로기준법·4대보험·차별 금지 등 핵심 이슈를 말하세요.' },
+    { type:'tech', q:'성과 평가 제도를 어떻게 설계하면 공정성을 높일 수 있나요?', hint:'KPI·OKR·다면평가 등의 장단점과 경험을 말하세요.' },
+  ],
+  finance: [
+    { type:'tech', q:'재무제표 분석 경험과 주요 지표를 설명해주세요.', hint:'유동비율·부채비율·ROE 등 핵심 지표와 해석 능력을 보여주세요.' },
+    { type:'tech', q:'예산 수립 및 관리 경험을 말해주세요.', hint:'목표 설정 → 배분 → 차이 분석 → 피드백 과정을 설명하세요.' },
+    { type:'tech', q:'원가 절감 또는 수익성 개선에 기여한 경험이 있나요?', hint:'분석 방법과 절감 금액·비율 등 수치로 구체적으로 말하세요.' },
+    { type:'tech', q:'사용 가능한 회계 소프트웨어나 ERP 시스템은?', hint:'SAP·더존·회계 프로그램 활용 수준과 프로젝트 경험을 말하세요.' },
+    { type:'tech', q:'IFRS와 K-GAAP의 주요 차이점을 설명해주세요.', hint:'수익 인식·리스 처리 등 주요 차이를 실무 경험과 연결하세요.' },
+  ],
+  design: [
+    { type:'tech', q:'포트폴리오 중 가장 자신 있는 작업물과 프로세스를 설명해주세요.', hint:'기획 배경 → 리서치 → 시안 → 결과물 순으로 설명하세요.' },
+    { type:'tech', q:'사용자 인터뷰 또는 UX 리서치를 진행한 경험이 있나요?', hint:'리서치 방법·인사이트·디자인 반영 과정을 구체적으로 말하세요.' },
+    { type:'tech', q:'개발자와 협업할 때 어떻게 소통하나요?', hint:'스펙 전달 방법, 디자인 시스템, Figma 등 도구 활용 경험을 말하세요.' },
+    { type:'tech', q:'디자인 피드백이 이해하기 어려울 때 어떻게 하나요?', hint:'질문으로 의도를 파악하고 대안을 제시하는 과정을 말하세요.' },
+    { type:'tech', q:'접근성(Accessibility)을 디자인에 어떻게 반영하나요?', hint:'색 대비, 폰트 크기, 스크린 리더 지원 등의 경험을 말하세요.' },
+  ],
+  admin: [
+    { type:'tech', q:'다수의 업무를 동시에 처리해야 할 때 우선순위를 어떻게 정하나요?', hint:'긴급성·중요성 매트릭스와 실제 처리 방법을 말하세요.' },
+    { type:'tech', q:'내부 프로세스를 개선한 경험이 있나요?', hint:'문제 발견 → 분석 → 개선 → 결과를 구체적으로 말하세요.' },
+    { type:'tech', q:'기밀 또는 민감한 정보를 다룰 때 어떻게 관리하나요?', hint:'보안 의식과 정보 처리 원칙을 말하세요.' },
+    { type:'tech', q:'상사나 타 부서의 무리한 요구를 받았을 때 어떻게 처리하나요?', hint:'거절 방법과 대안 제시 경험을 말하세요.' },
+    { type:'tech', q:'엑셀이나 업무 자동화 도구를 활용한 경험이 있나요?', hint:'피벗테이블, VLOOKUP, 매크로, RPA 등 구체적 경험을 말하세요.' },
+  ],
+};
+
+function renderCats() {
+  document.getElementById('catGrid').innerHTML = CATS.map(c => `
+    <button class="cat-btn ${c.id === selectedCat ? 'active' : ''}" onclick="selectCat('${c.id}', this)">${c.label}</button>`).join('');
+}
+
+function selectCat(id, btn) {
+  selectedCat = id;
+  document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function shuffle(arr) { return [...arr].sort(() => Math.random() - 0.5); }
+
+function draw() {
+  const type = document.getElementById('interviewType').value;
+  const count = parseInt(document.getElementById('qCount').value);
+
+  let pool = [...QS.common];
+  if (selectedCat !== 'common' && QS[selectedCat]) pool = [...pool, ...QS[selectedCat]];
+
+  if (type === 'common') pool = pool.filter(q => q.type === 'common');
+  else if (type === 'tech') pool = pool.filter(q => q.type === 'tech');
+
+  const picked = shuffle(pool).slice(0, count);
+
+  document.getElementById('qList').innerHTML = picked.map((q, i) => `
+    <div class="q-item">
+      <div class="q-num">Q${i + 1} <span class="q-tag ${q.type === 'common' ? 'tag-common' : 'tag-tech'}">${q.type === 'common' ? '인성·공통' : '직군 전문'}</span></div>
+      <div class="q-text">${q.q}</div>
+      <button class="toggle-btn" onclick="toggleHint(this)">💡 답변 가이드 보기 ▼</button>
+      <div class="answer-box">${q.hint}</div>
+    </div>`).join('');
+
+  document.getElementById('resultWrap').style.display = 'block';
+  document.getElementById('resultWrap').scrollIntoView({ behavior:'smooth' });
+}
+
+function toggleHint(btn) {
+  const box = btn.nextElementSibling;
+  const open = box.style.display === 'block';
+  box.style.display = open ? 'none' : 'block';
+  btn.textContent = open ? '💡 답변 가이드 보기 ▼' : '💡 답변 가이드 접기 ▲';
+}
+
+renderCats();
+</script>
+</body>
+</html>

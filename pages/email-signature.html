@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <script>if(localStorage.getItem('theme')==='light')document.documentElement.classList.add('light')</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>이메일 서명 생성기 - 직장인닷컴</title>
+  <meta name="description" content="이름, 직함, 회사, 연락처 입력으로 전문적인 이메일 서명을 즉시 생성. HTML 코드 및 텍스트 모두 복사 가능.">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .wrap { max-width:800px; margin:0 auto; }
+    .main-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+    .form-card { background:var(--card); border:1px solid rgba(255,255,255,0.06); border-radius:var(--radius); padding:24px; }
+    .form-card h3 { font-size:0.95rem; font-weight:700; color:var(--white); margin-bottom:18px; }
+    .form-group { margin-bottom:12px; }
+    .form-group label { display:block; font-size:0.8rem; color:var(--text-muted); margin-bottom:5px; }
+    .form-group input { width:100%; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:8px; padding:10px 12px; color:var(--white); font-size:0.9rem; outline:none; font-family:inherit; transition:border-color 0.2s; }
+    .form-group input:focus { border-color:var(--accent); }
+
+    .color-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .color-pick { display:flex; align-items:center; gap:8px; }
+    .color-pick input[type="color"] { width:36px; height:36px; border:none; background:none; cursor:pointer; padding:0; border-radius:6px; }
+    .color-pick span { font-size:0.8rem; color:var(--text-muted); }
+
+    .style-tabs { display:flex; gap:6px; margin-bottom:14px; }
+    .st-btn { flex:1; padding:8px; border:1px solid rgba(255,255,255,0.1); border-radius:8px; font-size:0.8rem; font-weight:700; cursor:pointer; background:transparent; color:var(--text-muted); font-family:inherit; transition:all 0.2s; }
+    .st-btn.active { background:var(--accent); border-color:var(--accent); color:#1a1a2e; }
+
+    .preview-card { background:var(--card); border:1px solid rgba(255,255,255,0.06); border-radius:var(--radius); padding:24px; }
+    .preview-card h3 { font-size:0.95rem; font-weight:700; color:var(--white); margin-bottom:14px; }
+    .preview-box { background:#fff; border-radius:10px; padding:20px; min-height:100px; }
+
+    .copy-row { display:flex; gap:8px; margin-top:14px; }
+    .copy-btn { flex:1; padding:11px; border:none; border-radius:9px; font-size:0.85rem; font-weight:700; cursor:pointer; font-family:inherit; transition:all 0.2s; }
+    .copy-btn.primary { background:var(--primary); color:#fff; }
+    .copy-btn.secondary { background:rgba(255,255,255,0.08); color:var(--white); border:1px solid rgba(255,255,255,0.15); }
+    .copy-btn:hover { opacity:0.85; }
+    .copy-msg { text-align:center; font-size:0.8rem; color:var(--success); margin-top:6px; height:16px; }
+
+    @media(max-width:640px) { .main-grid { grid-template-columns:1fr; } .color-row { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+<nav>
+  <a href="../index.html" class="logo">💼 <span>직장인</span>닷컴</a>
+  <ul class="nav-links">
+    <li><a href="../index.html#calculators">계산기</a></li>
+    <li><a href="../index.html#tools" class="active">업무도구</a></li>
+    <li><a href="../index.html#games">루팡게임</a></li>
+    <li><a href="../index.html#tests">테스트</a></li>
+    <li><a href="../index.html#info">정보</a></li>
+  </ul>
+</nav>
+
+<div class="page-header">
+  <div class="breadcrumb"><a href="../index.html">홈</a> › 업무도구</div>
+  <h1>✉️ 이메일 서명 생성기</h1>
+  <p>정보 입력 → 전문적인 서명 즉시 생성 → 복사해서 메일 서명에 붙여넣기</p>
+</div>
+
+<main>
+  <div class="ad-banner">광고 영역 (Google AdSense)</div>
+
+  <div class="wrap">
+    <div class="main-grid">
+      <div class="form-card">
+        <h3>📝 정보 입력</h3>
+        <div class="form-group"><label>이름 *</label><input id="f_name" placeholder="홍길동" oninput="update()"></div>
+        <div class="form-group"><label>직함 / 직위</label><input id="f_title" placeholder="선임 개발자 / 팀장" oninput="update()"></div>
+        <div class="form-group"><label>부서</label><input id="f_dept" placeholder="개발팀 / 마케팅팀" oninput="update()"></div>
+        <div class="form-group"><label>회사명</label><input id="f_company" placeholder="(주)직장인닷컴" oninput="update()"></div>
+        <div class="form-group"><label>전화번호</label><input id="f_phone" placeholder="010-1234-5678" oninput="update()"></div>
+        <div class="form-group"><label>이메일</label><input id="f_email" placeholder="hong@company.com" type="email" oninput="update()"></div>
+        <div class="form-group"><label>웹사이트</label><input id="f_web" placeholder="https://company.com" oninput="update()"></div>
+        <div class="form-group"><label>한 줄 문구 (선택)</label><input id="f_motto" placeholder="함께 성장하는 팀" oninput="update()"></div>
+
+        <h3 style="margin-top:18px">🎨 색상</h3>
+        <div class="color-row">
+          <div class="color-pick"><input type="color" id="c_primary" value="#FF6B35" oninput="update()"><span>강조색</span></div>
+          <div class="color-pick"><input type="color" id="c_text" value="#333333" oninput="update()"><span>텍스트</span></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="preview-card" style="margin-bottom:14px">
+          <h3>👁️ 미리보기</h3>
+          <div class="style-tabs">
+            <button class="st-btn active" onclick="setStyle(0,this)">모던</button>
+            <button class="st-btn" onclick="setStyle(1,this)">클래식</button>
+            <button class="st-btn" onclick="setStyle(2,this)">심플</button>
+          </div>
+          <div class="preview-box" id="previewBox"></div>
+          <div class="copy-row">
+            <button class="copy-btn primary" onclick="copyHTML()">HTML 복사</button>
+            <button class="copy-btn secondary" onclick="copyText()">텍스트 복사</button>
+          </div>
+          <div class="copy-msg" id="copyMsg"></div>
+        </div>
+
+        <div class="preview-card" style="font-size:0.8rem">
+          <h3>💡 사용 방법</h3>
+          <div style="color:var(--text-muted);line-height:1.8">
+            <strong style="color:var(--white)">Gmail:</strong> 설정 → 일반 → 서명 → HTML 모드에서 붙여넣기<br>
+            <strong style="color:var(--white)">Outlook:</strong> 파일 → 옵션 → 메일 → 서명 → 서명 편집<br>
+            <strong style="color:var(--white)">Naver:</strong> 환경설정 → 편지쓰기 → 서명 → 직접 입력(HTML)
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ad-banner" style="margin-top:16px">광고 영역 (Google AdSense)</div>
+</main>
+
+<footer>
+  <p><strong>직장인닷컴</strong> — 서버로 전송되지 않습니다.</p>
+</footer>
+
+<script src="../js/theme.js"></script>
+<script>
+let styleIdx = 0;
+
+function setStyle(i, btn) {
+  styleIdx = i;
+  document.querySelectorAll('.st-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  update();
+}
+
+function getData() {
+  return {
+    name: document.getElementById('f_name').value || '이름',
+    title: document.getElementById('f_title').value,
+    dept: document.getElementById('f_dept').value,
+    company: document.getElementById('f_company').value,
+    phone: document.getElementById('f_phone').value,
+    email: document.getElementById('f_email').value,
+    web: document.getElementById('f_web').value,
+    motto: document.getElementById('f_motto').value,
+    primary: document.getElementById('c_primary').value,
+    text: document.getElementById('c_text').value,
+  };
+}
+
+function buildHTML(d) {
+  const sub = [d.title, d.dept].filter(Boolean).join(' · ');
+  const links = [];
+  if (d.phone) links.push(`<span>📞 ${d.phone}</span>`);
+  if (d.email) links.push(`<span>📧 <a href="mailto:${d.email}" style="color:${d.primary};text-decoration:none">${d.email}</a></span>`);
+  if (d.web) links.push(`<span>🌐 <a href="${d.web}" style="color:${d.primary};text-decoration:none">${d.web.replace(/^https?:\/\//,'')}</a></span>`);
+  const linkStr = links.join('<span style="color:#ccc;margin:0 6px">|</span>');
+
+  if (styleIdx === 0) { // 모던
+    return `<table style="font-family:Arial,sans-serif;font-size:13px;color:${d.text};border-collapse:collapse">
+  <tr>
+    <td style="padding-right:14px;border-right:3px solid ${d.primary};vertical-align:top;padding-top:2px">
+      <div style="font-size:16px;font-weight:700;color:${d.text}">${d.name}</div>
+      ${sub ? `<div style="font-size:12px;color:#777;margin-top:2px">${sub}</div>` : ''}
+      ${d.company ? `<div style="font-size:12px;color:${d.primary};font-weight:600;margin-top:2px">${d.company}</div>` : ''}
+    </td>
+    <td style="padding-left:14px;vertical-align:top">
+      <div style="line-height:1.9;font-size:12px">${linkStr || '연락처를 입력하세요'}</div>
+      ${d.motto ? `<div style="margin-top:6px;font-size:11px;color:#aaa;font-style:italic">${d.motto}</div>` : ''}
+    </td>
+  </tr>
+</table>`;
+  } else if (styleIdx === 1) { // 클래식
+    return `<table style="font-family:Arial,sans-serif;font-size:13px;color:${d.text};border-collapse:collapse">
+  <tr><td>
+    <div style="font-size:15px;font-weight:700;color:${d.primary}">${d.name}</div>
+    ${sub ? `<div style="font-size:12px;color:#666;margin-top:1px">${sub}</div>` : ''}
+    ${d.company ? `<div style="font-size:12px;color:#666">${d.company}</div>` : ''}
+    <hr style="border:none;border-top:1px solid ${d.primary};margin:8px 0">
+    <div style="line-height:2;font-size:12px">${linkStr || '연락처를 입력하세요'}</div>
+    ${d.motto ? `<div style="margin-top:6px;font-size:11px;color:#aaa;border-left:3px solid ${d.primary};padding-left:8px;font-style:italic">${d.motto}</div>` : ''}
+  </td></tr>
+</table>`;
+  } else { // 심플
+    const infoLines = [sub, d.company].filter(Boolean).join(' | ');
+    return `<table style="font-family:Arial,sans-serif;font-size:12px;color:${d.text}">
+  <tr><td>
+    <strong style="font-size:14px">${d.name}</strong>${infoLines ? `  <span style="color:#999">${infoLines}</span>` : ''}<br>
+    <span style="font-size:12px;color:#666">${links.map(l => l.replace(/<[^>]+>/g, s => s)).join('  ')}</span>
+    ${d.motto ? `<br><span style="font-size:11px;color:#aaa;font-style:italic">${d.motto}</span>` : ''}
+  </td></tr>
+</table>`;
+  }
+}
+
+function update() {
+  const d = getData();
+  document.getElementById('previewBox').innerHTML = buildHTML(d);
+}
+
+function copyHTML() {
+  const d = getData();
+  navigator.clipboard.writeText(buildHTML(d)).then(() => showMsg('HTML 복사 완료!'));
+}
+
+function copyText() {
+  const d = getData();
+  const parts = [d.name];
+  const sub = [d.title, d.dept].filter(Boolean).join(' · ');
+  if (sub) parts.push(sub);
+  if (d.company) parts.push(d.company);
+  parts.push('—');
+  if (d.phone) parts.push('📞 ' + d.phone);
+  if (d.email) parts.push('📧 ' + d.email);
+  if (d.web) parts.push('🌐 ' + d.web);
+  if (d.motto) parts.push('"' + d.motto + '"');
+  navigator.clipboard.writeText(parts.join('\n')).then(() => showMsg('텍스트 복사 완료!'));
+}
+
+function showMsg(msg) {
+  const el = document.getElementById('copyMsg');
+  el.textContent = msg;
+  setTimeout(() => { el.textContent = ''; }, 2500);
+}
+
+update();
+</script>
+</body>
+</html>

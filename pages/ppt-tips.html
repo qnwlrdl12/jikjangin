@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <script>if(localStorage.getItem('theme')==='light')document.documentElement.classList.add('light')</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PPT 꿀팁 & 단축키 - 직장인닷컴</title>
+  <meta name="description" content="직장인을 위한 파워포인트 필수 단축키, 디자인 원칙, 발표 팁. 보고서용 PPT를 빠르고 깔끔하게 만드는 방법.">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .tip-wrap { max-width:780px; margin:0 auto; }
+    .tip-card { background:var(--card); border:1px solid rgba(255,255,255,0.06); border-radius:var(--radius); padding:22px 24px; margin-bottom:14px; }
+    .tip-card h2 { font-size:1rem; font-weight:800; color:var(--white); margin-bottom:16px; }
+    .shortcut-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .sc-item { display:flex; align-items:center; gap:10px; background:rgba(255,255,255,0.03); border-radius:8px; padding:10px 12px; font-size:0.84rem; }
+    .sc-keys { display:flex; gap:3px; align-items:center; flex-shrink:0; }
+    .key { display:inline-block; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.18); border-radius:5px; padding:3px 8px; font-size:0.75rem; font-weight:700; color:var(--white); font-family:inherit; }
+    .sc-desc { color:var(--text-muted); }
+    .plus { color:var(--text-muted); font-size:0.7rem; }
+
+    .tip-box { background:rgba(255,107,53,0.07); border-left:3px solid var(--primary); border-radius:0 8px 8px 0; padding:13px 16px; font-size:0.85rem; color:var(--text); line-height:1.7; margin-bottom:10px; }
+    .tip-box strong { color:var(--primary); }
+    .ok-box { background:rgba(46,204,113,0.08); border-left:3px solid var(--success); border-radius:0 8px 8px 0; padding:13px 16px; font-size:0.85rem; color:var(--text); line-height:1.7; margin-bottom:10px; }
+    .ok-box strong { color:var(--success); }
+    .warn-box { background:rgba(255,215,0,0.07); border-left:3px solid #FFD700; border-radius:0 8px 8px 0; padding:13px 16px; font-size:0.85rem; color:var(--text); line-height:1.7; margin-bottom:10px; }
+    .warn-box strong { color:#FFD700; }
+
+    .design-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .d-item { background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:14px; }
+    .d-icon { font-size:1.4rem; margin-bottom:6px; }
+    .d-title { font-size:0.88rem; font-weight:700; color:var(--white); margin-bottom:4px; }
+    .d-desc { font-size:0.78rem; color:var(--text-muted); line-height:1.55; }
+
+    .tab-row { display:flex; gap:8px; margin-bottom:18px; flex-wrap:wrap; }
+    .tab-btn { padding:8px 16px; border:none; border-radius:8px; font-size:0.85rem; font-weight:700; cursor:pointer; background:rgba(255,255,255,0.05); color:var(--text-muted); font-family:inherit; transition:all 0.2s; }
+    .tab-btn.active { background:var(--primary); color:#fff; }
+    .tab-btn:hover:not(.active) { background:rgba(255,255,255,0.1); color:var(--white); }
+    @media(max-width:560px) { .shortcut-grid { grid-template-columns:1fr; } .design-grid { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+<nav>
+  <a href="../index.html" class="logo">💼 <span>직장인</span>닷컴</a>
+  <ul class="nav-links">
+    <li><a href="../index.html#calculators">계산기</a></li>
+    <li><a href="../index.html#tools">업무도구</a></li>
+    <li><a href="../index.html#games">루팡게임</a></li>
+    <li><a href="../index.html#tests">테스트</a></li>
+    <li><a href="../index.html#info" class="active">정보</a></li>
+  </ul>
+</nav>
+
+<div class="page-header">
+  <div class="breadcrumb"><a href="../index.html">홈</a> › 직장인 정보</div>
+  <h1>📊 PPT 꿀팁 & 단축키</h1>
+  <p>보고용 파워포인트를 빠르고 깔끔하게 만드는 실무 핵심 기능 모음</p>
+</div>
+
+<main>
+  <div class="ad-banner">광고 영역 (Google AdSense)</div>
+
+  <div class="tip-wrap">
+    <div class="tab-row">
+      <button class="tab-btn active" onclick="showSection('shortcuts', this)">⌨️ 단축키</button>
+      <button class="tab-btn" onclick="showSection('design', this)">🎨 디자인 원칙</button>
+      <button class="tab-btn" onclick="showSection('present', this)">🎤 발표 팁</button>
+      <button class="tab-btn" onclick="showSection('tips', this)">💡 꿀팁 모음</button>
+    </div>
+
+    <div id="sec-shortcuts">
+      <div class="tip-card">
+        <h2>⌨️ 필수 단축키</h2>
+        <h3 style="font-size:0.85rem;color:var(--text-muted);margin-bottom:12px">📝 기본</h3>
+        <div class="shortcut-grid" id="scBasic"></div>
+        <h3 style="font-size:0.85rem;color:var(--text-muted);margin:16px 0 12px">🎨 개체 편집</h3>
+        <div class="shortcut-grid" id="scObj"></div>
+        <h3 style="font-size:0.85rem;color:var(--text-muted);margin:16px 0 12px">🎤 발표 중</h3>
+        <div class="shortcut-grid" id="scPresent"></div>
+        <h3 style="font-size:0.85rem;color:var(--text-muted);margin:16px 0 12px">📋 슬라이드 관리</h3>
+        <div class="shortcut-grid" id="scSlide"></div>
+      </div>
+    </div>
+
+    <div id="sec-design" style="display:none">
+      <div class="tip-card">
+        <h2>🎨 보고서 PPT 디자인 원칙</h2>
+        <div class="design-grid" id="designGrid"></div>
+      </div>
+    </div>
+
+    <div id="sec-present" style="display:none">
+      <div class="tip-card">
+        <h2>🎤 발표할 때 쓰면 좋은 기능</h2>
+        <div id="presentContent"></div>
+      </div>
+    </div>
+
+    <div id="sec-tips" style="display:none">
+      <div class="tip-card">
+        <h2>💡 모르면 손해 보는 PPT 꿀팁</h2>
+        <div id="tipsContent"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ad-banner" style="margin-top:24px">광고 영역 (Google AdSense)</div>
+</main>
+
+<footer>
+  <p><strong>직장인닷컴</strong> — 모든 정보는 참고용입니다.</p>
+</footer>
+
+<script src="../js/theme.js"></script>
+<script>
+const SC = {
+  basic: [
+    { keys:['Ctrl','M'], desc:'새 슬라이드 추가' },
+    { keys:['Ctrl','D'], desc:'슬라이드 복제' },
+    { keys:['Ctrl','Z'], desc:'실행 취소' },
+    { keys:['Ctrl','Y'], desc:'다시 실행' },
+    { keys:['Ctrl','S'], desc:'저장' },
+    { keys:['F12'], desc:'다른 이름으로 저장' },
+    { keys:['Ctrl','P'], desc:'인쇄' },
+    { keys:['Ctrl','A'], desc:'전체 개체 선택' },
+  ],
+  obj: [
+    { keys:['Ctrl','G'], desc:'개체 그룹화' },
+    { keys:['Ctrl','Shift','G'], desc:'그룹 해제' },
+    { keys:['Alt','↑↓←→'], desc:'개체 미세 이동' },
+    { keys:['Shift','드래그'], desc:'비율 유지 크기 조정' },
+    { keys:['Ctrl','드래그'], desc:'개체 복사 이동' },
+    { keys:['Shift','클릭'], desc:'여러 개체 동시 선택' },
+    { keys:['Tab'], desc:'개체 순서대로 선택' },
+    { keys:['Ctrl','Shift','H'], desc:'수평 가운데 정렬' },
+  ],
+  present: [
+    { keys:['F5'], desc:'처음부터 발표 시작' },
+    { keys:['Shift','F5'], desc:'현재 슬라이드부터 발표' },
+    { keys:['B'], desc:'화면 검게 (잠시 멈춤)' },
+    { keys:['W'], desc:'화면 흰색' },
+    { keys:['Esc'], desc:'발표 종료' },
+    { keys:['숫자','Enter'], desc:'해당 번호 슬라이드로 이동' },
+    { keys:['Ctrl','P'], desc:'발표 중 포인터 펜으로 전환' },
+    { keys:['E'], desc:'펜으로 그린 내용 지우기' },
+  ],
+  slide: [
+    { keys:['Ctrl','↑↓'], desc:'슬라이드 순서 이동' },
+    { keys:['Alt','Shift','↑↓'], desc:'텍스트 들여쓰기/내어쓰기' },
+    { keys:['Ctrl','Shift','C'], desc:'서식 복사 (붓 아이콘)' },
+    { keys:['Ctrl','Shift','V'], desc:'서식 붙여넣기' },
+    { keys:['Ctrl','Enter'], desc:'다음 텍스트 상자로 이동' },
+    { keys:['Alt','F10'], desc:'선택 창 열기 (개체 목록)' },
+    { keys:['Ctrl','Shift','='], desc:'개체를 맨 앞으로' },
+    { keys:['Ctrl','='], desc:'개체를 맨 뒤로' },
+  ],
+};
+
+const DESIGN = [
+  { icon:'✍️', title:'1슬라이드 1메시지', desc:'슬라이드 제목만 봐도 핵심이 전달되어야 합니다. 내용이 많으면 슬라이드를 나누세요.' },
+  { icon:'🔤', title:'폰트 최대 2종', desc:'제목 폰트 + 본문 폰트 각 1개씩. 너무 많은 폰트는 디자인을 산만하게 만듭니다.' },
+  { icon:'🎨', title:'색상 3가지 이하', desc:'메인 색 + 강조 색 + 배경색. 색이 많을수록 메시지보다 색에 집중하게 됩니다.' },
+  { icon:'📏', title:'7×7 법칙', desc:'슬라이드당 최대 7줄, 한 줄에 최대 7단어. 글이 많으면 발표자 노트를 활용하세요.' },
+  { icon:'🖼️', title:'이미지 > 텍스트', desc:'숫자와 사실은 그래프·아이콘으로 시각화하세요. 청중은 텍스트보다 이미지를 더 잘 기억합니다.' },
+  { icon:'⬜', title:'여백을 두려워 말 것', desc:'공백은 나쁜 게 아닙니다. 핵심 요소가 돋보이도록 주변에 여백을 충분히 주세요.' },
+  { icon:'📐', title:'정렬 기능 필수', desc:'홈 → 정렬 → 맞춤으로 개체를 정확히 정렬하세요. 삐뚤어진 정렬은 신뢰도를 떨어뜨립니다.' },
+  { icon:'✨', title:'애니메이션 최소화', desc:'복잡한 애니메이션은 내용이 아닌 효과에 집중하게 합니다. 페이드인 정도만 사용하세요.' },
+];
+
+const PRESENT_TIPS = [
+  { cls:'ok-box', title:'🖥️ 발표자 보기 활용', body:'발표 시 <strong>Alt+F5</strong>로 발표자 보기를 사용하면 청중에게는 슬라이드만, 발표자에게는 다음 슬라이드 미리보기 + 시간 + 메모가 보입니다.' },
+  { cls:'tip-box', title:'🖊️ 레이저 포인터 & 펜', body:'발표 중 <strong>Ctrl+L</strong>로 레이저 포인터, <strong>Ctrl+P</strong>로 펜 모드. 중요한 부분을 그려서 강조할 수 있습니다. <strong>E</strong>를 누르면 그린 내용 삭제.' },
+  { cls:'ok-box', title:'📍 확대 기능', body:'발표 중 특정 영역을 확대하려면 <strong>확대/축소 기능</strong>(슬라이드 오른쪽 하단 돋보기)을 활용하세요. 작은 차트·표를 강조할 때 유용합니다.' },
+  { cls:'tip-box', title:'🔗 하이퍼링크로 슬라이드 이동', body:'특정 슬라이드로 바로 가야 할 때: 개체 선택 → 삽입 → 하이퍼링크 → "이 문서의 위치" → 대상 슬라이드 선택. Q&A 대비로 유용합니다.' },
+  { cls:'warn-box', title:'⚠️ 발표 전 체크리스트', body:'① 슬라이드 쇼 → 슬라이드 쇼 설정에서 타이밍 확인<br>② PDF 백업 파일 준비<br>③ 폰트 포함 저장 (파일 → 옵션 → 저장 → "파일에 글꼴 포함")<br>④ 다른 PC에서 폰트 깨짐 방지' },
+];
+
+const TIPS = [
+  { cls:'tip-box', title:'📐 맞춤 & 배분 — 클릭 한 번으로 정렬', body:'여러 개체 선택 → 홈 탭 → <strong>정렬</strong> → 맞춤. "균등 배분"으로 개체 간격을 동일하게 맞출 수 있습니다. 가이드 선보다 훨씬 정확합니다.' },
+  { cls:'ok-box', title:'🏁 슬라이드 마스터로 서식 통일', body:'보기 탭 → <strong>슬라이드 마스터</strong>에서 제목·본문 위치와 서식을 한 번만 설정하면 전체 슬라이드에 자동 적용됩니다.' },
+  { cls:'tip-box', title:'✂️ PDF로 최종 납품', body:'파일 → 내보내기 → <strong>PDF/XPS 만들기</strong>. 폰트·레이아웃이 수신자 PC에서 깨지지 않습니다. 공식 자료 제출엔 항상 PDF.' },
+  { cls:'ok-box', title:'🔍 선택 창으로 개체 관리', body:'<strong>Alt+F10</strong>으로 선택 창을 열면 슬라이드의 모든 개체 목록이 표시됩니다. 겹친 개체를 쉽게 선택·숨기기·순서 변경 가능.' },
+  { cls:'tip-box', title:'📦 테마 색상 활용', body:'디자인 탭 → <strong>색 → 색 사용자 지정</strong>으로 회사 CI 색상을 등록해두면 전체 색상 변경이 클릭 한 번으로 가능합니다.' },
+  { cls:'warn-box', title:'⚠️ 개체 그룹화 필수', body:'여러 개체가 있는 인포그래픽은 반드시 <strong>Ctrl+G로 그룹화</strong>하세요. 이동할 때 개체가 흩어지는 것을 방지합니다.' },
+];
+
+function scHTML(list) {
+  return list.map(s => `
+    <div class="sc-item">
+      <div class="sc-keys">${s.keys.map((k,i) => `${i>0?'<span class="plus">+</span>':''}<span class="key">${k}</span>`).join('')}</div>
+      <div class="sc-desc">${s.desc}</div>
+    </div>`).join('');
+}
+document.getElementById('scBasic').innerHTML = scHTML(SC.basic);
+document.getElementById('scObj').innerHTML = scHTML(SC.obj);
+document.getElementById('scPresent').innerHTML = scHTML(SC.present);
+document.getElementById('scSlide').innerHTML = scHTML(SC.slide);
+
+document.getElementById('designGrid').innerHTML = DESIGN.map(d => `
+  <div class="d-item"><div class="d-icon">${d.icon}</div><div class="d-title">${d.title}</div><div class="d-desc">${d.desc}</div></div>`).join('');
+
+document.getElementById('presentContent').innerHTML = PRESENT_TIPS.map(t => `<div class="${t.cls}"><strong>${t.title}</strong><br>${t.body}</div>`).join('');
+document.getElementById('tipsContent').innerHTML = TIPS.map(t => `<div class="${t.cls}"><strong>${t.title}</strong><br>${t.body}</div>`).join('');
+
+function showSection(name, btn) {
+  ['shortcuts','design','present','tips'].forEach(s => {
+    document.getElementById('sec-' + s).style.display = s === name ? '' : 'none';
+  });
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+</script>
+</body>
+</html>

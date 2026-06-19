@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <script>if(localStorage.getItem('theme')==='light')document.documentElement.classList.add('light')</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>발표 슬라이드 타이머 - 직장인닷컴</title>
+  <meta name="description" content="발표 슬라이드 수와 총 발표 시간을 입력하면 슬라이드별 시간을 안내하고 실시간 카운트다운을 제공합니다.">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .wrap { max-width:640px; margin:0 auto; }
+    .setup-card { background:var(--card); border:1px solid rgba(255,255,255,0.06); border-radius:var(--radius); padding:28px; margin-bottom:14px; }
+    .setup-card h3 { font-size:1rem; font-weight:700; color:var(--white); margin-bottom:18px; }
+    .form-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px; }
+    .form-group label { display:block; font-size:0.83rem; color:var(--text-muted); margin-bottom:6px; }
+    .form-group input { width:100%; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:11px 14px; color:var(--white); font-size:0.95rem; outline:none; font-family:inherit; transition:border-color 0.2s; }
+    .form-group input:focus { border-color:var(--primary); }
+    .start-btn { width:100%; background:var(--primary); color:#fff; border:none; border-radius:10px; padding:14px; font-size:1rem; font-weight:700; cursor:pointer; font-family:inherit; transition:opacity 0.2s; }
+    .start-btn:hover { opacity:0.85; }
+
+    .timer-card { background:var(--card); border:1px solid rgba(255,255,255,0.06); border-radius:var(--radius); padding:28px; display:none; text-align:center; }
+    .slide-num { font-size:0.85rem; color:var(--text-muted); margin-bottom:6px; }
+    .time-display { font-size:4.5rem; font-weight:900; color:var(--white); line-height:1; margin-bottom:6px; font-variant-numeric:tabular-nums; }
+    .time-display.warning { color:#FFD700; }
+    .time-display.danger { color:var(--primary); animation:pulse 0.8s ease-in-out infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+    .time-sub { font-size:0.82rem; color:var(--text-muted); margin-bottom:24px; }
+
+    .progress-bar { background:rgba(255,255,255,0.06); border-radius:20px; height:8px; overflow:hidden; margin-bottom:20px; }
+    .progress-fill { height:100%; border-radius:20px; background:linear-gradient(90deg, var(--primary), var(--secondary)); transition:width 0.5s ease; }
+    .progress-fill.warning { background:linear-gradient(90deg, #FFD700, var(--primary)); }
+
+    .ctrl-row { display:flex; gap:10px; justify-content:center; margin-bottom:18px; }
+    .ctrl-btn { padding:12px 22px; border:none; border-radius:10px; font-size:0.9rem; font-weight:700; cursor:pointer; font-family:inherit; transition:all 0.2s; }
+    .ctrl-btn.pause { background:rgba(255,255,255,0.1); color:var(--white); }
+    .ctrl-btn.next { background:var(--accent); color:#1a1a2e; }
+    .ctrl-btn.prev { background:rgba(255,255,255,0.06); color:var(--text-muted); border:1px solid rgba(255,255,255,0.1); }
+    .ctrl-btn.restart { background:rgba(255,107,53,0.15); color:var(--primary); border:1px solid rgba(255,107,53,0.2); }
+    .ctrl-btn:hover { opacity:0.85; }
+
+    .slide-track { display:flex; gap:4px; flex-wrap:wrap; justify-content:center; margin-top:8px; }
+    .slide-dot { width:10px; height:10px; border-radius:50%; background:rgba(255,255,255,0.15); transition:all 0.2s; }
+    .slide-dot.done { background:var(--success); }
+    .slide-dot.current { background:var(--primary); transform:scale(1.4); }
+
+    .total-remaining { font-size:0.82rem; color:var(--text-muted); margin-top:12px; }
+    .total-remaining span { color:var(--white); font-weight:700; }
+
+    .beep-toggle { display:flex; align-items:center; gap:8px; justify-content:center; margin-top:10px; font-size:0.82rem; color:var(--text-muted); cursor:pointer; }
+    .beep-toggle input { cursor:pointer; }
+    @media(max-width:480px) { .form-row { grid-template-columns:1fr; } .time-display { font-size:3.5rem; } }
+  </style>
+</head>
+<body>
+<nav>
+  <a href="../index.html" class="logo">💼 <span>직장인</span>닷컴</a>
+  <ul class="nav-links">
+    <li><a href="../index.html#calculators">계산기</a></li>
+    <li><a href="../index.html#tools" class="active">업무도구</a></li>
+    <li><a href="../index.html#games">루팡게임</a></li>
+    <li><a href="../index.html#tests">테스트</a></li>
+    <li><a href="../index.html#info">정보</a></li>
+  </ul>
+</nav>
+
+<div class="page-header">
+  <div class="breadcrumb"><a href="../index.html">홈</a> › 업무도구</div>
+  <h1>🎤 발표 슬라이드 타이머</h1>
+  <p>슬라이드 수와 총 발표 시간 입력 → 슬라이드별 카운트다운 자동 관리</p>
+</div>
+
+<main>
+  <div class="ad-banner">광고 영역 (Google AdSense)</div>
+
+  <div class="wrap">
+    <div class="setup-card" id="setupCard">
+      <h3>⚙️ 발표 설정</h3>
+      <div class="form-row">
+        <div class="form-group">
+          <label>총 슬라이드 수</label>
+          <input type="number" id="slideCount" placeholder="예: 20" min="1" max="200" value="20">
+        </div>
+        <div class="form-group">
+          <label>총 발표 시간 (분)</label>
+          <input type="number" id="totalMin" placeholder="예: 10" min="1" max="180" value="10">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>경고 알림 (잔여 초)</label>
+          <input type="number" id="warnSec" placeholder="예: 20" min="5" max="120" value="20">
+        </div>
+        <div class="form-group">
+          <label>마지막 슬라이드 여유 (초)</label>
+          <input type="number" id="lastBuffer" placeholder="예: 30" min="0" max="180" value="30">
+        </div>
+      </div>
+      <button class="start-btn" onclick="startTimer()">발표 시작 ▶</button>
+    </div>
+
+    <div class="timer-card" id="timerCard">
+      <div class="slide-num" id="slideNumLabel">슬라이드 1 / 20</div>
+      <div class="time-display" id="timeDisplay">0:00</div>
+      <div class="time-sub" id="timeSub">슬라이드당 30초</div>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:100%"></div></div>
+      <div class="ctrl-row">
+        <button class="ctrl-btn prev" onclick="prevSlide()">◀ 이전</button>
+        <button class="ctrl-btn pause" id="pauseBtn" onclick="togglePause()">⏸ 일시정지</button>
+        <button class="ctrl-btn next" onclick="nextSlide()">다음 ▶</button>
+      </div>
+      <button class="ctrl-btn restart" onclick="restart()" style="width:100%">↺ 처음부터</button>
+      <div class="slide-track" id="slideDots"></div>
+      <div class="total-remaining" id="totalRemaining">전체 잔여 <span>—</span></div>
+      <label class="beep-toggle"><input type="checkbox" id="beepOn" checked> 알림음 켜기</label>
+    </div>
+  </div>
+
+  <div class="ad-banner" style="margin-top:16px">광고 영역 (Google AdSense)</div>
+</main>
+
+<footer><p><strong>직장인닷컴</strong></p></footer>
+
+<script src="../js/theme.js"></script>
+<script>
+let slides = 0, secPerSlide = 0, warnSec = 0;
+let current = 0, remaining = 0, totalRemaining = 0;
+let paused = false, timer = null;
+const ctx = new AudioContext();
+
+function beep(freq, dur) {
+  if (!document.getElementById('beepOn').checked) return;
+  try {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + dur);
+  } catch(e) {}
+}
+
+function fmt(s) {
+  const m = Math.floor(Math.abs(s) / 60);
+  const sec = Math.abs(s) % 60;
+  return (s < 0 ? '-' : '') + m + ':' + String(sec).padStart(2, '0');
+}
+
+function startTimer() {
+  slides = parseInt(document.getElementById('slideCount').value) || 20;
+  const totalMin = parseInt(document.getElementById('totalMin').value) || 10;
+  warnSec = parseInt(document.getElementById('warnSec').value) || 20;
+  const lastBuf = parseInt(document.getElementById('lastBuffer').value) || 30;
+
+  const totalSec = totalMin * 60;
+  const mainSec = totalSec - lastBuf;
+  secPerSlide = Math.floor(mainSec / slides);
+
+  current = 0;
+  document.getElementById('setupCard').style.display = 'none';
+  document.getElementById('timerCard').style.display = 'block';
+  buildDots();
+  goSlide(0);
+}
+
+function buildDots() {
+  document.getElementById('slideDots').innerHTML = Array.from({length: slides}, (_, i) =>
+    `<div class="slide-dot" id="dot${i}"></div>`).join('');
+}
+
+function goSlide(idx) {
+  if (idx < 0 || idx >= slides) return;
+  if (timer) clearInterval(timer);
+  current = idx;
+  remaining = secPerSlide;
+  const totalSec = parseInt(document.getElementById('totalMin').value) * 60;
+  totalRemaining = totalSec - idx * secPerSlide;
+  paused = false;
+  document.getElementById('pauseBtn').textContent = '⏸ 일시정지';
+  updateDisplay();
+  timer = setInterval(tick, 1000);
+}
+
+function tick() {
+  if (paused) return;
+  remaining--;
+  totalRemaining--;
+  if (remaining === warnSec) beep(880, 0.3);
+  if (remaining === 0) beep(440, 0.5);
+  if (remaining < 0 && remaining % 5 === 0) beep(220, 0.3);
+  updateDisplay();
+}
+
+function updateDisplay() {
+  const pct = Math.max(0, remaining / secPerSlide * 100);
+  document.getElementById('slideNumLabel').textContent = `슬라이드 ${current + 1} / ${slides}`;
+  document.getElementById('timeDisplay').textContent = fmt(remaining);
+  document.getElementById('timeSub').textContent = `슬라이드당 ${secPerSlide}초 배정`;
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('totalRemaining').innerHTML = `전체 잔여 <span>${fmt(Math.max(totalRemaining, 0))}</span>`;
+
+  const td = document.getElementById('timeDisplay');
+  td.className = 'time-display';
+  document.getElementById('progressFill').className = 'progress-fill';
+  if (remaining <= 0) {
+    td.classList.add('danger');
+  } else if (remaining <= warnSec) {
+    td.classList.add('warning');
+    document.getElementById('progressFill').classList.add('warning');
+  }
+
+  document.querySelectorAll('.slide-dot').forEach((d, i) => {
+    d.className = 'slide-dot' + (i < current ? ' done' : i === current ? ' current' : '');
+  });
+}
+
+function togglePause() {
+  paused = !paused;
+  document.getElementById('pauseBtn').textContent = paused ? '▶ 재개' : '⏸ 일시정지';
+}
+
+function nextSlide() {
+  if (current < slides - 1) { beep(660, 0.2); goSlide(current + 1); }
+  else { clearInterval(timer); document.getElementById('timeDisplay').textContent = '완료!'; beep(880, 0.6); }
+}
+
+function prevSlide() {
+  if (current > 0) goSlide(current - 1);
+}
+
+function restart() {
+  if (timer) clearInterval(timer);
+  document.getElementById('setupCard').style.display = 'block';
+  document.getElementById('timerCard').style.display = 'none';
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === ' ') { e.preventDefault(); togglePause(); }
+  if (e.key === 'ArrowRight') nextSlide();
+  if (e.key === 'ArrowLeft') prevSlide();
+});
+</script>
+</body>
+</html>

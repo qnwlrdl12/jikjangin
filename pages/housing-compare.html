@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <script>if(localStorage.getItem('theme')==='light')document.documentElement.classList.add('light')</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>전세 vs 월세 비교 계산기 - 직장인닷컴</title>
+  <meta name="description" content="전세와 월세 중 어느 쪽이 더 유리할까? 기회비용 기반으로 실질 비용을 비교합니다.">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .calc-wrap { max-width:700px; margin:0 auto; }
+    .calc-card { background:var(--card); border:1px solid rgba(255,255,255,0.06); border-radius:var(--radius); padding:28px; margin-bottom:14px; }
+    .calc-card h3 { font-size:1rem; font-weight:700; color:var(--white); margin-bottom:18px; display:flex; align-items:center; gap:8px; }
+    .two-col { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    .form-group { margin-bottom:14px; }
+    .form-group label { display:block; font-size:0.83rem; color:var(--text-muted); margin-bottom:6px; }
+    .form-group input { width:100%; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:11px 14px; color:var(--white); font-size:0.95rem; outline:none; font-family:inherit; transition:border-color 0.2s; }
+    .form-group input:focus { border-color:var(--primary); }
+    .calc-btn { width:100%; background:var(--primary); color:#fff; border:none; border-radius:10px; padding:14px; font-size:1rem; font-weight:700; cursor:pointer; transition:opacity 0.2s; margin-top:4px; font-family:inherit; }
+    .calc-btn:hover { opacity:0.85; }
+
+    .result-box { display:none; margin-top:20px; }
+    .verdict { text-align:center; padding:20px; border-radius:12px; margin-bottom:16px; }
+    .verdict.jeonse { background:rgba(78,205,196,0.1); border:1px solid rgba(78,205,196,0.2); }
+    .verdict.wolse { background:rgba(255,107,53,0.1); border:1px solid rgba(255,107,53,0.2); }
+    .verdict .vl { font-size:0.82rem; color:var(--text-muted); margin-bottom:4px; }
+    .verdict .vv { font-size:1.8rem; font-weight:900; }
+    .verdict.jeonse .vv { color:var(--accent); }
+    .verdict.wolse .vv { color:var(--primary); }
+    .verdict .vs { font-size:0.83rem; color:var(--text-muted); margin-top:4px; }
+
+    .compare-row { display:grid; grid-template-columns:1fr auto 1fr; gap:8px; align-items:center; margin-bottom:12px; }
+    .c-card { background:rgba(255,255,255,0.04); border-radius:12px; padding:16px; }
+    .c-card.winner { border:1px solid rgba(78,205,196,0.3); background:rgba(78,205,196,0.06); }
+    .c-title { font-size:0.76rem; color:var(--text-muted); margin-bottom:8px; text-align:center; font-weight:700; }
+    .c-items { display:flex; flex-direction:column; gap:5px; }
+    .c-item { display:flex; justify-content:space-between; font-size:0.82rem; }
+    .c-lbl { color:var(--text-muted); }
+    .c-val { color:var(--white); font-weight:600; }
+    .c-total { display:flex; justify-content:space-between; font-size:0.9rem; font-weight:700; margin-top:8px; padding-top:8px; border-top:1px solid rgba(255,255,255,0.08); }
+    .vs-box { text-align:center; font-size:1.3rem; }
+
+    .info-box { font-size:0.82rem; color:var(--text-muted); line-height:1.7; padding:12px 14px; background:rgba(255,255,255,0.02); border-radius:8px; border-left:3px solid var(--primary); }
+    .info-box strong { color:var(--primary); }
+    @media(max-width:540px) { .two-col { grid-template-columns:1fr; } .compare-row { grid-template-columns:1fr; } .vs-box { display:none; } }
+  </style>
+</head>
+<body>
+<nav>
+  <a href="../index.html" class="logo">💼 <span>직장인</span>닷컴</a>
+  <ul class="nav-links">
+    <li><a href="../index.html#calculators" class="active">계산기</a></li>
+    <li><a href="../index.html#tools">업무도구</a></li>
+    <li><a href="../index.html#games">루팡게임</a></li>
+    <li><a href="../index.html#tests">테스트</a></li>
+    <li><a href="../index.html#info">정보</a></li>
+  </ul>
+</nav>
+
+<div class="page-header">
+  <div class="breadcrumb"><a href="../index.html">홈</a> › 계산기</div>
+  <h1>🏠 전세 vs 월세 비교</h1>
+  <p>기회비용 기반으로 어느 쪽이 실질적으로 유리한지 계산합니다</p>
+</div>
+
+<main>
+  <div class="ad-banner">광고 영역 (Google AdSense)</div>
+
+  <div class="calc-wrap">
+    <div class="two-col">
+      <div class="calc-card">
+        <h3>🔑 전세 조건</h3>
+        <div class="form-group">
+          <label>전세금 (만원)</label>
+          <input type="number" id="jeonseAmt" placeholder="예: 30000" min="1">
+        </div>
+        <div class="form-group">
+          <label>전세 대출 이자율 (%)</label>
+          <input type="number" id="jeonseRate" placeholder="예: 3.5" min="0.1" step="0.1" value="3.5">
+        </div>
+        <div class="form-group">
+          <label>대출 금액 (만원, 없으면 0)</label>
+          <input type="number" id="jeonseLoan" placeholder="예: 10000" min="0" value="0">
+        </div>
+      </div>
+
+      <div class="calc-card">
+        <h3>💸 월세 조건</h3>
+        <div class="form-group">
+          <label>보증금 (만원)</label>
+          <input type="number" id="wolseDeposit" placeholder="예: 2000" min="0" value="0">
+        </div>
+        <div class="form-group">
+          <label>월세 (만원/월)</label>
+          <input type="number" id="wolseAmt" placeholder="예: 80" min="1">
+        </div>
+        <div class="form-group">
+          <label>예금/투자 이자율 (%)</label>
+          <input type="number" id="investRate" placeholder="예: 4.0" min="0.1" step="0.1" value="4.0">
+        </div>
+      </div>
+    </div>
+
+    <button class="calc-btn" onclick="calculate()">비교하기</button>
+
+    <div class="result-box" id="resultBox">
+      <div class="verdict" id="verdict">
+        <div class="vl" id="verdictLabel">—</div>
+        <div class="vv" id="verdictVal">—</div>
+        <div class="vs" id="verdictSub">—</div>
+      </div>
+
+      <div class="compare-row">
+        <div class="c-card" id="jeonseCard">
+          <div class="c-title">🔑 전세 연간 실질 비용</div>
+          <div class="c-items">
+            <div class="c-item"><span class="c-lbl">대출 이자</span><span class="c-val" id="j1">—</span></div>
+            <div class="c-item"><span class="c-lbl">자본 기회비용</span><span class="c-val" id="j2">—</span></div>
+          </div>
+          <div class="c-total"><span style="color:var(--text-muted)">연간 비용</span><span class="c-val" id="jTotal">—</span></div>
+        </div>
+        <div class="vs-box">⚡</div>
+        <div class="c-card" id="wolseCard">
+          <div class="c-title">💸 월세 연간 실질 비용</div>
+          <div class="c-items">
+            <div class="c-item"><span class="c-lbl">연간 월세</span><span class="c-val" id="w1">—</span></div>
+            <div class="c-item"><span class="c-lbl">보증금 기회비용</span><span class="c-val" id="w2">—</span></div>
+          </div>
+          <div class="c-total"><span style="color:var(--text-muted)">연간 비용</span><span class="c-val" id="wTotal">—</span></div>
+        </div>
+      </div>
+
+      <div class="info-box" id="infoBox"></div>
+    </div>
+  </div>
+
+  <div class="ad-banner" style="margin-top:16px">광고 영역 (Google AdSense)</div>
+</main>
+
+<footer>
+  <p><strong>직장인닷컴</strong> — 모든 계산은 참고용입니다.</p>
+</footer>
+
+<script src="../js/theme.js"></script>
+<script>
+function fw(n) { return Math.round(n).toLocaleString('ko-KR') + '원'; }
+function fmw(n) { return Math.round(n / 10000).toLocaleString() + '만원'; }
+
+function calculate() {
+  const jeonseAmt = (parseFloat(document.getElementById('jeonseAmt').value) || 0) * 10000;
+  const jeonseRate = (parseFloat(document.getElementById('jeonseRate').value) || 3.5) / 100;
+  const jeonseLoan = (parseFloat(document.getElementById('jeonseLoan').value) || 0) * 10000;
+  const wolseDeposit = (parseFloat(document.getElementById('wolseDeposit').value) || 0) * 10000;
+  const wolseAmt = (parseFloat(document.getElementById('wolseAmt').value) || 0) * 10000;
+  const investRate = (parseFloat(document.getElementById('investRate').value) || 4.0) / 100;
+
+  if (!jeonseAmt || !wolseAmt) { alert('전세금과 월세를 모두 입력하세요.'); return; }
+
+  // 전세 연간 비용
+  const loanInterest = jeonseLoan * jeonseRate; // 대출 이자
+  const jeonseCapital = (jeonseAmt - jeonseLoan) * investRate; // 자본 기회비용 (빌린 돈 제외한 자기 자금)
+  const jeonseTotalAnn = loanInterest + jeonseCapital;
+
+  // 월세 연간 비용
+  const wolseAnn = wolseAmt * 12; // 연간 월세
+  const wolseCapOpp = wolseDeposit * investRate; // 보증금 기회비용
+  const wolseTotalAnn = wolseAnn + wolseCapOpp;
+
+  const diff = jeonseTotalAnn - wolseTotalAnn;
+
+  const v = document.getElementById('verdict');
+  if (diff > 0) {
+    v.className = 'verdict wolse';
+    document.getElementById('verdictLabel').textContent = '월세가 연간 더 저렴합니다';
+    document.getElementById('verdictVal').textContent = fmw(Math.abs(diff)) + ' 절약';
+    document.getElementById('verdictSub').textContent = '같은 주거를 월세로 빌리는 게 실질 비용이 더 낮습니다';
+    document.getElementById('jeonseCard').classList.remove('winner');
+    document.getElementById('wolseCard').classList.add('winner');
+  } else {
+    v.className = 'verdict jeonse';
+    document.getElementById('verdictLabel').textContent = '전세가 연간 더 저렴합니다';
+    document.getElementById('verdictVal').textContent = fmw(Math.abs(diff)) + ' 절약';
+    document.getElementById('verdictSub').textContent = '전세금을 돌려받는다고 가정 시 실질 비용이 더 낮습니다';
+    document.getElementById('jeonseCard').classList.add('winner');
+    document.getElementById('wolseCard').classList.remove('winner');
+  }
+
+  document.getElementById('j1').textContent = fw(loanInterest);
+  document.getElementById('j2').textContent = fw(jeonseCapital);
+  document.getElementById('jTotal').textContent = fw(jeonseTotalAnn);
+  document.getElementById('w1').textContent = fw(wolseAnn);
+  document.getElementById('w2').textContent = fw(wolseCapOpp);
+  document.getElementById('wTotal').textContent = fw(wolseTotalAnn);
+
+  document.getElementById('infoBox').innerHTML = `
+    <strong>💡 계산 원리:</strong><br>
+    전세 비용 = 대출 이자 + 자기 자금의 기회비용 (그 돈을 예금/투자했을 때 수익)<br>
+    월세 비용 = 연간 월세 + 보증금의 기회비용<br>
+    기준 이자율: 예금/투자 ${(investRate * 100).toFixed(1)}% / 전세 대출 ${(jeonseRate * 100).toFixed(1)}%
+  `;
+
+  document.getElementById('resultBox').style.display = 'block';
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <script>if(localStorage.getItem('theme')==='light')document.documentElement.classList.add('light')</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>지뢰찾기 - 직장인닷컴</title>
+  <meta name="description" content="직장인닷컴 지뢰찾기. 초급 9×9 / 중급 16×16 / 고급 30×16. 좌클릭 열기, 우클릭 깃발.">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .game-wrap { max-width:700px; margin:0 auto; }
+    .top-bar { background:var(--card); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:14px 18px; display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; gap:10px; flex-wrap:wrap; }
+    .diff-row { display:flex; gap:8px; }
+    .diff-btn { padding:8px 14px; border:1px solid rgba(255,255,255,0.12); border-radius:8px; font-size:0.82rem; font-weight:700; cursor:pointer; background:transparent; color:var(--text-muted); font-family:inherit; transition:all 0.2s; }
+    .diff-btn.active { background:var(--primary); border-color:var(--primary); color:#fff; }
+    .stats { display:flex; gap:14px; align-items:center; }
+    .stat { text-align:center; }
+    .stat-n { font-size:1.2rem; font-weight:900; color:var(--white); }
+    .stat-l { font-size:0.68rem; color:var(--text-muted); }
+    .face-btn { font-size:1.6rem; cursor:pointer; background:none; border:none; line-height:1; padding:0; transition:transform 0.1s; }
+    .face-btn:active { transform:scale(0.85); }
+    #board { border-radius:10px; overflow:hidden; display:inline-block; border:1px solid rgba(255,255,255,0.08); user-select:none; }
+    .board-wrap { text-align:center; overflow-x:auto; padding-bottom:8px; }
+    .row { display:flex; }
+    .cell { width:32px; height:32px; display:flex; align-items:center; justify-content:center; font-size:0.85rem; font-weight:700; cursor:pointer; flex-shrink:0; border:1px solid rgba(255,255,255,0.04); box-sizing:border-box; transition:background 0.05s; }
+    .cell.hidden { background:#2a2a3e; }
+    .cell.hidden:hover { background:#33334f; }
+    .cell.flagged { background:#2a2a3e; }
+    .cell.open { background:#1a1a2e; cursor:default; }
+    .cell.mine-boom { background:#FF6B35; }
+    .cell.mine-show { background:#1a1a2e; }
+    .n1{color:#4ECDC4} .n2{color:#2ecc71} .n3{color:#FF6B35} .n4{color:#9b59b6}
+    .n5{color:#e74c3c} .n6{color:#1abc9c} .n7{color:#f39c12} .n8{color:#ecf0f1}
+    .result-msg { text-align:center; margin-top:12px; font-size:1.1rem; font-weight:700; padding:12px; border-radius:10px; display:none; }
+    .result-msg.win { background:rgba(46,204,113,0.15); color:#2ecc71; }
+    .result-msg.lose { background:rgba(255,107,53,0.15); color:#FF6B35; }
+    @media(max-width:480px) { .cell { width:28px; height:28px; font-size:0.75rem; } }
+  </style>
+</head>
+<body>
+<nav>
+  <a href="../index.html" class="logo">💼 <span>직장인</span>닷컴</a>
+  <ul class="nav-links">
+    <li><a href="../index.html#games" class="active">루팡게임</a></li>
+  </ul>
+</nav>
+
+<div class="page-header">
+  <div class="breadcrumb"><a href="../index.html">홈</a> › 루팡게임</div>
+  <h1>💣 지뢰찾기</h1>
+  <p>좌클릭=열기 · 우클릭=깃발 · 첫 클릭은 절대 안전</p>
+</div>
+
+<main>
+  <div class="ad-banner">광고 영역 (Google AdSense)</div>
+
+  <div class="game-wrap">
+    <div class="top-bar">
+      <div class="diff-row">
+        <button class="diff-btn active" onclick="setDiff('easy',this)">초급 9×9</button>
+        <button class="diff-btn" onclick="setDiff('mid',this)">중급 16×16</button>
+        <button class="diff-btn" onclick="setDiff('hard',this)">고급 30×16</button>
+      </div>
+      <div class="stats">
+        <div class="stat"><div class="stat-n" id="mineCount">💣 10</div><div class="stat-l">지뢰</div></div>
+        <button class="face-btn" id="faceBtn" onclick="initGame()" title="새 게임">🙂</button>
+        <div class="stat"><div class="stat-n" id="timerEl">⏱ 0</div><div class="stat-l">초</div></div>
+      </div>
+    </div>
+    <div class="board-wrap"><div id="board"></div></div>
+    <div class="result-msg" id="resultMsg"></div>
+  </div>
+
+  <div class="ad-banner" style="margin-top:16px">광고 영역 (Google AdSense)</div>
+</main>
+
+<footer><p><strong>직장인닷컴</strong></p></footer>
+
+<script src="../js/theme.js"></script>
+<script>
+const LEVELS = { easy:{r:9,c:9,m:10}, mid:{r:16,c:16,m:40}, hard:{r:16,c:30,m:99} };
+let diff = 'easy', cfg = LEVELS.easy;
+let grid, revealed, flagged, minePos, firstClick, started, over, timerInv, elapsed, flagCount;
+
+function setDiff(d, btn) {
+  diff = d; cfg = LEVELS[d];
+  document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  initGame();
+}
+
+function initGame() {
+  clearInterval(timerInv);
+  grid = Array.from({length:cfg.r}, () => new Array(cfg.c).fill(0));
+  revealed = Array.from({length:cfg.r}, () => new Array(cfg.c).fill(false));
+  flagged = Array.from({length:cfg.r}, () => new Array(cfg.c).fill(false));
+  minePos = new Set();
+  firstClick = true; started = false; over = false;
+  elapsed = 0; flagCount = 0;
+  document.getElementById('timerEl').textContent = '⏱ 0';
+  document.getElementById('mineCount').textContent = '💣 ' + cfg.m;
+  document.getElementById('faceBtn').textContent = '🙂';
+  document.getElementById('resultMsg').style.display = 'none';
+  render();
+}
+
+function placeMines(sr, sc) {
+  let placed = 0;
+  while (placed < cfg.m) {
+    const r = Math.floor(Math.random() * cfg.r);
+    const c = Math.floor(Math.random() * cfg.c);
+    const key = r + ',' + c;
+    if (!minePos.has(key) && !(Math.abs(r-sr)<=1 && Math.abs(c-sc)<=1)) {
+      minePos.add(key); grid[r][c] = -1; placed++;
+    }
+  }
+  for (let r = 0; r < cfg.r; r++)
+    for (let c = 0; c < cfg.c; c++)
+      if (grid[r][c] !== -1) {
+        let cnt = 0;
+        for (let dr = -1; dr <= 1; dr++)
+          for (let dc = -1; dc <= 1; dc++)
+            if (r+dr>=0 && r+dr<cfg.r && c+dc>=0 && c+dc<cfg.c && grid[r+dr][c+dc]===-1) cnt++;
+        grid[r][c] = cnt;
+      }
+}
+
+function startTimer() {
+  timerInv = setInterval(() => {
+    elapsed++;
+    document.getElementById('timerEl').textContent = '⏱ ' + elapsed;
+  }, 1000);
+}
+
+function reveal(r, c) {
+  if (r<0||r>=cfg.r||c<0||c>=cfg.c||revealed[r][c]||flagged[r][c]) return;
+  revealed[r][c] = true;
+  if (grid[r][c] === 0)
+    for (let dr=-1;dr<=1;dr++) for (let dc=-1;dc<=1;dc++) reveal(r+dr,c+dc);
+}
+
+function click(r, c) {
+  if (over || flagged[r][c] || revealed[r][c]) return;
+  if (firstClick) {
+    firstClick = false; placeMines(r, c); startTimer(); started = true;
+  }
+  if (grid[r][c] === -1) {
+    boom(r, c); return;
+  }
+  reveal(r, c);
+  if (checkWin()) { win(); return; }
+  render();
+}
+
+function flag(r, c) {
+  if (over || revealed[r][c]) return;
+  flagged[r][c] = !flagged[r][c];
+  flagCount += flagged[r][c] ? 1 : -1;
+  document.getElementById('mineCount').textContent = '💣 ' + (cfg.m - flagCount);
+  render();
+}
+
+function boom(br, bc) {
+  over = true; clearInterval(timerInv);
+  document.getElementById('faceBtn').textContent = '😵';
+  minePos.forEach(k => { const [r,c]=k.split(',').map(Number); revealed[r][c]=true; });
+  revealed[br][bc] = 'boom';
+  const msg = document.getElementById('resultMsg');
+  msg.textContent = '💥 폭발! 게임 오버 — 클릭해서 다시 시작'; msg.className='result-msg lose'; msg.style.display='block';
+  msg.onclick = initGame;
+  render();
+}
+
+function win() {
+  over = true; clearInterval(timerInv);
+  document.getElementById('faceBtn').textContent = '😎';
+  const msg = document.getElementById('resultMsg');
+  msg.textContent = `🎉 클리어! ${elapsed}초 완료 — 클릭해서 다시 시작`; msg.className='result-msg win'; msg.style.display='block';
+  msg.onclick = initGame;
+  render();
+}
+
+function checkWin() {
+  for (let r=0;r<cfg.r;r++) for (let c=0;c<cfg.c;c++) if (grid[r][c]!=-1 && !revealed[r][c]) return false;
+  return true;
+}
+
+const NUM_CLASS = ['','n1','n2','n3','n4','n5','n6','n7','n8'];
+
+function render() {
+  const board = document.getElementById('board');
+  board.innerHTML = '';
+  for (let r = 0; r < cfg.r; r++) {
+    const row = document.createElement('div');
+    row.className = 'row';
+    for (let c = 0; c < cfg.c; c++) {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      if (revealed[r][c] === 'boom') {
+        cell.classList.add('mine-boom'); cell.textContent = '💣';
+      } else if (revealed[r][c]) {
+        cell.classList.add('open');
+        if (grid[r][c] === -1) { cell.classList.add('mine-show'); cell.textContent = '💣'; }
+        else if (grid[r][c] > 0) { cell.textContent = grid[r][c]; cell.classList.add(NUM_CLASS[grid[r][c]]); }
+      } else if (flagged[r][c]) {
+        cell.classList.add('flagged'); cell.textContent = '🚩';
+      } else {
+        cell.classList.add('hidden');
+      }
+      const R=r, C=c;
+      cell.addEventListener('click', () => click(R, C));
+      cell.addEventListener('contextmenu', e => { e.preventDefault(); flag(R, C); });
+      row.appendChild(cell);
+    }
+    board.appendChild(row);
+  }
+}
+
+// Long press = flag on mobile
+let longPressTimer;
+document.getElementById('board').addEventListener('touchstart', e => {
+  const cell = e.target.closest('.cell');
+  if (!cell) return;
+  longPressTimer = setTimeout(() => {
+    e.preventDefault();
+    // find r,c from cell position
+    const row = cell.parentElement;
+    const r = Array.from(row.parentElement.children).indexOf(row);
+    const c = Array.from(row.children).indexOf(cell);
+    flag(r, c);
+  }, 500);
+}, { passive:true });
+document.getElementById('board').addEventListener('touchend', () => clearTimeout(longPressTimer));
+
+initGame();
+</script>
+</body>
+</html>

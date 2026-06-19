@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <script>if(localStorage.getItem('theme')==='light')document.documentElement.classList.add('light')</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>연말정산 공제 체크리스트 2026 - 직장인닷컴</title>
+  <meta name="description" content="연말정산 전 빠뜨린 공제 항목 없는지 체크하세요. 항목별 공제 한도와 준비 서류 안내.">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .wrap { max-width:720px; margin:0 auto; }
+    .cat-card { background:var(--card); border:1px solid rgba(255,255,255,0.06); border-radius:var(--radius); padding:22px 24px; margin-bottom:14px; }
+    .cat-title { font-size:1rem; font-weight:800; color:var(--white); margin-bottom:14px; display:flex; align-items:center; gap:8px; }
+    .item-list { display:flex; flex-direction:column; gap:0; }
+    .deduct-item { display:grid; grid-template-columns:auto 1fr auto; gap:12px; align-items:start; padding:12px 4px; border-bottom:1px solid rgba(255,255,255,0.05); cursor:pointer; }
+    .deduct-item:last-child { border:none; }
+    .deduct-item:hover { background:rgba(255,255,255,0.02); border-radius:8px; }
+    .d-check { width:20px; height:20px; border:2px solid rgba(255,255,255,0.2); border-radius:5px; flex-shrink:0; margin-top:1px; display:flex; align-items:center; justify-content:center; transition:all 0.15s; }
+    .deduct-item.checked .d-check { background:var(--success); border-color:var(--success); }
+    .deduct-item.checked .d-check::after { content:'✓'; color:#fff; font-size:0.75rem; font-weight:700; }
+    .deduct-item.checked .d-name { color:var(--success); text-decoration:line-through; opacity:0.7; }
+    .d-info { }
+    .d-name { font-size:0.88rem; font-weight:700; color:var(--white); margin-bottom:3px; line-height:1.3; }
+    .d-desc { font-size:0.77rem; color:var(--text-muted); line-height:1.5; }
+    .d-limit { font-size:0.78rem; font-weight:700; color:var(--primary); white-space:nowrap; text-align:right; margin-top:2px; }
+
+    .summary-bar { position:sticky; bottom:16px; background:var(--card); border:1px solid rgba(255,255,255,0.12); border-radius:14px; padding:14px 20px; display:flex; align-items:center; justify-content:space-between; margin-top:16px; box-shadow:0 8px 30px rgba(0,0,0,0.4); backdrop-filter:blur(10px); }
+    .sb-left { font-size:0.84rem; color:var(--text-muted); }
+    .sb-left span { font-size:1.1rem; font-weight:800; color:var(--white); }
+    .sb-right { font-size:0.84rem; color:var(--text-muted); text-align:right; }
+    .sb-right span { color:var(--success); font-weight:700; }
+
+    .reset-btn { background:transparent; border:1px solid rgba(255,255,255,0.15); border-radius:8px; color:var(--text-muted); padding:8px 14px; font-size:0.82rem; cursor:pointer; font-family:inherit; transition:all 0.2s; }
+    .reset-btn:hover { border-color:var(--primary); color:var(--primary); }
+  </style>
+</head>
+<body>
+<nav>
+  <a href="../index.html" class="logo">💼 <span>직장인</span>닷컴</a>
+  <ul class="nav-links">
+    <li><a href="../index.html#calculators" class="active">계산기</a></li>
+    <li><a href="../index.html#tools">업무도구</a></li>
+    <li><a href="../index.html#games">루팡게임</a></li>
+    <li><a href="../index.html#tests">테스트</a></li>
+    <li><a href="../index.html#info">정보</a></li>
+  </ul>
+</nav>
+
+<div class="page-header">
+  <div class="breadcrumb"><a href="../index.html">홈</a> › 계산기</div>
+  <h1>📋 연말정산 공제 체크리스트</h1>
+  <p>2026년 1월 신고 기준 · 빠뜨린 공제 없는지 하나씩 체크해보세요</p>
+</div>
+
+<main>
+  <div class="ad-banner">광고 영역 (Google AdSense)</div>
+
+  <div class="wrap">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <p style="font-size:0.84rem;color:var(--text-muted)">항목을 클릭하면 체크됩니다. 체크한 항목 수와 최대 공제 합산을 하단에서 확인하세요.</p>
+      <button class="reset-btn" onclick="resetAll()">초기화</button>
+    </div>
+
+    <div id="itemsContainer"></div>
+
+    <div style="font-size:0.77rem;color:var(--text-muted);line-height:1.7;padding:14px;background:rgba(255,255,255,0.02);border-radius:10px;margin-bottom:80px">
+      ※ 공제 한도는 항목별 최대 한도이며 실제 공제는 개인 상황에 따라 달라집니다.<br>
+      ※ 공제받으려면 국세청 홈택스 또는 회사 연말정산 시스템에 서류를 제출해야 합니다.<br>
+      ※ 신용카드·의료비 등은 총 급여에 따라 공제율이 달라집니다. 홈택스 간소화 서비스(1월 중순)를 꼭 활용하세요.
+    </div>
+
+    <div class="summary-bar">
+      <div class="sb-left">체크 항목 <span id="checkedCount">0</span>개 / 전체 <span id="totalCount">0</span>개</div>
+      <div class="sb-right">체크한 공제 합산<br><span id="totalDeduct">0원</span></div>
+    </div>
+  </div>
+
+  <div class="ad-banner" style="margin-top:24px">광고 영역 (Google AdSense)</div>
+</main>
+
+<footer>
+  <p><strong>직장인닷컴</strong> — 모든 정보는 참고용입니다.</p>
+</footer>
+
+<script src="../js/theme.js"></script>
+<script>
+const CATEGORIES = [
+  {
+    title:'👨‍👩‍👧 인적공제', items:[
+      { name:'본인 기본공제', desc:'근로자 본인', limit:150, doc:'불필요' },
+      { name:'배우자 기본공제', desc:'연 소득 100만원 이하 배우자', limit:150, doc:'가족관계증명서' },
+      { name:'부양가족 기본공제', desc:'20세 이하 자녀·60세 이상 부모 (1인당)', limit:150, doc:'가족관계증명서' },
+      { name:'장애인 추가공제', desc:'부양가족 중 장애인 1인당', limit:200, doc:'장애인증명서' },
+      { name:'경로우대 추가공제', desc:'70세 이상 부양가족 1인당', limit:100, doc:'가족관계증명서' },
+      { name:'한부모 추가공제', desc:'배우자 없고 자녀 있는 경우', limit:100, doc:'불필요' },
+    ]
+  },
+  {
+    title:'💳 신용카드 등 사용액 공제', items:[
+      { name:'신용카드 공제', desc:'총 급여 25% 초과분의 15% 공제', limit:300, doc:'홈택스 간소화' },
+      { name:'체크카드·현금영수증', desc:'총 급여 25% 초과분의 30% 공제', limit:300, doc:'홈택스 간소화' },
+      { name:'전통시장 사용액', desc:'40% 공제', limit:300, doc:'홈택스 간소화' },
+      { name:'대중교통 사용액', desc:'40% 공제 (2026년 한시 80%)', limit:300, doc:'홈택스 간소화' },
+      { name:'도서·공연·영화', desc:'30% 공제 (총 급여 7천만원 이하)', limit:300, doc:'홈택스 간소화' },
+    ]
+  },
+  {
+    title:'🏠 주택 관련 공제', items:[
+      { name:'주택담보대출 이자 공제', desc:'장기 주택담보대출 이자 상환액', limit:2000, doc:'금융기관 이자납입증명서' },
+      { name:'주택청약 저축 공제', desc:'연 납입액 40% 공제 (총 급여 7천만원 이하)', limit:300, doc:'납입증명서' },
+      { name:'월세 세액공제', desc:'월세 납부액의 15~17% (총 급여 7천만원 이하)', limit:1000, doc:'임대차계약서·계좌이체내역' },
+      { name:'전세자금 대출이자 공제', desc:'원리금 상환액의 40%', limit:400, doc:'상환증명서' },
+    ]
+  },
+  {
+    title:'🏥 의료비·교육비', items:[
+      { name:'의료비 세액공제', desc:'총 급여 3% 초과분 × 15% (난임 30%)', limit:700, doc:'홈택스 간소화·의료비 영수증' },
+      { name:'교육비 세액공제', desc:'취학전 아동·초중고 × 15% (대학생 포함)', limit:900, doc:'교육비납입증명서' },
+      { name:'본인 교육비', desc:'대학원 포함 전액 × 15%', limit:0, doc:'교육비납입증명서' },
+      { name:'장애인 특수교육비', desc:'특수교육기관 납입금 전액', limit:0, doc:'납입증명서' },
+    ]
+  },
+  {
+    title:'💰 보험료·연금 공제', items:[
+      { name:'보험료 세액공제', desc:'보장성 보험 납입액 × 12%', limit:100, doc:'보험납입증명서' },
+      { name:'연금저축 세액공제', desc:'납입액의 12~15% 공제', limit:900, doc:'납입확인서' },
+      { name:'IRP (퇴직연금) 세액공제', desc:'연금저축 포함 합산 900만원 한도', limit:900, doc:'납입확인서' },
+      { name:'국민연금 보험료 공제', desc:'근로자 납부분 전액 소득공제', limit:0, doc:'자동 반영' },
+    ]
+  },
+  {
+    title:'🎁 기부금 공제', items:[
+      { name:'법정기부금', desc:'국가·지자체·사회복지시설 기부 (한도: 소득금액)', limit:0, doc:'기부금영수증' },
+      { name:'지정기부금', desc:'종교·학교법인 등 (한도: 소득금액 30%)', limit:0, doc:'기부금영수증' },
+      { name:'정치자금 기부금', desc:'10만원 이하 100%, 초과분 15~25%', limit:100, doc:'기부금영수증' },
+    ]
+  },
+  {
+    title:'📦 기타 공제', items:[
+      { name:'중소기업 취업청년 소득세 감면', desc:'만 15~34세 중소기업 취업 5년간 90%', limit:2000, doc:'취업확인서' },
+      { name:'자녀 세액공제', desc:'8세 이상 자녀 1명 15만원, 2명 35만원, 3명~', limit:0, doc:'자동 반영' },
+      { name:'출산·입양 세액공제', desc:'당해 출산·입양 자녀 1명 30만원, 2명 50만원', limit:70, doc:'출생·입양신고서' },
+    ]
+  },
+];
+
+let checks = {};
+
+function renderItems() {
+  const container = document.getElementById('itemsContainer');
+  let totalCount = 0;
+  container.innerHTML = CATEGORIES.map(cat => {
+    const items = cat.items.map((item, idx) => {
+      const key = cat.title + idx;
+      totalCount++;
+      return `
+        <div class="deduct-item ${checks[key] ? 'checked' : ''}" onclick="toggle('${key}', ${item.limit})">
+          <div class="d-check"></div>
+          <div class="d-info">
+            <div class="d-name">${item.name}</div>
+            <div class="d-desc">${item.desc} · 서류: ${item.doc}</div>
+          </div>
+          <div class="d-limit">${item.limit > 0 ? '한도 ' + item.limit + '만원' : '한도무제한'}</div>
+        </div>`;
+    }).join('');
+    return `<div class="cat-card"><div class="cat-title">${cat.title}</div><div class="item-list">${items}</div></div>`;
+  }).join('');
+  document.getElementById('totalCount').textContent = totalCount;
+}
+
+function toggle(key, limit) {
+  checks[key] = checks[key] ? null : limit;
+  renderItems();
+  updateSummary();
+}
+
+function updateSummary() {
+  const checkedKeys = Object.keys(checks).filter(k => checks[k] !== null && checks[k] !== undefined);
+  const checkedCount = checkedKeys.length;
+  const totalDeduct = checkedKeys.reduce((s, k) => s + (checks[k] || 0), 0);
+  document.getElementById('checkedCount').textContent = checkedCount;
+  document.getElementById('totalDeduct').textContent = (totalDeduct > 0 ? '최대 ' + totalDeduct.toLocaleString() + '만원' : '0원');
+}
+
+function resetAll() {
+  checks = {};
+  renderItems();
+  updateSummary();
+}
+
+renderItems();
+</script>
+</body>
+</html>

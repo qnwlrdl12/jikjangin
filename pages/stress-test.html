@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <script>if(localStorage.getItem('theme')==='light')document.documentElement.classList.add('light')</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>직장 스트레스 진단 - 직장인닷컴</title>
+  <meta name="description" content="12문항으로 알아보는 나의 직장 스트레스 수준. 업무량·관계·자율성·보상 4가지 영역별 분석과 대처 방안 제공.">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .wrap { max-width:640px; margin:0 auto; }
+    .q-card { background:var(--card); border:1px solid rgba(255,255,255,0.06); border-radius:var(--radius); padding:26px; margin-bottom:14px; }
+    .progress-wrap { margin-bottom:20px; }
+    .progress-top { display:flex; justify-content:space-between; font-size:0.82rem; color:var(--text-muted); margin-bottom:6px; }
+    .progress-bar { background:rgba(255,255,255,0.06); border-radius:20px; height:6px; overflow:hidden; }
+    .progress-fill { height:100%; border-radius:20px; background:linear-gradient(90deg, var(--primary), var(--secondary)); transition:width 0.4s ease; }
+    .q-cat { font-size:0.75rem; font-weight:700; color:var(--accent); letter-spacing:0.08em; margin-bottom:8px; text-transform:uppercase; }
+    .q-text { font-size:1rem; font-weight:700; color:var(--white); line-height:1.55; margin-bottom:18px; }
+    .options { display:flex; flex-direction:column; gap:8px; }
+    .opt-btn { display:flex; align-items:center; gap:10px; padding:13px 16px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:10px; cursor:pointer; transition:all 0.2s; text-align:left; font-size:0.9rem; color:var(--text); font-family:inherit; }
+    .opt-btn:hover { border-color:var(--primary); background:rgba(255,107,53,0.08); color:var(--white); }
+    .opt-btn.selected { border-color:var(--primary); background:rgba(255,107,53,0.12); color:var(--primary); font-weight:700; }
+    .opt-num { width:26px; height:26px; border-radius:50%; border:2px solid rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; font-size:0.78rem; font-weight:700; flex-shrink:0; color:var(--text-muted); }
+    .opt-btn.selected .opt-num { background:var(--primary); border-color:var(--primary); color:#fff; }
+    .nav-row { display:flex; gap:10px; margin-top:16px; }
+    .nav-btn { flex:1; padding:13px; border:none; border-radius:10px; font-size:0.95rem; font-weight:700; cursor:pointer; font-family:inherit; transition:all 0.2s; }
+    .nav-btn.prev { background:rgba(255,255,255,0.06); color:var(--text-muted); border:1px solid rgba(255,255,255,0.1); }
+    .nav-btn.next { background:var(--primary); color:#fff; }
+    .nav-btn:hover { opacity:0.85; }
+
+    .result-box { display:none; }
+    .score-hero { text-align:center; padding:28px; border-radius:14px; margin-bottom:16px; }
+    .score-emoji { font-size:3.5rem; margin-bottom:8px; }
+    .score-level { font-size:1.5rem; font-weight:900; color:var(--white); margin-bottom:4px; }
+    .score-num { font-size:0.85rem; color:var(--text-muted); }
+    .score-desc { font-size:0.9rem; color:var(--text); line-height:1.65; margin-top:10px; }
+
+    .radar-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px; }
+    .radar-item { background:rgba(255,255,255,0.04); border-radius:10px; padding:14px; }
+    .r-name { font-size:0.78rem; color:var(--text-muted); margin-bottom:6px; font-weight:700; }
+    .r-bar { background:rgba(255,255,255,0.06); border-radius:20px; height:8px; overflow:hidden; margin-bottom:4px; }
+    .r-fill { height:100%; border-radius:20px; transition:width 0.6s ease; }
+    .r-val { font-size:0.75rem; color:var(--text-muted); text-align:right; }
+
+    .advice-card { background:var(--card); border:1px solid rgba(255,255,255,0.06); border-radius:var(--radius); padding:22px 24px; margin-bottom:14px; }
+    .advice-card h3 { font-size:0.95rem; font-weight:700; color:var(--white); margin-bottom:12px; }
+    .advice-item { display:flex; gap:10px; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.05); font-size:0.84rem; color:var(--text-muted); line-height:1.6; }
+    .advice-item:last-child { border:none; }
+    .a-icon { font-size:1.1rem; flex-shrink:0; }
+
+    .retry-btn { width:100%; background:rgba(255,255,255,0.06); color:var(--white); border:1px solid rgba(255,255,255,0.15); border-radius:10px; padding:14px; font-size:0.95rem; font-weight:700; cursor:pointer; font-family:inherit; transition:all 0.2s; }
+    .retry-btn:hover { background:rgba(255,255,255,0.1); }
+    @media(max-width:480px) { .radar-grid { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+<nav>
+  <a href="../index.html" class="logo">💼 <span>직장인</span>닷컴</a>
+  <ul class="nav-links">
+    <li><a href="../index.html#calculators">계산기</a></li>
+    <li><a href="../index.html#tools">업무도구</a></li>
+    <li><a href="../index.html#games">루팡게임</a></li>
+    <li><a href="../index.html#tests" class="active">테스트</a></li>
+    <li><a href="../index.html#info">정보</a></li>
+  </ul>
+</nav>
+
+<div class="page-header">
+  <div class="breadcrumb"><a href="../index.html">홈</a> › 직장인 테스트</div>
+  <h1>😤 직장 스트레스 진단</h1>
+  <p>12문항 · 업무량·관계·자율성·보상 4개 영역별 분석 + 대처 방안</p>
+</div>
+
+<main>
+  <div class="ad-banner">광고 영역 (Google AdSense)</div>
+
+  <div class="wrap">
+    <div class="q-card" id="qCard">
+      <div class="progress-wrap">
+        <div class="progress-top"><span id="qNum">1 / 12</span><span id="qCatLabel">업무량</span></div>
+        <div class="progress-bar"><div class="progress-fill" id="progFill" style="width:8%"></div></div>
+      </div>
+      <div class="q-cat" id="catLabel">WORKLOAD</div>
+      <div class="q-text" id="qText">—</div>
+      <div class="options" id="options"></div>
+      <div class="nav-row">
+        <button class="nav-btn prev" id="prevBtn" onclick="prev()" style="display:none">← 이전</button>
+        <button class="nav-btn next" id="nextBtn" onclick="next()">다음 →</button>
+      </div>
+    </div>
+
+    <div class="result-box" id="resultBox">
+      <div class="score-hero" id="scoreHero">
+        <div class="score-emoji" id="heroEmoji">—</div>
+        <div class="score-level" id="scoreLevel">—</div>
+        <div class="score-num" id="scoreNum">—</div>
+        <div class="score-desc" id="scoreDesc">—</div>
+      </div>
+      <div class="radar-grid" id="radarGrid"></div>
+      <div class="advice-card" id="adviceCard">
+        <h3>💊 나에게 맞는 대처 방안</h3>
+        <div id="adviceContent"></div>
+      </div>
+      <button class="retry-btn" onclick="restart()">↺ 다시 진단하기</button>
+    </div>
+  </div>
+
+  <div class="ad-banner" style="margin-top:16px">광고 영역 (Google AdSense)</div>
+</main>
+
+<footer>
+  <p><strong>직장인닷컴</strong> — 이 진단은 전문 의학적 진단이 아닙니다.</p>
+</footer>
+
+<script src="../js/theme.js"></script>
+<script>
+const CATS = ['업무량', '직장 관계', '자율성', '보상'];
+const CAT_COLORS = ['#FF6B35', '#4ECDC4', '#a855f7', '#FFD700'];
+const CAT_EN = ['WORKLOAD', 'RELATIONSHIP', 'AUTONOMY', 'REWARD'];
+
+const QS = [
+  { cat:0, q:'업무량이 너무 많아서 제대로 처리하기 어렵다고 느낀다.' },
+  { cat:0, q:'퇴근 후나 휴일에도 업무 연락이 와서 쉬기 어렵다.' },
+  { cat:0, q:'업무 마감 시간이 촉박해서 자주 압박감을 느낀다.' },
+  { cat:1, q:'상사나 동료로 인해 스트레스를 받는 일이 빈번하다.' },
+  { cat:1, q:'직장 내에서 나의 의견이 무시되거나 과소평가된다고 느낀다.' },
+  { cat:1, q:'직장 내 갈등이나 험담·따돌림이 있다고 느낀다.' },
+  { cat:2, q:'내가 하는 업무 방식에 대해 스스로 결정할 권한이 없다.' },
+  { cat:2, q:'불합리하다고 생각되는 지시를 따라야 하는 상황이 자주 생긴다.' },
+  { cat:2, q:'업무에서 내 전문성이나 역량을 발휘할 기회가 부족하다.' },
+  { cat:3, q:'내 노력과 성과에 비해 급여나 인정이 부족하다고 느낀다.' },
+  { cat:3, q:'회사의 비전이나 성장 가능성이 불투명하게 느껴진다.' },
+  { cat:3, q:'현재 직장을 계속 다닐 수 있을지 불안하다.' },
+];
+
+const OPTS = ['전혀 그렇지 않다', '그렇지 않다', '보통이다', '그렇다', '매우 그렇다'];
+
+let current = 0, answers = new Array(12).fill(-1);
+
+function renderQ() {
+  const q = QS[current];
+  document.getElementById('qNum').textContent = `${current + 1} / 12`;
+  document.getElementById('qCatLabel').textContent = CATS[q.cat];
+  document.getElementById('catLabel').textContent = CAT_EN[q.cat];
+  document.getElementById('qText').textContent = q.q;
+  document.getElementById('progFill').style.width = ((current + 1) / 12 * 100) + '%';
+
+  document.getElementById('options').innerHTML = OPTS.map((o, i) => `
+    <button class="opt-btn ${answers[current] === i ? 'selected' : ''}" onclick="select(${i})">
+      <div class="opt-num">${i + 1}</div>${o}
+    </button>`).join('');
+
+  document.getElementById('prevBtn').style.display = current === 0 ? 'none' : '';
+  document.getElementById('nextBtn').textContent = current === 11 ? '결과 보기 ✓' : '다음 →';
+}
+
+function select(i) {
+  answers[current] = i;
+  renderQ();
+}
+
+function next() {
+  if (answers[current] === -1) { alert('답변을 선택해주세요.'); return; }
+  if (current < 11) { current++; renderQ(); }
+  else showResult();
+}
+
+function prev() {
+  if (current > 0) { current--; renderQ(); }
+}
+
+function showResult() {
+  document.getElementById('qCard').style.display = 'none';
+  const result = document.getElementById('resultBox');
+  result.style.display = 'block';
+
+  const catScores = [0, 0, 0, 0];
+  QS.forEach((q, i) => { catScores[q.cat] += answers[i]; });
+  const total = answers.reduce((s, a) => s + a, 0);
+  const maxTotal = 48;
+  const pct = Math.round(total / maxTotal * 100);
+
+  let emoji, level, color, desc;
+  if (pct <= 20) { emoji='😊'; level='스트레스 낮음'; color='rgba(46,204,113,0.1)'; desc='전반적으로 건강한 직장 환경입니다. 현재 상태를 유지하면서 가끔 번아웃 예방 활동을 해주세요.'; }
+  else if (pct <= 40) { emoji='😐'; level='스트레스 보통'; color='rgba(78,205,196,0.1)'; desc='일부 영역에서 스트레스가 쌓이고 있습니다. 하이라이트된 영역을 중점적으로 관리하세요.'; }
+  else if (pct <= 60) { emoji='😓'; level='스트레스 높음'; color='rgba(255,215,0,0.1)'; desc='상당한 스트레스를 받고 있습니다. 적극적인 스트레스 해소와 환경 개선이 필요합니다.'; }
+  else if (pct <= 80) { emoji='😫'; level='위험 단계'; color='rgba(255,107,53,0.1)'; desc='만성 스트레스 단계입니다. 상담 또는 적극적인 직무 환경 변화를 고려해야 합니다.'; }
+  else { emoji='🚨'; level='번아웃 위험'; color='rgba(255,0,0,0.1)'; desc='심각한 스트레스 상태입니다. 전문 상담사 연결 또는 의료 도움이 필요할 수 있습니다. 혼자 버티지 마세요.'; }
+
+  const hero = document.getElementById('scoreHero');
+  hero.style.background = color;
+  hero.style.border = `1px solid ${color.replace('0.1', '0.3')}`;
+  document.getElementById('heroEmoji').textContent = emoji;
+  document.getElementById('scoreLevel').textContent = level;
+  document.getElementById('scoreNum').textContent = `총점 ${total}점 / 48점 (${pct}%)`;
+  document.getElementById('scoreDesc').textContent = desc;
+
+  document.getElementById('radarGrid').innerHTML = catScores.map((s, i) => {
+    const max = 12, pct2 = Math.round(s / max * 100);
+    return `
+      <div class="radar-item">
+        <div class="r-name">${CATS[i]}</div>
+        <div class="r-bar"><div class="r-fill" style="width:${pct2}%;background:${CAT_COLORS[i]}"></div></div>
+        <div class="r-val">${pct2}%</div>
+      </div>`;
+  }).join('');
+
+  const maxCat = catScores.indexOf(Math.max(...catScores));
+  const ADVICE = [
+    [
+      { icon:'⏰', txt:'업무 우선순위를 A·B·C로 분류하고, C 업무는 위임하거나 과감하게 제거하세요.' },
+      { icon:'📵', txt:'퇴근 후 업무 알림을 끄는 것을 규칙으로 만들고 상사에게도 선언하세요.' },
+      { icon:'🍅', txt:'뽀모도로 기법(25분 집중 + 5분 휴식)으로 업무 집중도를 높이세요.' },
+    ],
+    [
+      { icon:'💬', txt:'갈등이 있다면 1:1 면담을 요청해 직접 소통하세요. 제3자를 통한 전달은 오해를 키웁니다.' },
+      { icon:'📝', txt:'불쾌한 상황은 날짜·내용을 메모해두세요. 객관적 기록이 감정적 소진을 줄여줍니다.' },
+      { icon:'🧑‍🤝‍🧑', txt:'같은 팀 내 신뢰할 수 있는 동료 1명을 만드세요. 직장 내 지지자는 번아웃을 예방합니다.' },
+    ],
+    [
+      { icon:'✋', txt:'현재 담당 업무 중 조금이라도 본인이 방식을 결정할 수 있는 부분을 찾아 주도권을 가져오세요.' },
+      { icon:'🗣️', txt:'상사에게 업무 방식에 대한 피드백을 제안해보세요. 불합리함을 조용히 참는 것보다 낫습니다.' },
+      { icon:'📚', txt:'사이드 프로젝트나 자격증 공부로 외부에서 성취감을 보충하세요.' },
+    ],
+    [
+      { icon:'💰', txt:'다음 성과 리뷰 전 본인의 기여 성과를 수치로 정리하고 연봉 협상 근거로 활용하세요.' },
+      { icon:'🔍', txt:'동종 업계 연봉 수준을 조사하고 이직 시장에 내 가치를 가늠해보세요.' },
+      { icon:'🌱', txt:'급여 외 성장 요소(배움·네트워크·경력 스토리)도 보상의 일부입니다. 이 부분도 평가해보세요.' },
+    ],
+  ];
+
+  document.getElementById('adviceContent').innerHTML = ADVICE[maxCat].map(a => `
+    <div class="advice-item"><div class="a-icon">${a.icon}</div><div>${a.txt}</div></div>`).join('');
+}
+
+function restart() {
+  current = 0;
+  answers = new Array(12).fill(-1);
+  document.getElementById('qCard').style.display = 'block';
+  document.getElementById('resultBox').style.display = 'none';
+  renderQ();
+}
+
+renderQ();
+</script>
+</body>
+</html>

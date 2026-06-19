@@ -395,7 +395,7 @@ html.light .footer-copy { color: var(--muted); }
     </h1>
     <p class="hero-sub">연봉 계산, 야근수당, 점심 메뉴 룰렛까지.<br>직장에서 필요한 건 다 있습니다.</p>
     <div class="hero-stats">
-      <div class="stat"><span class="stat-num" data-target="34">0</span><div class="stat-lbl">유용한 도구</div></div>
+      <div class="stat"><span class="stat-num" data-target="51">0</span><div class="stat-lbl">유용한 도구</div></div>
       <div class="stat"><span class="stat-num" data-target="100">0</span><div class="stat-lbl">무료 이용 %</div></div>
       <div class="stat"><span class="stat-num" style="-webkit-text-fill-color:var(--gold);background:none">⚡</span><div class="stat-lbl">빠른 계산</div></div>
     </div>
@@ -417,7 +417,6 @@ html.light .footer-copy { color: var(--muted); }
       <p class="sec-desc">월급날 전날이면 한 번씩 열어보게 되는 계산기들</p>
     </div>
     <div class="bento">
-      <!-- featured 2×2 -->
       <a href="pages/salary.html" class="card bento-lg" style="--card-ac:#FF6B35">
         <div class="ci">💰</div>
         <div class="card-title">연봉 실수령액 계산기</div>
@@ -429,14 +428,42 @@ html.light .footer-copy { color: var(--muted); }
         </div>
         <span class="tag t-hot">🔥 인기</span>
       </a>
-      <!-- wide -->
-      <a href="pages/severance.html" class="card bento-wide" style="--card-ac:#FF6B35">
+      <a href="pages/insurance-calc.html" class="card bento-wide" style="--card-ac:#FF6B35">
+        <div class="ci">🛡️</div>
+        <div class="card-title">4대보험 계산기</div>
+        <div class="card-desc">월급 입력만으로 국민연금·건강보험·고용보험 직원/사업자 부담분 즉시 계산 (2026년 최신 요율)</div>
+        <span class="tag t-hot">🔥 인기</span>
+      </a>
+      <a href="pages/unemployment.html" class="card bento-wide" style="--card-ac:#FF6B35">
+        <div class="ci">📋</div>
+        <div class="card-title">실업급여 모의 계산기</div>
+        <div class="card-desc">1일 상한 68,100원 · 피보험기간·나이별 소정급여일수 자동 계산 (2026년 기준)</div>
+        <span class="tag t-hot">🔥 인기</span>
+      </a>
+      <a href="pages/year-end-tax.html" class="card" style="--card-ac:#FF6B35">
+        <div class="ci">📋</div>
+        <div class="card-title">연말정산 공제 체크리스트</div>
+        <div class="card-desc">빠뜨린 공제 없는지 체크 — 항목별 최대 한도와 준비 서류 안내</div>
+        <span class="tag t-hot">🔥 1월 필수</span>
+      </a>
+      <a href="pages/severance.html" class="card" style="--card-ac:#FF6B35">
         <div class="ci">🏃</div>
         <div class="card-title">퇴직금 계산기</div>
         <div class="card-desc">퇴사 전 내 퇴직금이 얼마인지 미리 확인해두세요</div>
         <span class="tag t-hot">🔥 인기</span>
       </a>
-      <!-- regular (fills row 2 cols 3-4) -->
+      <a href="pages/salary-negotiation.html" class="card" style="--card-ac:#FF6B35">
+        <div class="ci">💼</div>
+        <div class="card-title">연봉 협상 계산기</div>
+        <div class="card-desc">인상률 · 실수령액 변화 · 월급 차이 한눈에 비교</div>
+        <span class="tag t-hot">🔥 인기</span>
+      </a>
+      <a href="pages/freelancer-tax.html" class="card" style="--card-ac:#FF6B35">
+        <div class="ci">📂</div>
+        <div class="card-title">프리랜서 세금 계산기</div>
+        <div class="card-desc">3.3% 원천징수 환급 예상액 — 종합소득세 신고 전 미리 계산</div>
+        <span class="tag t-new">✨ 신규</span>
+      </a>
       <a href="pages/leave.html" class="card" style="--card-ac:#FF6B35">
         <div class="ci">🏖️</div>
         <div class="card-title">연차수당 계산기</div>
@@ -447,39 +474,43 @@ html.light .footer-copy { color: var(--muted); }
         <div class="ci">🌙</div>
         <div class="card-title">야근수당 계산기</div>
         <div class="card-desc">연장·야간·휴일 수당 항목별 정확히 계산</div>
-        <span class="tag t-new">✨ 신규</span>
-      </a>
-      <!-- row 3 -->
-      <a href="pages/loan.html" class="card bento-wide" style="--card-ac:#FF6B35">
-        <div class="ci">🏦</div>
-        <div class="card-title">대출 이자 계산기</div>
-        <div class="card-desc">원리금균등 / 원금균등 상환 방식 비교</div>
         <span class="tag t-free">무료</span>
-      </a>
-      <a href="pages/jeonse.html" class="card bento-wide" style="--card-ac:#FF6B35">
-        <div class="ci">🏠</div>
-        <div class="card-title">전월세 전환 계산기</div>
-        <div class="card-desc">전세 ↔ 월세 전환 + 비용 비교 분석</div>
-        <span class="tag t-free">무료</span>
-      </a>
-      <!-- row 4 -->
-      <a href="pages/unemployment.html" class="card bento-wide" style="--card-ac:#FF6B35">
-        <div class="ci">📋</div>
-        <div class="card-title">실업급여 모의 계산기</div>
-        <div class="card-desc">1일 상한 68,100원 · 피보험기간·나이별 소정급여일수 자동 계산 (2026년 기준)</div>
-        <span class="tag t-new">✨ 신규</span>
       </a>
       <a href="pages/parental-leave.html" class="card" style="--card-ac:#FF6B35">
         <div class="ci">👶</div>
         <div class="card-title">육아휴직 급여 계산기</div>
         <div class="card-desc">기간별 상한 250·200·160만원 + 6+6 부모육아휴직제 반영</div>
+        <span class="tag t-free">무료</span>
+      </a>
+      <a href="pages/compound.html" class="card" style="--card-ac:#FF6B35">
+        <div class="ci">📈</div>
+        <div class="card-title">복리 저축 계산기</div>
+        <div class="card-desc">월 납입 × 복리로 얼마 모이는지 · 목표금액 역산도 가능</div>
         <span class="tag t-new">✨ 신규</span>
       </a>
-      <a href="pages/salary-negotiation.html" class="card" style="--card-ac:#FF6B35">
-        <div class="ci">💼</div>
-        <div class="card-title">연봉 협상 계산기</div>
-        <div class="card-desc">인상률 · 실수령액 변화 · 월급 차이 한눈에 비교</div>
+      <a href="pages/pension.html" class="card" style="--card-ac:#FF6B35">
+        <div class="ci">👴</div>
+        <div class="card-title">국민연금 예상 수령액</div>
+        <div class="card-desc">납입 기간·평균 소득으로 은퇴 후 매월 받을 금액 미리 계산</div>
         <span class="tag t-new">✨ 신규</span>
+      </a>
+      <a href="pages/loan.html" class="card" style="--card-ac:#FF6B35">
+        <div class="ci">🏦</div>
+        <div class="card-title">대출 이자 계산기</div>
+        <div class="card-desc">원리금균등 / 원금균등 상환 방식 비교</div>
+        <span class="tag t-free">무료</span>
+      </a>
+      <a href="pages/housing-compare.html" class="card" style="--card-ac:#FF6B35">
+        <div class="ci">🏠</div>
+        <div class="card-title">전세 vs 월세 비교</div>
+        <div class="card-desc">기회비용 기반으로 어느 쪽이 실질적으로 더 저렴한지 계산</div>
+        <span class="tag t-new">✨ 신규</span>
+      </a>
+      <a href="pages/jeonse.html" class="card" style="--card-ac:#FF6B35">
+        <div class="ci">🔄</div>
+        <div class="card-title">전월세 전환 계산기</div>
+        <div class="card-desc">전세 ↔ 월세 전환 + 전환 비용 분석</div>
+        <span class="tag t-free">무료</span>
       </a>
     </div>
   </section>
@@ -492,63 +523,71 @@ html.light .footer-copy { color: var(--muted); }
       <p class="sec-desc">일하는 척하면서 쓰는 도구들 — 회의·메일·QR·색상 한 방에</p>
     </div>
     <div class="bento">
-      <!-- featured 2×2 -->
-      <a href="pages/meeting.html" class="card bento-lg" style="--card-ac:#4ECDC4">
-        <div class="ci">⏱️</div>
-        <div class="card-title">회의 비용 타이머</div>
-        <div class="card-desc">이 회의 얼마짜리인지 실시간으로 보여드립니다. 인원이랑 연봉 넣고 시작하면 초 단위로 돈이 올라가요.</div>
-        <div class="card-facts">
-          <span class="card-fact">⏱️ 실시간 카운터</span>
-          <span class="card-fact">🍗 치킨 환산 비교</span>
-          <span class="card-fact">분당·시간당 비용</span>
-        </div>
-        <span class="tag t-new">✨ 신규</span>
-      </a>
-      <!-- wide row 1 -->
-      <a href="pages/mailtemplate.html" class="card bento-wide" style="--card-ac:#4ECDC4">
-        <div class="ci">📧</div>
-        <div class="card-title">업무 메일 템플릿</div>
-        <div class="card-desc">연차·보고·사과·퇴사 메일 복붙으로 완성</div>
-        <span class="tag t-new">✨ 신규</span>
-      </a>
-      <!-- regular row 2 cols 3-4 -->
-      <a href="pages/lunch.html" class="card" style="--card-ac:#4ECDC4">
-        <div class="ci">🍱</div>
-        <div class="card-title">점심 메뉴 룰렛</div>
-        <div class="card-desc">오늘 뭐 먹지? 스핀휠이 결정</div>
-        <span class="tag t-fun">🎰 룰렛</span>
-      </a>
-      <a href="pages/qrcode.html" class="card" style="--card-ac:#4ECDC4">
+      <a href="pages/qrcode.html" class="card bento-wide" style="--card-ac:#4ECDC4">
         <div class="ci">📱</div>
         <div class="card-title">QR코드 생성기</div>
-        <div class="card-desc">링크·텍스트·연락처 → QR 즉시 생성</div>
+        <div class="card-desc">링크·텍스트·연락처·와이파이 → QR 즉시 생성 & 다운로드</div>
+        <span class="tag t-hot">🔥 인기</span>
+      </a>
+      <a href="pages/imgcompress.html" class="card bento-wide" style="--card-ac:#4ECDC4">
+        <div class="ci">🗜️</div>
+        <div class="card-title">이미지 압축기</div>
+        <div class="card-desc">JPEG·PNG·WebP 용량 줄이기 — 서버 전송 없이 브라우저에서 바로</div>
+        <span class="tag t-hot">🔥 인기</span>
+      </a>
+      <a href="pages/pdf.html" class="card" style="--card-ac:#4ECDC4">
+        <div class="ci">📄</div>
+        <div class="card-title">PDF 합치기 / 추출</div>
+        <div class="card-desc">여러 PDF 합치기 또는 원하는 페이지만 추출</div>
         <span class="tag t-free">무료</span>
       </a>
-      <!-- row 3 -->
-      <a href="pages/color.html" class="card" style="--card-ac:#4ECDC4">
-        <div class="ci">🎨</div>
-        <div class="card-title">색상 팔레트 생성기</div>
-        <div class="card-desc">색상 코드 변환 + 보색 자동 추천</div>
-        <span class="tag t-free">무료</span>
+      <a href="pages/text-diff.html" class="card" style="--card-ac:#4ECDC4">
+        <div class="ci">🔍</div>
+        <div class="card-title">텍스트 비교기</div>
+        <div class="card-desc">두 텍스트 붙여넣기 → 변경·추가·삭제 부분 색으로 강조</div>
+        <span class="tag t-new">✨ 신규</span>
       </a>
-      <a href="pages/unit.html" class="card" style="--card-ac:#4ECDC4">
-        <div class="ci">📐</div>
-        <div class="card-title">단위 변환기</div>
-        <div class="card-desc">길이·무게·온도·시간·데이터 올인원</div>
-        <span class="tag t-free">무료</span>
-      </a>
-      <a href="pages/password.html" class="card bento-wide" style="--card-ac:#4ECDC4">
+      <a href="pages/password.html" class="card" style="--card-ac:#4ECDC4">
         <div class="ci">🔐</div>
         <div class="card-title">비밀번호 생성기</div>
-        <div class="card-desc">강력한 랜덤 비밀번호 즉시 생성 — 대소문자·숫자·특수문자 조합</div>
+        <div class="card-desc">강력한 랜덤 비밀번호 즉시 생성 — 대소문자·숫자·특수문자</div>
         <span class="tag t-free">무료</span>
       </a>
-      <!-- row 4 -->
+      <a href="pages/email-signature.html" class="card" style="--card-ac:#4ECDC4">
+        <div class="ci">✉️</div>
+        <div class="card-title">이메일 서명 생성기</div>
+        <div class="card-desc">이름·직함·연락처 입력 → 전문 이메일 서명 즉시 생성·복사</div>
+        <span class="tag t-new">✨ 신규</span>
+      </a>
       <a href="pages/imgconvert.html" class="card" style="--card-ac:#4ECDC4">
         <div class="ci">🖼️</div>
         <div class="card-title">이미지 변환기</div>
         <div class="card-desc">PNG · JPG · WebP 변환 — 서버 전송 없이 바로</div>
         <span class="tag t-free">무료</span>
+      </a>
+      <a href="pages/interview-questions.html" class="card" style="--card-ac:#4ECDC4">
+        <div class="ci">🎤</div>
+        <div class="card-title">면접 예상 질문 뽑기</div>
+        <div class="card-desc">직군 선택 → 랜덤 면접 질문 + 답변 가이드 — 이직 준비 필수</div>
+        <span class="tag t-new">✨ 신규</span>
+      </a>
+      <a href="pages/resignation.html" class="card" style="--card-ac:#4ECDC4">
+        <div class="ci">📝</div>
+        <div class="card-title">사직서 / 경위서 생성기</div>
+        <div class="card-desc">사직서 · 경위서 · 시말서 자동 완성 → 바로 출력</div>
+        <span class="tag t-free">무료</span>
+      </a>
+      <a href="pages/pomodoro.html" class="card" style="--card-ac:#4ECDC4">
+        <div class="ci">🍅</div>
+        <div class="card-title">뽀모도로 타이머</div>
+        <div class="card-desc">집중 25분 · 휴식 5분 — 번아웃 없이 일하는 법</div>
+        <span class="tag t-free">무료</span>
+      </a>
+      <a href="pages/presentation-timer.html" class="card" style="--card-ac:#4ECDC4">
+        <div class="ci">🎤</div>
+        <div class="card-title">발표 슬라이드 타이머</div>
+        <div class="card-desc">슬라이드 수 + 발표 시간 → 슬라이드별 카운트다운 자동 관리</div>
+        <span class="tag t-new">✨ 신규</span>
       </a>
       <a href="pages/bgremove.html" class="card" style="--card-ac:#4ECDC4">
         <div class="ci">✂️</div>
@@ -562,30 +601,35 @@ html.light .footer-copy { color: var(--muted); }
         <div class="card-desc">영상 파일 압축 — 브라우저에서 바로, 서버 전송 없음</div>
         <span class="tag t-free">무료</span>
       </a>
-      <!-- row 5 -->
-      <a href="pages/pomodoro.html" class="card" style="--card-ac:#4ECDC4">
-        <div class="ci">🍅</div>
-        <div class="card-title">뽀모도로 타이머</div>
-        <div class="card-desc">집중 25분 · 휴식 5분 — 번아웃 없이 일하는 법</div>
-        <span class="tag t-new">✨ 신규</span>
+      <a href="pages/mailtemplate.html" class="card" style="--card-ac:#4ECDC4">
+        <div class="ci">📧</div>
+        <div class="card-title">업무 메일 템플릿</div>
+        <div class="card-desc">연차·보고·사과·퇴사 메일 복붙으로 완성</div>
+        <span class="tag t-free">무료</span>
       </a>
-      <a href="pages/imgcompress.html" class="card" style="--card-ac:#4ECDC4">
-        <div class="ci">🗜️</div>
-        <div class="card-title">이미지 압축기</div>
-        <div class="card-desc">JPEG·PNG·WebP 용량 줄이기 — 서버 전송 없이 바로</div>
-        <span class="tag t-new">✨ 신규</span>
+      <a href="pages/color.html" class="card" style="--card-ac:#4ECDC4">
+        <div class="ci">🎨</div>
+        <div class="card-title">색상 팔레트 생성기</div>
+        <div class="card-desc">색상 코드 변환 + 보색 자동 추천</div>
+        <span class="tag t-free">무료</span>
       </a>
-      <a href="pages/pdf.html" class="card" style="--card-ac:#4ECDC4">
-        <div class="ci">📄</div>
-        <div class="card-title">PDF 합치기 / 페이지 추출</div>
-        <div class="card-desc">여러 PDF 합치기 또는 원하는 페이지만 추출 — 브라우저에서 바로</div>
-        <span class="tag t-new">✨ 신규</span>
+      <a href="pages/unit.html" class="card" style="--card-ac:#4ECDC4">
+        <div class="ci">📐</div>
+        <div class="card-title">단위 변환기</div>
+        <div class="card-desc">길이·무게·온도·시간·데이터 올인원</div>
+        <span class="tag t-free">무료</span>
       </a>
-      <a href="pages/resignation.html" class="card" style="--card-ac:#4ECDC4">
-        <div class="ci">📝</div>
-        <div class="card-title">사직서 / 경위서 생성기</div>
-        <div class="card-desc">사직서 · 경위서 · 시말서 자동 완성 → 바로 출력</div>
-        <span class="tag t-new">✨ 신규</span>
+      <a href="pages/lunch.html" class="card" style="--card-ac:#4ECDC4">
+        <div class="ci">🍱</div>
+        <div class="card-title">점심 메뉴 룰렛</div>
+        <div class="card-desc">오늘 뭐 먹지? 스핀휠이 결정</div>
+        <span class="tag t-fun">🎰 룰렛</span>
+      </a>
+      <a href="pages/meeting.html" class="card" style="--card-ac:#4ECDC4">
+        <div class="ci">⏱️</div>
+        <div class="card-title">회의 비용 타이머</div>
+        <div class="card-desc">이 회의 얼마짜리인지 실시간으로 — 인원이랑 연봉 넣고 시작</div>
+        <span class="tag t-fun">💸 실시간</span>
       </a>
     </div>
   </section>
@@ -600,24 +644,34 @@ html.light .footer-copy { color: var(--muted); }
       <p class="sec-desc">퇴근 5분 전 긴장 이완용 — 들키면 책임 못 짐</p>
     </div>
     <div class="bento">
-      <!-- featured 2×2 -->
-      <a href="pages/typing.html" class="card bento-lg" style="--card-ac:#FFD700">
-        <div class="ci">⌨️</div>
-        <div class="card-title">직장인 타자 게임</div>
-        <div class="card-desc">60초 안에 직장생활 문장 타이핑. 분당 타수·정확도 실시간 측정, 최고 기록은 자동 저장.</div>
+      <a href="pages/tetris.html" class="card bento-lg" style="--card-ac:#FFD700">
+        <div class="ci">🟦</div>
+        <div class="card-title">테트리스</div>
+        <div class="card-desc">고전 테트리스 — 고스트 피스·레벨업·하드드롭. 키보드 또는 화면 버튼으로 플레이.</div>
         <div class="card-facts">
-          <span class="card-fact">⏱️ 60초 제한</span>
-          <span class="card-fact">📈 WPM 측정</span>
-          <span class="card-fact">🏆 기록 저장</span>
+          <span class="card-fact">👻 고스트 피스</span>
+          <span class="card-fact">⬆️ 레벨업</span>
+          <span class="card-fact">📱 모바일 지원</span>
         </div>
         <span class="tag t-new">✨ 신규</span>
       </a>
-      <!-- regular 4개 -->
+      <a href="pages/typing.html" class="card bento-wide" style="--card-ac:#FFD700">
+        <div class="ci">⌨️</div>
+        <div class="card-title">직장인 타자 게임</div>
+        <div class="card-desc">60초 안에 직장생활 문장 타이핑 — 분당 타수·정확도 실시간 측정, 최고 기록 자동 저장</div>
+        <span class="tag t-hot">🔥 인기</span>
+      </a>
+      <a href="pages/minesweeper.html" class="card" style="--card-ac:#FFD700">
+        <div class="ci">💣</div>
+        <div class="card-title">지뢰찾기</div>
+        <div class="card-desc">초급·중급·고급 3단계 — 첫 클릭은 절대 안전</div>
+        <span class="tag t-new">✨ 신규</span>
+      </a>
       <a href="pages/boss.html" class="card" style="--card-ac:#FFD700">
         <div class="ci">👔</div>
         <div class="card-title">상사 눈피해 클리커</div>
         <div class="card-desc">상사 눈 피해서 클릭 — 4단계 난이도</div>
-        <span class="tag t-new">✨ 신규</span>
+        <span class="tag t-fun">😅 게임</span>
       </a>
       <a href="pages/wordle.html" class="card" style="--card-ac:#FFD700">
         <div class="ci">🟩</div>
@@ -648,7 +702,6 @@ html.light .footer-copy { color: var(--muted); }
       <p class="sec-desc">링크 공유하고 싶어지는 테스트들 — 내 직장생활 완전 분석</p>
     </div>
     <div class="bento">
-      <!-- featured 2×2 -->
       <a href="pages/burnout.html" class="card bento-lg" style="--card-ac:#a855f7">
         <div class="ci">🔥</div>
         <div class="card-title">번아웃 지수 테스트</div>
@@ -660,12 +713,23 @@ html.light .footer-copy { color: var(--muted); }
         </div>
         <span class="tag t-hot">🔥 인기</span>
       </a>
-      <!-- regular -->
+      <a href="pages/salary-level.html" class="card bento-wide" style="--card-ac:#a855f7">
+        <div class="ci">💰</div>
+        <div class="card-title">내 연봉 수준 체크</div>
+        <div class="card-desc">직군·연차·업종별 연봉 분포에서 내 위치를 바차트로 확인 — 연봉 협상 전 필수</div>
+        <span class="tag t-new">✨ 신규</span>
+      </a>
+      <a href="pages/stress-test.html" class="card" style="--card-ac:#a855f7">
+        <div class="ci">😤</div>
+        <div class="card-title">직장 스트레스 지수</div>
+        <div class="card-desc">업무량·직장관계·자율성·보상 4분야 12문항 — 번아웃 전 경고등 확인</div>
+        <span class="tag t-new">✨ 신규</span>
+      </a>
       <a href="pages/quiz.html" class="card" style="--card-ac:#a855f7">
         <div class="ci">❓</div>
         <div class="card-title">직장인 OX 퀴즈</div>
         <div class="card-desc">노동법·직장 상식 25문항 — 당신의 점수는?</div>
-        <span class="tag t-new">✨ 신규</span>
+        <span class="tag t-fun">🧠 퀴즈</span>
       </a>
       <a href="pages/worktype.html" class="card" style="--card-ac:#a855f7">
         <div class="ci">🧬</div>
@@ -673,8 +737,7 @@ html.light .footer-copy { color: var(--muted); }
         <div class="card-desc">12문항으로 알아보는 나의 직장인 유형</div>
         <span class="tag t-fun">😄 유머</span>
       </a>
-      <!-- wide -->
-      <a href="pages/kkondae.html" class="card bento-wide" style="--card-ac:#a855f7">
+      <a href="pages/kkondae.html" class="card" style="--card-ac:#a855f7">
         <div class="ci">👴</div>
         <div class="card-title">꼰대력 측정기</div>
         <div class="card-desc">나는 꼰대인가 아닌가? 솔직하게 테스트해보세요</div>
@@ -713,6 +776,12 @@ html.light .footer-copy { color: var(--muted); }
         <div class="ci">📝</div>
         <div class="card-title">워드 꿀팁 & 단축키</div>
         <div class="card-desc">스타일·자동 목차·추적 변경·단축키까지 — 보고서 작성 속도를 2배 올리는 방법</div>
+        <span class="tag t-new">✨ 신규</span>
+      </a>
+      <a href="pages/ppt-tips.html" class="card" style="--card-ac:#22c55e">
+        <div class="ci">📊</div>
+        <div class="card-title">PPT 꿀팁 & 단축키</div>
+        <div class="card-desc">디자인 원칙·단축키·발표 팁까지 — 발표 자료를 프로답게 만드는 법</div>
         <span class="tag t-new">✨ 신규</span>
       </a>
     </div>
@@ -766,7 +835,7 @@ function animCount(el) {
   function step(now) {
     const p = Math.min((now - start) / dur, 1);
     const ease = 1 - Math.pow(1 - p, 3);
-    el.textContent = Math.round(ease * target) + (p === 1 && el.dataset.target === '34' ? '+' : p === 1 ? '%' : '');
+    el.textContent = Math.round(ease * target) + (p === 1 && el.dataset.target === '51' ? '+' : p === 1 ? '%' : '');
     if (p < 1) requestAnimationFrame(step);
   }
   requestAnimationFrame(step);

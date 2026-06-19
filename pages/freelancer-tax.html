@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <script>if(localStorage.getItem('theme')==='light')document.documentElement.classList.add('light')</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>프리랜서 세금 계산기 2026 - 직장인닷컴</title>
+  <meta name="description" content="3.3% 원천징수 환급 예상액 계산. 연간 수입·경비 입력으로 종합소득세 납부 또는 환급 예상액 즉시 확인.">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .calc-wrap { max-width:660px; margin:0 auto; }
+    .calc-card { background:var(--card); border:1px solid rgba(255,255,255,0.06); border-radius:var(--radius); padding:28px; margin-bottom:14px; }
+    .calc-card h3 { font-size:1rem; font-weight:700; color:var(--white); margin-bottom:18px; }
+    .form-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px; }
+    .form-group label { display:block; font-size:0.83rem; color:var(--text-muted); margin-bottom:6px; }
+    .form-group input, .form-group select { width:100%; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:11px 14px; color:var(--white); font-size:0.95rem; outline:none; font-family:inherit; transition:border-color 0.2s; }
+    .form-group input:focus, .form-group select:focus { border-color:var(--primary); }
+    .form-group select option { background:#1a1a2e; color:#fff; }
+
+    .result-wrap { display:none; margin-top:20px; }
+    .verdict { text-align:center; padding:20px; border-radius:12px; margin-bottom:14px; }
+    .verdict.refund { background:rgba(46,204,113,0.1); border:1px solid rgba(46,204,113,0.2); }
+    .verdict.pay { background:rgba(255,107,53,0.1); border:1px solid rgba(255,107,53,0.2); }
+    .verdict .vl { font-size:0.82rem; color:var(--text-muted); margin-bottom:4px; }
+    .verdict .vv { font-size:2.2rem; font-weight:900; }
+    .verdict.refund .vv { color:var(--success); }
+    .verdict.pay .vv { color:var(--primary); }
+    .verdict .vs { font-size:0.85rem; color:var(--text-muted); margin-top:4px; }
+
+    .breakdown { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px; }
+    .bk-item { background:rgba(255,255,255,0.04); border-radius:10px; padding:12px 14px; }
+    .bk-item .bl { font-size:0.74rem; color:var(--text-muted); margin-bottom:4px; }
+    .bk-item .bv { font-size:0.95rem; font-weight:700; color:var(--white); }
+
+    .step-list { display:flex; flex-direction:column; gap:8px; margin-top:4px; }
+    .step { background:rgba(255,255,255,0.03); border-radius:8px; padding:10px 14px; font-size:0.83rem; display:flex; justify-content:space-between; align-items:center; }
+    .step .sl { color:var(--text-muted); }
+    .step .sv { color:var(--white); font-weight:700; }
+    .step.total { background:rgba(255,107,53,0.07); border:1px solid rgba(255,107,53,0.15); }
+    .step.total .sv { color:var(--primary); }
+
+    .notice { font-size:0.77rem; color:var(--text-muted); line-height:1.65; padding:12px 14px; background:rgba(255,255,255,0.02); border-radius:8px; border-left:3px solid var(--accent); margin-top:8px; }
+    @media(max-width:480px) { .form-row { grid-template-columns:1fr; } .breakdown { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+<nav>
+  <a href="../index.html" class="logo">💼 <span>직장인</span>닷컴</a>
+  <ul class="nav-links">
+    <li><a href="../index.html#calculators" class="active">계산기</a></li>
+    <li><a href="../index.html#tools">업무도구</a></li>
+    <li><a href="../index.html#games">루팡게임</a></li>
+    <li><a href="../index.html#tests">테스트</a></li>
+    <li><a href="../index.html#info">정보</a></li>
+  </ul>
+</nav>
+
+<div class="page-header">
+  <div class="breadcrumb"><a href="../index.html">홈</a> › 계산기</div>
+  <h1>📂 프리랜서 세금 계산기</h1>
+  <p>3.3% 원천징수 후 환급 or 추납 예상액 — 종합소득세 신고 전 미리 확인</p>
+</div>
+
+<main>
+  <div class="ad-banner">광고 영역 (Google AdSense)</div>
+
+  <div class="calc-wrap">
+    <div class="calc-card">
+      <h3>💼 연간 수입 입력</h3>
+      <div class="form-row">
+        <div class="form-group">
+          <label>연간 총 수입 (만원)</label>
+          <input type="number" id="income" placeholder="예: 5000" min="1" oninput="calculate()">
+        </div>
+        <div class="form-group">
+          <label>업종 (단순경비율 기준)</label>
+          <select id="category" onchange="calculate()">
+            <option value="64.1">IT·개발·번역 (64.1%)</option>
+            <option value="63.3">서비스·강의·작가 (63.3%)</option>
+            <option value="61.5">전문직·컨설팅 (61.5%)</option>
+            <option value="78.1">도·소매 (78.1%)</option>
+            <option value="custom">직접 입력</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row" id="customRow" style="display:none">
+        <div class="form-group">
+          <label>경비율 직접 입력 (%)</label>
+          <input type="number" id="customRate" placeholder="예: 60" min="0" max="99" step="0.1" oninput="calculate()">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>부양가족 수 (본인 포함)</label>
+          <input type="number" id="dep" value="1" min="1" max="20" oninput="calculate()">
+        </div>
+        <div class="form-group">
+          <label>20세 이하 자녀 수</label>
+          <input type="number" id="child" value="0" min="0" max="10" oninput="calculate()">
+        </div>
+      </div>
+
+      <div class="result-wrap" id="resultWrap">
+        <div class="verdict" id="verdict">
+          <div class="vl" id="verdictLabel">—</div>
+          <div class="vv" id="verdictVal">—</div>
+          <div class="vs" id="verdictSub">—</div>
+        </div>
+
+        <div class="breakdown">
+          <div class="bk-item"><div class="bl">연간 총 수입</div><div class="bv" id="bIncome">—</div></div>
+          <div class="bk-item"><div class="bl">경비 공제 후 소득</div><div class="bv" id="bSo득">—</div></div>
+          <div class="bk-item"><div class="bl">이미 납부한 원천세 (3.3%)</div><div class="bv" id="bPaid">—</div></div>
+          <div class="bk-item"><div class="bl">최종 종합소득세</div><div class="bv" id="bTax">—</div></div>
+        </div>
+
+        <h4 style="font-size:0.85rem;color:var(--text-muted);margin-bottom:8px">세금 계산 과정</h4>
+        <div class="step-list">
+          <div class="step"><span class="sl">① 총 수입</span><span class="sv" id="s1">—</span></div>
+          <div class="step"><span class="sl">② 필요경비 차감</span><span class="sv" id="s2">—</span></div>
+          <div class="step"><span class="sl">③ 사업소득금액</span><span class="sv" id="s3">—</span></div>
+          <div class="step"><span class="sl">④ 소득공제 (기본공제 등)</span><span class="sv" id="s4">—</span></div>
+          <div class="step"><span class="sl">⑤ 과세표준</span><span class="sv" id="s5">—</span></div>
+          <div class="step"><span class="sl">⑥ 산출세액 (누진세)</span><span class="sv" id="s6">—</span></div>
+          <div class="step"><span class="sl">⑦ 지방소득세 (+10%)</span><span class="sv" id="s7">—</span></div>
+          <div class="step total"><span class="sl">⑧ 총 납부할 세금</span><span class="sv" id="s8">—</span></div>
+          <div class="step"><span class="sl">⑨ 기납부 원천세 (3.3%)</span><span class="sv" id="s9">—</span></div>
+          <div class="step total"><span class="sl">⑩ 최종 환급 / 추납</span><span class="sv" id="s10">—</span></div>
+        </div>
+
+        <div class="notice">
+          ※ 단순경비율 적용: 직전연도 수입 2,400만원 미만 사업자 기준 (초과 시 기준경비율 적용)<br>
+          ※ 종합소득세 신고 기간: 매년 5월 1일 ~ 31일<br>
+          ※ 이 계산기는 단순 참고용입니다. 정확한 세금은 세무사 또는 홈택스에서 확인하세요.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ad-banner" style="margin-top:8px">광고 영역 (Google AdSense)</div>
+</main>
+
+<footer>
+  <p><strong>직장인닷컴</strong> — 모든 계산은 참고용이며 법적 효력이 없습니다.</p>
+</footer>
+
+<script src="../js/theme.js"></script>
+<script>
+document.getElementById('category').addEventListener('change', function() {
+  document.getElementById('customRow').style.display = this.value === 'custom' ? '' : 'none';
+  calculate();
+});
+
+function fw(n) { return Math.round(Math.abs(n)).toLocaleString('ko-KR') + '원'; }
+
+function calcIncomeTax(taxBase) {
+  const brackets = [
+    [14000000, 0.06], [35000000, 0.15], [88000000, 0.24],
+    [150000000, 0.35], [300000000, 0.38], [500000000, 0.40],
+    [1000000000, 0.42], [Infinity, 0.45],
+  ];
+  let tax = 0, prev = 0;
+  for (const [limit, rate] of brackets) {
+    if (taxBase <= prev) break;
+    tax += (Math.min(taxBase, limit) - prev) * rate;
+    prev = limit;
+  }
+  return Math.max(tax, 0);
+}
+
+function calculate() {
+  const incomeWon = (parseFloat(document.getElementById('income').value) || 0) * 10000;
+  const catVal = document.getElementById('category').value;
+  const expenseRate = catVal === 'custom'
+    ? (parseFloat(document.getElementById('customRate').value) || 0) / 100
+    : parseFloat(catVal) / 100;
+  const dep = parseInt(document.getElementById('dep').value) || 1;
+  const child = parseInt(document.getElementById('child').value) || 0;
+  if (!incomeWon || !expenseRate) { document.getElementById('resultWrap').style.display = 'none'; return; }
+
+  const withheld = incomeWon * 0.033; // 3.3% 원천징수
+  const expense = incomeWon * expenseRate;
+  const businessIncome = incomeWon - expense;
+  const deductions = dep * 1500000 + child * 1500000;
+  const taxBase = Math.max(businessIncome - deductions, 0);
+  const incomeTax = calcIncomeTax(taxBase);
+  const localTax = incomeTax * 0.1;
+  const totalTax = incomeTax + localTax;
+  const diff = withheld - totalTax;
+
+  const v = document.getElementById('verdict');
+  v.className = 'verdict ' + (diff >= 0 ? 'refund' : 'pay');
+  document.getElementById('verdictLabel').textContent = diff >= 0 ? '예상 환급액' : '예상 추납액';
+  document.getElementById('verdictVal').textContent = (diff >= 0 ? '+' : '-') + fw(diff);
+  document.getElementById('verdictSub').textContent = diff >= 0
+    ? '납부한 세금이 실제보다 많아 돌려받습니다 ✅'
+    : '납부한 세금이 부족해 추가 납부가 필요합니다 ⚠️';
+
+  document.getElementById('bIncome').textContent = fw(incomeWon);
+  document.getElementById('bSo득').textContent = fw(businessIncome);
+  document.getElementById('bPaid').textContent = fw(withheld);
+  document.getElementById('bTax').textContent = fw(totalTax);
+
+  document.getElementById('s1').textContent = fw(incomeWon);
+  document.getElementById('s2').textContent = '- ' + fw(expense) + ' (' + (expenseRate*100).toFixed(1) + '%)';
+  document.getElementById('s3').textContent = fw(businessIncome);
+  document.getElementById('s4').textContent = '- ' + fw(deductions);
+  document.getElementById('s5').textContent = fw(taxBase);
+  document.getElementById('s6').textContent = fw(incomeTax);
+  document.getElementById('s7').textContent = '+ ' + fw(localTax);
+  document.getElementById('s8').textContent = fw(totalTax);
+  document.getElementById('s9').textContent = '- ' + fw(withheld) + ' (기납부)';
+  document.getElementById('s10').textContent = (diff >= 0 ? '환급 +' : '추납 -') + fw(diff);
+
+  document.getElementById('resultWrap').style.display = 'block';
+}
+</script>
+</body>
+</html>

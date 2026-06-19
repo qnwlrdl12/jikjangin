@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <script>if(localStorage.getItem('theme')==='light')document.documentElement.classList.add('light')</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>복리 저축 계산기 - 직장인닷컴</title>
+  <meta name="description" content="매월 얼마씩 모으면 목표 금액에 도달할 수 있을까? 복리 이자 계산기로 원금·이자·최종금액을 한눈에.">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .calc-wrap { max-width:660px; margin:0 auto; }
+    .calc-card { background:var(--card); border:1px solid rgba(255,255,255,0.06); border-radius:var(--radius); padding:28px; margin-bottom:14px; }
+    .calc-card h3 { font-size:1rem; font-weight:700; color:var(--white); margin-bottom:18px; }
+    .form-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px; }
+    .form-group label { display:block; font-size:0.83rem; color:var(--text-muted); margin-bottom:6px; }
+    .form-group input { width:100%; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:11px 14px; color:var(--white); font-size:0.95rem; outline:none; font-family:inherit; transition:border-color 0.2s; }
+    .form-group input:focus { border-color:var(--primary); }
+
+    .tab-row2 { display:flex; gap:6px; margin-bottom:18px; }
+    .tab-btn2 { flex:1; padding:9px; border:1px solid rgba(255,255,255,0.1); border-radius:8px; font-size:0.85rem; font-weight:700; cursor:pointer; background:transparent; color:var(--text-muted); font-family:inherit; transition:all 0.2s; }
+    .tab-btn2.active { background:var(--primary); border-color:var(--primary); color:#fff; }
+
+    .result-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-top:16px; }
+    .rbox { background:rgba(255,255,255,0.04); border-radius:10px; padding:14px; text-align:center; }
+    .rbox .rl { font-size:0.74rem; color:var(--text-muted); margin-bottom:5px; }
+    .rbox .rv { font-size:1rem; font-weight:800; color:var(--white); }
+    .rbox.highlight { background:rgba(255,107,53,0.1); border:1px solid rgba(255,107,53,0.2); }
+    .rbox.highlight .rv { color:var(--secondary); font-size:1.3rem; }
+
+    .bar-wrap { margin-top:16px; }
+    .bar-lbl { display:flex; justify-content:space-between; font-size:0.78rem; color:var(--text-muted); margin-bottom:6px; }
+    .bar-track { background:rgba(255,255,255,0.06); border-radius:20px; height:12px; overflow:hidden; }
+    .bar-fill { height:100%; border-radius:20px; background:linear-gradient(90deg, var(--primary), var(--secondary)); transition:width 0.6s ease; }
+    .bar-fill2 { height:100%; border-radius:20px; background:linear-gradient(90deg, var(--accent), #2ecc71); transition:width 0.6s ease; }
+
+    .year-table { width:100%; border-collapse:collapse; font-size:0.82rem; margin-top:14px; }
+    .year-table th { text-align:right; color:var(--text-muted); font-weight:700; padding:8px 10px; border-bottom:2px solid rgba(255,255,255,0.08); font-size:0.76rem; }
+    .year-table th:first-child { text-align:left; }
+    .year-table td { padding:9px 10px; border-bottom:1px solid rgba(255,255,255,0.04); text-align:right; color:var(--text); }
+    .year-table td:first-child { text-align:left; color:var(--text-muted); }
+    .year-table tr:last-child td { border:none; font-weight:700; color:var(--white); }
+
+    .reverse-result { background:rgba(78,205,196,0.08); border:1px solid rgba(78,205,196,0.2); border-radius:12px; padding:18px; text-align:center; margin-top:16px; }
+    .reverse-result .rl { font-size:0.82rem; color:var(--text-muted); margin-bottom:4px; }
+    .reverse-result .rv { font-size:2rem; font-weight:900; color:var(--accent); }
+
+    @media(max-width:500px) { .form-row { grid-template-columns:1fr; } .result-grid { grid-template-columns:1fr 1fr; } }
+  </style>
+</head>
+<body>
+<nav>
+  <a href="../index.html" class="logo">💼 <span>직장인</span>닷컴</a>
+  <ul class="nav-links">
+    <li><a href="../index.html#calculators" class="active">계산기</a></li>
+    <li><a href="../index.html#tools">업무도구</a></li>
+    <li><a href="../index.html#games">루팡게임</a></li>
+    <li><a href="../index.html#tests">테스트</a></li>
+    <li><a href="../index.html#info">정보</a></li>
+  </ul>
+</nav>
+
+<div class="page-header">
+  <div class="breadcrumb"><a href="../index.html">홈</a> › 계산기</div>
+  <h1>💰 복리 저축 계산기</h1>
+  <p>매월 적립 → 복리로 얼마나 모이는지 · 목표 금액에 필요한 월 납입액 역산</p>
+</div>
+
+<main>
+  <div class="ad-banner">광고 영역 (Google AdSense)</div>
+
+  <div class="calc-wrap">
+    <div class="calc-card">
+      <div class="tab-row2">
+        <button class="tab-btn2 active" id="btnForward" onclick="switchMode('forward', this)">📈 적립 계산</button>
+        <button class="tab-btn2" id="btnReverse" onclick="switchMode('reverse', this)">🎯 목표 역산</button>
+      </div>
+
+      <!-- 적립 계산 모드 -->
+      <div id="modeForward">
+        <div class="form-row">
+          <div class="form-group">
+            <label>월 납입액 (만원)</label>
+            <input type="number" id="monthly" placeholder="예: 50" min="1" oninput="calc()">
+          </div>
+          <div class="form-group">
+            <label>연 이자율 (%)</label>
+            <input type="number" id="rate" placeholder="예: 3.5" min="0.1" step="0.1" oninput="calc()">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>저축 기간 (년)</label>
+            <input type="number" id="years" placeholder="예: 10" min="1" max="50" oninput="calc()">
+          </div>
+          <div class="form-group">
+            <label>초기 예치금 (만원, 선택)</label>
+            <input type="number" id="initial" placeholder="예: 100" min="0" oninput="calc()">
+          </div>
+        </div>
+
+        <div id="fwResult" style="display:none">
+          <div class="result-grid">
+            <div class="rbox"><div class="rl">납입 원금</div><div class="rv" id="principal">—</div></div>
+            <div class="rbox"><div class="rl">총 이자</div><div class="rv" id="interest">—</div></div>
+            <div class="rbox highlight"><div class="rl">최종 금액</div><div class="rv" id="total">—</div></div>
+          </div>
+          <div class="bar-wrap">
+            <div class="bar-lbl"><span>원금 비율</span><span id="principalPct">0%</span></div>
+            <div class="bar-track"><div class="bar-fill" id="principalBar" style="width:0"></div></div>
+            <div class="bar-lbl" style="margin-top:8px"><span>이자 비율</span><span id="interestPct">0%</span></div>
+            <div class="bar-track"><div class="bar-fill2" id="interestBar" style="width:0"></div></div>
+          </div>
+          <table class="year-table" id="yearTable">
+            <thead><tr><th>연도</th><th>연 납입액</th><th>누적 원금</th><th>누적 이자</th><th>잔액</th></tr></thead>
+            <tbody id="yearBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 목표 역산 모드 -->
+      <div id="modeReverse" style="display:none">
+        <div class="form-row">
+          <div class="form-group">
+            <label>목표 금액 (만원)</label>
+            <input type="number" id="goal" placeholder="예: 10000" min="1" oninput="calcReverse()">
+          </div>
+          <div class="form-group">
+            <label>연 이자율 (%)</label>
+            <input type="number" id="rateR" placeholder="예: 3.5" min="0.1" step="0.1" oninput="calcReverse()">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>저축 기간 (년)</label>
+            <input type="number" id="yearsR" placeholder="예: 10" min="1" max="50" oninput="calcReverse()">
+          </div>
+          <div class="form-group">
+            <label>초기 예치금 (만원, 선택)</label>
+            <input type="number" id="initialR" placeholder="예: 0" min="0" oninput="calcReverse()">
+          </div>
+        </div>
+        <div class="reverse-result" id="revResult" style="display:none">
+          <div class="rl">매월 납입해야 하는 금액</div>
+          <div class="rv" id="revMonthly">—</div>
+          <div style="margin-top:8px;font-size:0.8rem;color:var(--text-muted)" id="revDesc">—</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ad-banner" style="margin-top:8px">광고 영역 (Google AdSense)</div>
+</main>
+
+<footer>
+  <p><strong>직장인닷컴</strong> — 모든 계산은 참고용입니다.</p>
+</footer>
+
+<script src="../js/theme.js"></script>
+<script>
+function fw(n) {
+  if (n >= 100000000) return (n / 100000000).toFixed(1) + '억';
+  if (n >= 10000) return Math.round(n / 10000).toLocaleString() + '만원';
+  return Math.round(n).toLocaleString() + '원';
+}
+function fwFull(n) { return Math.round(n).toLocaleString() + '원'; }
+
+let mode = 'forward';
+function switchMode(m, btn) {
+  mode = m;
+  document.getElementById('modeForward').style.display = m === 'forward' ? '' : 'none';
+  document.getElementById('modeReverse').style.display = m === 'reverse' ? '' : 'none';
+  document.querySelectorAll('.tab-btn2').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function calc() {
+  const monthly = (parseFloat(document.getElementById('monthly').value) || 0) * 10000;
+  const rateAnn = parseFloat(document.getElementById('rate').value) || 0;
+  const yrs = parseInt(document.getElementById('years').value) || 0;
+  const init = (parseFloat(document.getElementById('initial').value) || 0) * 10000;
+  if (!monthly || !rateAnn || !yrs) { document.getElementById('fwResult').style.display = 'none'; return; }
+
+  const r = rateAnn / 100 / 12;
+  const n = yrs * 12;
+  const fv = monthly * ((Math.pow(1 + r, n) - 1) / r) * (1 + r) + init * Math.pow(1 + r, n);
+  const principal = monthly * n + init;
+  const interest = fv - principal;
+
+  document.getElementById('total').textContent = fw(fv);
+  document.getElementById('principal').textContent = fw(principal);
+  document.getElementById('interest').textContent = fw(interest);
+  const pPct = Math.round(principal / fv * 100);
+  const iPct = 100 - pPct;
+  document.getElementById('principalPct').textContent = pPct + '%';
+  document.getElementById('interestPct').textContent = iPct + '%';
+  document.getElementById('principalBar').style.width = pPct + '%';
+  document.getElementById('interestBar').style.width = iPct + '%';
+
+  // Year table
+  let rows = '';
+  let bal = init;
+  for (let y = 1; y <= yrs; y++) {
+    const startBal = bal;
+    for (let m = 0; m < 12; m++) { bal = bal * (1 + r) + monthly; }
+    const cum = monthly * y * 12 + init;
+    const cumInt = bal - cum;
+    rows += `<tr><td>${y}년차</td><td>${fw(monthly * 12)}</td><td>${fw(cum)}</td><td>${fw(Math.max(cumInt,0))}</td><td>${fw(bal)}</td></tr>`;
+  }
+  document.getElementById('yearBody').innerHTML = rows;
+  document.getElementById('fwResult').style.display = 'block';
+}
+
+function calcReverse() {
+  const goal = (parseFloat(document.getElementById('goal').value) || 0) * 10000;
+  const rateAnn = parseFloat(document.getElementById('rateR').value) || 0;
+  const yrs = parseInt(document.getElementById('yearsR').value) || 0;
+  const init = (parseFloat(document.getElementById('initialR').value) || 0) * 10000;
+  if (!goal || !rateAnn || !yrs) { document.getElementById('revResult').style.display = 'none'; return; }
+
+  const r = rateAnn / 100 / 12;
+  const n = yrs * 12;
+  const initGrowth = init * Math.pow(1 + r, n);
+  const remaining = goal - initGrowth;
+  const pmt = remaining * r / ((Math.pow(1 + r, n) - 1) * (1 + r));
+
+  document.getElementById('revMonthly').textContent = fw(Math.max(pmt, 0));
+  document.getElementById('revDesc').textContent = `${yrs}년 후 ${fw(goal)} 달성 · 연 ${rateAnn}% 복리 적용 (초기금 ${fw(init)} 포함)`;
+  document.getElementById('revResult').style.display = 'block';
+}
+</script>
+</body>
+</html>

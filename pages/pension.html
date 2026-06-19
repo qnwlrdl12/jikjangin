@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <script>if(localStorage.getItem('theme')==='light')document.documentElement.classList.add('light')</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>국민연금 예상 수령액 계산기 2026 - 직장인닷컴</title>
+  <meta name="description" content="현재 나이, 납입 기간, 평균 소득으로 은퇴 후 국민연금 예상 수령액을 간편하게 계산하세요.">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .calc-wrap { max-width:660px; margin:0 auto; }
+    .calc-card { background:var(--card); border:1px solid rgba(255,255,255,0.06); border-radius:var(--radius); padding:28px; margin-bottom:14px; }
+    .calc-card h3 { font-size:1rem; font-weight:700; color:var(--white); margin-bottom:18px; }
+    .form-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px; }
+    .form-group label { display:block; font-size:0.83rem; color:var(--text-muted); margin-bottom:6px; }
+    .form-group input, .form-group select { width:100%; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:11px 14px; color:var(--white); font-size:0.95rem; outline:none; font-family:inherit; transition:border-color 0.2s; }
+    .form-group input:focus { border-color:var(--primary); }
+    .form-group select option { background:#1a1a2e; color:#fff; }
+    .calc-btn { width:100%; background:var(--primary); color:#fff; border:none; border-radius:10px; padding:14px; font-size:1rem; font-weight:700; cursor:pointer; transition:opacity 0.2s; margin-top:4px; font-family:inherit; }
+    .calc-btn:hover { opacity:0.85; }
+
+    .result-box { display:none; margin-top:20px; }
+    .result-main { text-align:center; background:rgba(255,107,53,0.07); border:1px solid rgba(255,107,53,0.2); border-radius:12px; padding:22px; margin-bottom:14px; }
+    .result-main .rl { font-size:0.82rem; color:var(--text-muted); margin-bottom:4px; }
+    .result-main .rv { font-size:2.4rem; font-weight:900; color:var(--secondary); }
+    .result-main .rs { font-size:0.83rem; color:var(--text-muted); margin-top:6px; }
+
+    .result-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px; }
+    .ritem { background:rgba(255,255,255,0.04); border-radius:10px; padding:12px 14px; }
+    .ritem .rl { font-size:0.74rem; color:var(--text-muted); margin-bottom:4px; }
+    .ritem .rv { font-size:0.95rem; font-weight:700; color:var(--white); }
+
+    .timeline { display:flex; flex-direction:column; gap:8px; }
+    .tl-item { display:flex; gap:12px; align-items:flex-start; }
+    .tl-dot { width:10px; height:10px; border-radius:50%; background:var(--primary); flex-shrink:0; margin-top:5px; }
+    .tl-content { font-size:0.84rem; color:var(--text); line-height:1.55; }
+    .tl-content strong { color:var(--white); }
+
+    .notice { font-size:0.77rem; color:var(--text-muted); line-height:1.65; padding:12px 14px; background:rgba(255,255,255,0.02); border-radius:8px; border-left:3px solid var(--accent); margin-top:10px; }
+    @media(max-width:480px) { .form-row { grid-template-columns:1fr; } .result-grid { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+<nav>
+  <a href="../index.html" class="logo">💼 <span>직장인</span>닷컴</a>
+  <ul class="nav-links">
+    <li><a href="../index.html#calculators" class="active">계산기</a></li>
+    <li><a href="../index.html#tools">업무도구</a></li>
+    <li><a href="../index.html#games">루팡게임</a></li>
+    <li><a href="../index.html#tests">테스트</a></li>
+    <li><a href="../index.html#info">정보</a></li>
+  </ul>
+</nav>
+
+<div class="page-header">
+  <div class="breadcrumb"><a href="../index.html">홈</a> › 계산기</div>
+  <h1>👴 국민연금 예상 수령액</h1>
+  <p>납입 기간과 평균 소득으로 은퇴 후 매월 받을 금액을 미리 확인하세요</p>
+</div>
+
+<main>
+  <div class="ad-banner">광고 영역 (Google AdSense)</div>
+
+  <div class="calc-wrap">
+    <div class="calc-card">
+      <h3>📊 정보 입력</h3>
+      <div class="form-row">
+        <div class="form-group">
+          <label>현재 나이</label>
+          <input type="number" id="age" placeholder="예: 35" min="18" max="64" value="35">
+        </div>
+        <div class="form-group">
+          <label>은퇴 예정 나이</label>
+          <select id="retireAge">
+            <option value="60">60세</option>
+            <option value="62">62세</option>
+            <option value="63" selected>63세 (수령 기준)</option>
+            <option value="65">65세</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>현재까지 납입 기간 (년)</label>
+          <input type="number" id="paidYears" placeholder="예: 10" min="0" max="45" value="10">
+        </div>
+        <div class="form-group">
+          <label>평균 월 소득 (만원)</label>
+          <input type="number" id="avgIncome" placeholder="예: 350" min="37" value="350">
+        </div>
+      </div>
+      <button class="calc-btn" onclick="calculate()">계산하기</button>
+
+      <div class="result-box" id="resultBox">
+        <div class="result-main">
+          <div class="rl">예상 월 수령액 (오늘 물가 기준)</div>
+          <div class="rv" id="monthly">—</div>
+          <div class="rs" id="monthlyDesc">—</div>
+        </div>
+
+        <div class="result-grid">
+          <div class="ritem"><div class="rl">총 납입 기간 (은퇴까지)</div><div class="rv" id="totalYears">—</div></div>
+          <div class="ritem"><div class="rl">예상 연 수령액</div><div class="rv" id="annual">—</div></div>
+          <div class="ritem"><div class="rl">10년간 총 수령</div><div class="rv" id="ten">—</div></div>
+          <div class="ritem"><div class="rl">20년간 총 수령</div><div class="rv" id="twenty">—</div></div>
+        </div>
+
+        <h4 style="font-size:0.85rem;color:var(--text-muted);margin-bottom:10px">📅 수령 타임라인</h4>
+        <div class="timeline" id="timeline"></div>
+
+        <div class="notice">
+          ※ 소득대체율 40% (2026년 기준) 적용. 실제 수령액은 A값(전체 가입자 평균소득) 변화에 따라 달라집니다.<br>
+          ※ 국민연금 수령 개시 나이: 1969년생 이후 출생자는 만 65세부터 수령<br>
+          ※ 연기 연금: 수령 연기 시 연 7.2% 증액 (최대 5년, 36% 증가)<br>
+          ※ 정확한 예상액은 내연금(csa.nps.or.kr)에서 확인하세요.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ad-banner" style="margin-top:8px">광고 영역 (Google AdSense)</div>
+</main>
+
+<footer>
+  <p><strong>직장인닷컴</strong> — 모든 계산은 참고용이며 법적 효력이 없습니다.</p>
+</footer>
+
+<script src="../js/theme.js"></script>
+<script>
+function fw(n) { return Math.round(n).toLocaleString('ko-KR') + '원'; }
+function fmw(n) { return Math.round(n / 10000).toLocaleString() + '만원'; }
+
+function calculate() {
+  const currentAge = parseInt(document.getElementById('age').value) || 35;
+  const retireAge = parseInt(document.getElementById('retireAge').value);
+  const paidYears = parseInt(document.getElementById('paidYears').value) || 0;
+  const avgIncomeWon = (parseFloat(document.getElementById('avgIncome').value) || 0) * 10000;
+
+  if (!avgIncomeWon) { alert('평균 월 소득을 입력해주세요.'); return; }
+  if (currentAge >= retireAge) { alert('현재 나이가 은퇴 나이보다 작아야 합니다.'); return; }
+
+  const remainYears = retireAge - currentAge;
+  const totalYears = paidYears + remainYears;
+
+  // A값 (2025년 기준 전체 가입자 평균소득)
+  const A = 2690000;
+  const B = avgIncomeWon;
+
+  // 기본연금액 = (A + B) / 2 × 소득대체율 × (총납입년수 / 40)
+  const replacementRate = 0.40;
+  const monthlyBenefit = (A + B) / 2 * replacementRate * (totalYears / 40);
+
+  document.getElementById('monthly').textContent = fw(monthlyBenefit);
+  document.getElementById('monthlyDesc').textContent = `총 납입 ${totalYears}년 기준 · 소득대체율 40%`;
+  document.getElementById('totalYears').textContent = totalYears + '년';
+  document.getElementById('annual').textContent = fmw(monthlyBenefit * 12);
+  document.getElementById('ten').textContent = fmw(monthlyBenefit * 12 * 10);
+  document.getElementById('twenty').textContent = fmw(monthlyBenefit * 12 * 20);
+
+  // Timeline
+  const tl = [
+    { label: '현재', desc: `나이 ${currentAge}세 · 지금까지 ${paidYears}년 납입 완료` },
+    { label: `${retireAge}세 은퇴`, desc: `총 ${totalYears}년 납입 · 국민연금 신청 가능` },
+    { label: '수령 개시', desc: `만 65세부터 월 <strong>${fw(monthlyBenefit)}</strong> 수령 시작` },
+    { label: '10년 수령', desc: `누적 ${fmw(monthlyBenefit * 12 * 10)} 수령` },
+    { label: '20년 수령', desc: `누적 ${fmw(monthlyBenefit * 12 * 20)} 수령` },
+  ];
+
+  document.getElementById('timeline').innerHTML = tl.map(t => `
+    <div class="tl-item">
+      <div class="tl-dot"></div>
+      <div class="tl-content"><strong>${t.label}</strong> — ${t.desc}</div>
+    </div>`).join('');
+
+  document.getElementById('resultBox').style.display = 'block';
+}
+</script>
+</body>
+</html>
