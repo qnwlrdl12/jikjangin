@@ -148,7 +148,7 @@ async function doRemoveBg() {
     if (!removeBgFn) {
       progressMsg.textContent = 'AI 모델 불러오는 중... (첫 실행은 30초~1분 소요)';
       progFill.style.width = '5%';
-      const mod = await import('https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.5/dist/index.mjs');
+      const mod = await import('https://esm.sh/@imgly/background-removal@1.4.5');
       removeBgFn = mod.removeBackground;
       progFill.style.width = '15%';
     }
