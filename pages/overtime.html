@@ -1,7 +1,8 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
+  <script>if(localStorage.getItem('theme')=='light')document.documentElement.classList.add('light')</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>야근수당 계산기 2026 - 직장인닷컴</title>
   <meta name="description" content="2026년 야근수당 계산기. 연장근로수당·야간수당·휴일근로수당을 한번에 계산하세요. 주52시간제 기준 반영.">
@@ -208,5 +209,6 @@ function calculate() {
 
 document.addEventListener('keydown', e => { if (e.key === 'Enter') liveCalc(); });
 </script>
+<script src="../js/theme.js"></script>
 </body>
 </html>

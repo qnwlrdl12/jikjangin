@@ -1,7 +1,8 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
+  <script>if(localStorage.getItem('theme')=='light')document.documentElement.classList.add('light')</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>배경 제거 - 직장인닷컴</title>
   <meta name="description" content="AI가 사진 배경을 자동으로 제거해드립니다. 파일이 서버로 전송되지 않아 안전합니다.">
@@ -205,5 +206,6 @@ function doDownload() {
 window.removeBg = doRemoveBg;
 window.download = doDownload;
 </script>
+<script src="../js/theme.js"></script>
 </body>
 </html>

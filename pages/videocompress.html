@@ -1,7 +1,8 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
+  <script>if(localStorage.getItem('theme')=='light')document.documentElement.classList.add('light')</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>동영상 용량 줄이기 - 직장인닷컴</title>
   <meta name="description" content="동영상 파일을 브라우저에서 바로 압축. 서버로 전송되지 않아 안전합니다.">
@@ -295,5 +296,6 @@ function formatSize(bytes) {
   return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
 }
 </script>
+<script src="../js/theme.js"></script>
 </body>
 </html>

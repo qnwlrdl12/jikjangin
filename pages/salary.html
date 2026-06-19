@@ -1,7 +1,8 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
+  <script>if(localStorage.getItem('theme')=='light')document.documentElement.classList.add('light')</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>연봉 실수령액 계산기 2026 - 직장인닷컴</title>
   <meta name="description" content="2026년 연봉 실수령액 계산기. 국민연금 4.75%, 건강보험 3.595% 등 2026년 최신 4대보험 요율 반영.">
@@ -568,5 +569,6 @@ document.getElementById('annual').addEventListener('keydown', e => {
   if (e.key === 'Enter') liveCalc();
 });
 </script>
+<script src="../js/theme.js"></script>
 </body>
 </html>

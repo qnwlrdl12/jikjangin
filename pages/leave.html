@@ -1,7 +1,8 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
+  <script>if(localStorage.getItem('theme')=='light')document.documentElement.classList.add('light')</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>연차 계산기 2026 - 직장인닷컴</title>
   <meta name="description" content="2026년 기준 연차 발생일수 자동계산 + 연차수당 계산기. 근로기준법 제60조 기준.">
@@ -308,5 +309,6 @@ function calcPay() {
 // initial
 calcEarn();
 </script>
+<script src="../js/theme.js"></script>
 </body>
 </html>

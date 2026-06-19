@@ -1,7 +1,8 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
+  <script>if(localStorage.getItem('theme')=='light')document.documentElement.classList.add('light')</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>이미지 변환기 - 직장인닷컴</title>
   <meta name="description" content="PNG, JPG, WebP 이미지 포맷 무료 변환. 파일이 서버로 전송되지 않아 안전합니다.">
@@ -207,5 +208,6 @@ function formatSize(bytes) {
   return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
 }
 </script>
+<script src="../js/theme.js"></script>
 </body>
 </html>

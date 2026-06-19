@@ -1,7 +1,8 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
+  <script>if(localStorage.getItem('theme')=='light')document.documentElement.classList.add('light')</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>사직서 / 경위서 생성기 - 직장인닷컴</title>
   <meta name="description" content="사직서, 경위서, 시말서를 온라인에서 바로 작성하고 다운로드하세요. 서식 자동 완성.">
@@ -431,5 +432,6 @@ const today = new Date().toISOString().slice(0, 10);
 
 renderDoc();
 </script>
+<script src="../js/theme.js"></script>
 </body>
 </html>

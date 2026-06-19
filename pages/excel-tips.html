@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <script>if(localStorage.getItem('theme')==='light')document.documentElement.classList.add('light')</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>엑셀 함수 & 단축키 꿀팁 - 직장인닷컴</title>
+  <meta name="description" content="직장인이 매일 쓰는 엑셀 필수 함수 TOP 30 + 단축키 모음. VLOOKUP, IF, SUMIF, 피벗테이블 등 실무 예시로 쉽게 정리.">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .tip-wrap { max-width: 780px; margin: 0 auto; }
+    .tip-card { background: var(--card); border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius); padding: 22px 24px; margin-bottom: 14px; }
+    .tip-card h2 { font-size: 1rem; font-weight: 800; color: var(--white); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+    .func-table { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
+    .func-table th { text-align: left; color: var(--text-muted); font-weight: 700; padding: 8px 10px; border-bottom: 2px solid rgba(255,255,255,0.08); font-size: 0.78rem; letter-spacing: 0.05em; text-transform: uppercase; }
+    .func-table td { padding: 10px 10px; border-bottom: 1px solid rgba(255,255,255,0.04); vertical-align: top; line-height: 1.55; }
+    .func-table tr:last-child td { border: none; }
+    .func-table tr:hover td { background: rgba(255,255,255,0.02); }
+    .fn { font-family: 'Courier New', monospace; font-size: 0.85rem; color: var(--primary); font-weight: 700; white-space: nowrap; }
+    .example { font-family: 'Courier New', monospace; font-size: 0.78rem; color: var(--accent); background: rgba(78,205,196,0.08); padding: 2px 7px; border-radius: 5px; display: inline-block; margin-top: 3px; word-break: break-all; }
+    .badge { display: inline-block; font-size: 0.66rem; font-weight: 700; padding: 2px 7px; border-radius: 5px; vertical-align: middle; margin-left: 4px; }
+    .badge-hot { background: rgba(255,107,53,0.15); color: var(--primary); }
+    .badge-new { background: rgba(78,205,196,0.12); color: var(--accent); }
+
+    .shortcut-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .sc-item { display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.03); border-radius: 8px; padding: 10px 12px; font-size: 0.84rem; }
+    .sc-keys { display: flex; gap: 3px; align-items: center; flex-shrink: 0; }
+    .key { display: inline-block; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.18); border-radius: 5px; padding: 3px 8px; font-size: 0.75rem; font-weight: 700; color: var(--white); font-family: inherit; }
+    .sc-desc { color: var(--text-muted); }
+    .plus { color: var(--text-muted); font-size: 0.7rem; }
+
+    .tip-box { background: rgba(255,107,53,0.07); border-left: 3px solid var(--primary); border-radius: 0 8px 8px 0; padding: 12px 16px; margin-top: 10px; font-size: 0.84rem; color: var(--text); line-height: 1.65; }
+    .tip-box strong { color: var(--primary); }
+    .ok-box { background: rgba(46,204,113,0.08); border-left: 3px solid var(--success); border-radius: 0 8px 8px 0; padding: 12px 16px; margin-top: 10px; font-size: 0.84rem; color: var(--text); line-height: 1.65; }
+    .ok-box strong { color: var(--success); }
+
+    /* Search */
+    .search-wrap { position: relative; margin-bottom: 18px; }
+    .search-wrap input { width: 100%; background: var(--card); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 12px 44px 12px 16px; color: var(--white); font-size: 0.95rem; outline: none; font-family: inherit; transition: border-color 0.2s; }
+    .search-wrap input:focus { border-color: var(--primary); }
+    .search-wrap .icon { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-size: 1.1rem; pointer-events: none; }
+
+    .tab-row { display: flex; gap: 8px; margin-bottom: 18px; flex-wrap: wrap; }
+    .tab-btn { padding: 8px 16px; border: none; border-radius: 8px; font-size: 0.85rem; font-weight: 700; cursor: pointer; background: rgba(255,255,255,0.05); color: var(--text-muted); font-family: inherit; transition: all 0.2s; }
+    .tab-btn.active { background: var(--primary); color: #fff; }
+    .tab-btn:hover:not(.active) { background: rgba(255,255,255,0.1); color: var(--white); }
+
+    @media(max-width: 560px) {
+      .shortcut-grid { grid-template-columns: 1fr; }
+      .func-table th:nth-child(3), .func-table td:nth-child(3) { display: none; }
+    }
+  </style>
+</head>
+<body>
+<nav>
+  <a href="../index.html" class="logo">💼 <span>직장인</span>닷컴</a>
+  <ul class="nav-links">
+    <li><a href="../index.html#calculators">계산기</a></li>
+    <li><a href="../index.html#tools">업무도구</a></li>
+    <li><a href="../index.html#games">루팡게임</a></li>
+    <li><a href="../index.html#tests">테스트</a></li>
+    <li><a href="../index.html#info" class="active">정보</a></li>
+  </ul>
+</nav>
+
+<div class="page-header">
+  <div class="breadcrumb"><a href="../index.html">홈</a> › 직장인 정보</div>
+  <h1>📊 엑셀 함수 & 단축키 꿀팁</h1>
+  <p>직장인이 매일 쓰는 필수 함수 30개 + 단축키 모음 — 실무 예시로 바로 써먹기</p>
+</div>
+
+<main>
+  <div class="ad-banner">광고 영역 (Google AdSense)</div>
+
+  <div class="tip-wrap">
+    <div class="tab-row">
+      <button class="tab-btn active" onclick="showSection('functions', this)">📋 필수 함수</button>
+      <button class="tab-btn" onclick="showSection('shortcuts', this)">⌨️ 단축키</button>
+      <button class="tab-btn" onclick="showSection('pivot', this)">🔄 피벗테이블</button>
+      <button class="tab-btn" onclick="showSection('tips', this)">💡 실무 꿀팁</button>
+    </div>
+
+    <!-- 필수 함수 -->
+    <div id="sec-functions">
+      <div class="search-wrap">
+        <input type="text" id="funcSearch" placeholder="함수 이름 또는 기능 검색..." oninput="filterFuncs()">
+        <span class="icon">🔍</span>
+      </div>
+      <div class="tip-card">
+        <h2>📋 자주 쓰는 함수 TOP 30</h2>
+        <table class="func-table" id="funcTable">
+          <thead>
+            <tr><th>함수</th><th>기능</th><th>실무 예시</th></tr>
+          </thead>
+          <tbody id="funcBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 단축키 -->
+    <div id="sec-shortcuts" style="display:none">
+      <div class="tip-card">
+        <h2>⌨️ 필수 단축키 모음</h2>
+        <h3 style="font-size:0.85rem;color:var(--text-muted);margin-bottom:12px;margin-top:4px">🖥️ 기본 작업</h3>
+        <div class="shortcut-grid" id="scBasic"></div>
+        <h3 style="font-size:0.85rem;color:var(--text-muted);margin:16px 0 12px">📊 셀 & 서식</h3>
+        <div class="shortcut-grid" id="scFormat"></div>
+        <h3 style="font-size:0.85rem;color:var(--text-muted);margin:16px 0 12px">🔍 탐색 & 선택</h3>
+        <div class="shortcut-grid" id="scNav"></div>
+        <h3 style="font-size:0.85rem;color:var(--text-muted);margin:16px 0 12px">📈 데이터 & 수식</h3>
+        <div class="shortcut-grid" id="scData"></div>
+      </div>
+    </div>
+
+    <!-- 피벗테이블 -->
+    <div id="sec-pivot" style="display:none">
+      <div class="tip-card">
+        <h2>🔄 피벗테이블 사용법</h2>
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div class="tip-box"><strong>1단계 — 데이터 준비</strong><br>데이터는 반드시 <strong>첫 행에 제목(헤더)</strong>이 있어야 합니다. 빈 행·빈 열 없이 연속된 표 형태로 만드세요. 셀 병합은 금지.</div>
+          <div class="tip-box"><strong>2단계 — 피벗테이블 삽입</strong><br>데이터 내 아무 셀 클릭 → <strong>삽입 탭 → 피벗테이블</strong> → 새 워크시트 선택 → 확인</div>
+          <div class="tip-box"><strong>3단계 — 필드 배치</strong><br>오른쪽 필드 목록에서 항목을 드래그하세요:<br>• <strong>행 영역</strong>: 분류 기준 (예: 부서명, 날짜)<br>• <strong>값 영역</strong>: 합계·평균을 계산할 숫자 데이터<br>• <strong>열 영역</strong>: 교차 비교할 항목<br>• <strong>필터 영역</strong>: 전체 데이터 필터링</div>
+          <div class="tip-box"><strong>4단계 — 집계 방식 변경</strong><br>값 영역 항목 클릭 → <strong>값 필드 설정</strong> → 합계 / 평균 / 개수 / 최대·최소 선택</div>
+          <div class="ok-box"><strong>꿀팁:</strong> 피벗테이블 → 슬라이서 삽입하면 버튼 클릭으로 필터링 가능. 원본 데이터 변경 후 <strong>Alt + F5</strong>로 새로 고침.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 실무 꿀팁 -->
+    <div id="sec-tips" style="display:none">
+      <div class="tip-card">
+        <h2>💡 모르면 손해 보는 실무 꿀팁</h2>
+        <div style="display:flex;flex-direction:column;gap:12px" id="tipsContent"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ad-banner" style="margin-top:24px">광고 영역 (Google AdSense)</div>
+</main>
+
+<footer>
+  <p><strong>직장인닷컴</strong> — 모든 정보는 참고용입니다.</p>
+</footer>
+
+<script src="../js/theme.js"></script>
+<script>
+const FUNCS = [
+  { fn:'SUM',          cat:'기본',  desc:'범위 합계',                        ex:'=SUM(B2:B100)' },
+  { fn:'AVERAGE',      cat:'기본',  desc:'범위 평균',                        ex:'=AVERAGE(C2:C50)' },
+  { fn:'COUNT',        cat:'기본',  desc:'숫자 셀 개수',                     ex:'=COUNT(A2:A100)' },
+  { fn:'COUNTA',       cat:'기본',  desc:'비어있지 않은 셀 개수',             ex:'=COUNTA(A2:A100)' },
+  { fn:'IF',           cat:'조건',  desc:'조건에 따라 다른 값 반환',          ex:'=IF(A2>90,"우수","보통")', hot:true },
+  { fn:'IFS',          cat:'조건',  desc:'여러 조건 순차 처리 (중첩 IF 대체)', ex:'=IFS(A2>90,"S",A2>70,"A",TRUE,"B")' },
+  { fn:'SUMIF',        cat:'조건',  desc:'조건에 맞는 셀만 합계',             ex:'=SUMIF(A2:A100,"서울",B2:B100)', hot:true },
+  { fn:'SUMIFS',       cat:'조건',  desc:'여러 조건으로 합계',                ex:'=SUMIFS(C2:C100,A2:A100,"서울",B2:B100,"1분기")' },
+  { fn:'COUNTIF',      cat:'조건',  desc:'조건에 맞는 셀 개수',              ex:'=COUNTIF(A2:A100,"완료")' },
+  { fn:'COUNTIFS',     cat:'조건',  desc:'여러 조건으로 개수',               ex:'=COUNTIFS(A2:A100,"서울",B2:B100,">=1000")' },
+  { fn:'VLOOKUP',      cat:'검색',  desc:'열 기준으로 값 찾기',              ex:'=VLOOKUP(D2,A:C,2,0)', hot:true },
+  { fn:'HLOOKUP',      cat:'검색',  desc:'행 기준으로 값 찾기',              ex:'=HLOOKUP(D1,A1:Z3,2,0)' },
+  { fn:'XLOOKUP',      cat:'검색',  desc:'VLOOKUP 업그레이드판 (양방향)', ex:'=XLOOKUP(D2,A:A,B:B,"없음")', isNew:true },
+  { fn:'INDEX',        cat:'검색',  desc:'행·열 번호로 셀 값 반환',         ex:'=INDEX(A2:C100,3,2)' },
+  { fn:'MATCH',        cat:'검색',  desc:'값의 위치(순번) 반환',            ex:'=MATCH("홍길동",A2:A100,0)' },
+  { fn:'INDEX+MATCH',  cat:'검색',  desc:'VLOOKUP 대체 — 왼쪽 검색 가능', ex:'=INDEX(B2:B100,MATCH(D2,A2:A100,0))' },
+  { fn:'IFERROR',      cat:'오류',  desc:'오류 시 대체값 표시',             ex:'=IFERROR(VLOOKUP(D2,A:C,2,0),"미등록")', hot:true },
+  { fn:'LEFT/RIGHT/MID',cat:'텍스트',desc:'문자열 왼쪽/오른쪽/중간 추출', ex:'=LEFT(A2,3) | =MID(A2,2,4)' },
+  { fn:'LEN',          cat:'텍스트',desc:'문자 개수 반환',                  ex:'=LEN(A2)' },
+  { fn:'TRIM',         cat:'텍스트',desc:'앞뒤 공백 제거',                  ex:'=TRIM(A2)' },
+  { fn:'SUBSTITUTE',   cat:'텍스트',desc:'문자열 치환',                     ex:'=SUBSTITUTE(A2,"주식회사","(주)")' },
+  { fn:'TEXT',         cat:'텍스트',desc:'숫자를 서식 있는 텍스트로 변환',  ex:'=TEXT(A2,"#,##0원") | =TEXT(TODAY(),"yyyy-mm-dd")' },
+  { fn:'CONCATENATE / &',cat:'텍스트',desc:'여러 셀 합치기',              ex:'=A2&" "&B2 | =CONCAT(A2:C2)' },
+  { fn:'TODAY / NOW',  cat:'날짜',  desc:'오늘 날짜 / 현재 날짜+시간',     ex:'=TODAY() | =NOW()' },
+  { fn:'DATEDIF',      cat:'날짜',  desc:'두 날짜 차이 (년/월/일)',         ex:'=DATEDIF(A2,TODAY(),"Y") → 근속 연수' },
+  { fn:'WORKDAY',      cat:'날짜',  desc:'영업일 기준 날짜 계산',           ex:'=WORKDAY(TODAY(),10) → 10영업일 후' },
+  { fn:'ROUND/ROUNDUP/ROUNDDOWN',cat:'수학',desc:'반올림/올림/버림',      ex:'=ROUND(A2,0) | =ROUNDUP(A2,-3)' },
+  { fn:'MOD',          cat:'수학',  desc:'나머지 반환',                     ex:'=MOD(A2,2)=0 → 짝수 확인' },
+  { fn:'LARGE/SMALL',  cat:'통계',  desc:'n번째 크기 값 반환',              ex:'=LARGE(A2:A100,3) → 3위 값' },
+  { fn:'RANK',         cat:'통계',  desc:'값의 순위 반환',                  ex:'=RANK(B2,B$2:B$100,0) → 내림차순 순위' },
+];
+
+const SHORTCUTS = {
+  basic: [
+    { keys:['Ctrl','C'],      desc:'복사' },
+    { keys:['Ctrl','V'],      desc:'붙여넣기' },
+    { keys:['Ctrl','X'],      desc:'잘라내기' },
+    { keys:['Ctrl','Z'],      desc:'실행 취소' },
+    { keys:['Ctrl','Y'],      desc:'다시 실행' },
+    { keys:['Ctrl','S'],      desc:'저장' },
+    { keys:['Ctrl','W'],      desc:'파일 닫기' },
+    { keys:['Ctrl','N'],      desc:'새 통합 문서' },
+    { keys:['Ctrl','P'],      desc:'인쇄' },
+    { keys:['F12'],           desc:'다른 이름으로 저장' },
+  ],
+  format: [
+    { keys:['Ctrl','B'],       desc:'굵게' },
+    { keys:['Ctrl','I'],       desc:'기울임꼴' },
+    { keys:['Ctrl','U'],       desc:'밑줄' },
+    { keys:['Ctrl','1'],       desc:'셀 서식 대화상자' },
+    { keys:['Ctrl','Shift','$'], desc:'통화 서식 (#,##0)' },
+    { keys:['Ctrl','Shift','%'], desc:'백분율 서식' },
+    { keys:['Ctrl','Shift','~'], desc:'일반 숫자 서식' },
+    { keys:['Alt','H','A','C'],  desc:'가운데 맞춤' },
+    { keys:['Alt','Enter'],    desc:'셀 안에서 줄바꿈' },
+    { keys:['Ctrl','D'],       desc:'아래 셀에 위 내용 채우기' },
+  ],
+  nav: [
+    { keys:['Ctrl','↑↓←→'],   desc:'데이터 끝으로 이동' },
+    { keys:['Ctrl','Home'],    desc:'A1 셀로 이동' },
+    { keys:['Ctrl','End'],     desc:'마지막 데이터 셀로 이동' },
+    { keys:['Ctrl','F'],       desc:'찾기' },
+    { keys:['Ctrl','H'],       desc:'찾기 및 바꾸기' },
+    { keys:['Ctrl','G'],       desc:'이동 (특수 셀 선택)' },
+    { keys:['Ctrl','Shift','↑↓←→'], desc:'데이터 끝까지 선택' },
+    { keys:['Ctrl','Shift','End'],   desc:'마지막 셀까지 선택' },
+    { keys:['Ctrl','A'],       desc:'전체 선택' },
+    { keys:['Ctrl','Space'],   desc:'열 전체 선택' },
+  ],
+  data: [
+    { keys:['F2'],             desc:'셀 편집 모드' },
+    { keys:['F4'],             desc:'절대참조 ↔ 상대참조 전환 ($)' },
+    { keys:['F5'],             desc:'이동 대화상자' },
+    { keys:['Alt','='],        desc:'자동 합계 (SUM 입력)' },
+    { keys:['Ctrl','T'],       desc:'표(Table) 만들기' },
+    { keys:['Ctrl','Shift','+'], desc:'행·열 삽입' },
+    { keys:['Ctrl','-'],       desc:'행·열 삭제' },
+    { keys:['Alt','F1'],       desc:'차트 즉시 삽입' },
+    { keys:['Ctrl','Shift','L'], desc:'자동 필터 켜기/끄기' },
+    { keys:['Alt','F5'],       desc:'피벗테이블 새로 고침' },
+  ],
+};
+
+const TIPS = [
+  { icon:'⚡', title:'VLOOKUP 대신 XLOOKUP', body:'VLOOKUP은 왼쪽 열만 기준으로 삼을 수 있고 열 번호가 바뀌면 망가집니다. <strong>XLOOKUP</strong>은 방향 제한 없이 유연하고, 결과가 없을 때 표시할 값도 지정 가능합니다 (Microsoft 365, Excel 2021 이상).' },
+  { icon:'🔒', title:'절대참조 ($) 반드시 사용하기', body:'수식을 드래그로 복사할 때 기준 범위가 움직이면 오류가 납니다. 고정할 셀을 선택 후 <strong>F4</strong>를 누르면 $A$1 형태로 절대참조 됩니다. 혼합참조($A1, A$1)도 F4를 여러 번 눌러 선택할 수 있습니다.' },
+  { icon:'📋', title:'Ctrl+T로 표(Table) 만들기', body:'데이터를 <strong>Ctrl+T</strong>로 표로 변환하면: ① 새 행 추가 시 수식 자동 확장 ② 필터 자동 추가 ③ VLOOKUP 범위 자동 조정. 구조적 참조(=표1[금액])로 수식이 훨씬 읽기 쉬워집니다.' },
+  { icon:'🔍', title:'Ctrl+Shift+L — 자동 필터의 빠른 토글', body:'긴 데이터에서 특정 값을 찾을 때 <strong>Ctrl+Shift+L</strong>로 필터를 켜고, 각 열의 드롭다운에서 원하는 값을 선택하세요. 숫자 필터 → "상위 10"으로 TOP N 데이터도 바로 추출됩니다.' },
+  { icon:'🎨', title:'조건부 서식으로 시각화', body:'홈 탭 → 조건부 서식 → <strong>데이터 막대·색조·아이콘 집합</strong>으로 숫자를 시각화하세요. "값보다 큰 셀 강조"로 기준치 초과 데이터를 빨간색으로 표시하는 것도 실무에서 자주 씁니다.' },
+  { icon:'⚙️', title:'이름 정의로 범위에 이름 붙이기', body:'수식 탭 → 이름 관리자에서 범위에 이름을 붙이면 <code>=SUM(B2:B100)</code> 대신 <code>=SUM(매출금액)</code>처럼 읽기 쉬운 수식을 만들 수 있습니다. 다른 시트에서 참조할 때도 유용합니다.' },
+  { icon:'🔢', title:'IFERROR로 깔끔한 표 만들기', body:'VLOOKUP 등의 함수가 값을 못 찾으면 #N/A 오류가 표시됩니다. <code>=IFERROR(VLOOKUP(…),"미등록")</code>처럼 감싸면 오류 대신 원하는 텍스트가 표시됩니다.' },
+  { icon:'📅', title:'날짜 자동 계산', body:'근속 연수: <code>=DATEDIF(입사일,TODAY(),"Y")</code><br>납기까지 영업일: <code>=NETWORKDAYS(TODAY(),마감일)-1</code><br>월말 날짜: <code>=EOMONTH(A2,0)</code><br>날짜 → 요일: <code>=TEXT(A2,"aaa")</code>' },
+  { icon:'⬆️', title:'Ctrl+방향키로 초고속 이동', body:'1만 행 데이터에서 맨 아래로 이동할 때 마우스 스크롤은 너무 느립니다. <strong>Ctrl+↓</strong>를 누르면 데이터가 있는 마지막 셀로 한 번에 이동. <strong>Ctrl+Shift+↓</strong>는 그 범위 전체 선택입니다.' },
+  { icon:'✂️', title:'데이터 빠른 분리 — 텍스트 나누기', body:'하나의 셀에 "홍길동/서울/영업팀"처럼 합쳐진 데이터는 <strong>데이터 탭 → 텍스트 나누기</strong>로 구분자를 지정해 분리. 또는 Flash Fill(Ctrl+E)로 패턴을 인식해 자동 분리할 수 있습니다.' },
+];
+
+// Build functions table
+function renderFuncs(list) {
+  document.getElementById('funcBody').innerHTML = list.map(f => `
+    <tr>
+      <td><span class="fn">=${f.fn}</span>${f.hot ? '<span class="badge badge-hot">필수</span>' : ''}${f.isNew ? '<span class="badge badge-new">신규</span>' : ''}</td>
+      <td>${f.desc} <span style="font-size:0.74rem;color:var(--text-muted)">[${f.cat}]</span></td>
+      <td><span class="example">${f.ex}</span></td>
+    </tr>`).join('');
+}
+renderFuncs(FUNCS);
+
+function filterFuncs() {
+  const q = document.getElementById('funcSearch').value.toLowerCase();
+  renderFuncs(q ? FUNCS.filter(f => f.fn.toLowerCase().includes(q) || f.desc.includes(q) || f.cat.includes(q)) : FUNCS);
+}
+
+// Build shortcuts
+function scHTML(list) {
+  return list.map(s => `
+    <div class="sc-item">
+      <div class="sc-keys">${s.keys.map((k,i) => `${i>0?'<span class="plus">+</span>':''}<span class="key">${k}</span>`).join('')}</div>
+      <div class="sc-desc">${s.desc}</div>
+    </div>`).join('');
+}
+document.getElementById('scBasic').innerHTML  = scHTML(SHORTCUTS.basic);
+document.getElementById('scFormat').innerHTML = scHTML(SHORTCUTS.format);
+document.getElementById('scNav').innerHTML    = scHTML(SHORTCUTS.nav);
+document.getElementById('scData').innerHTML   = scHTML(SHORTCUTS.data);
+
+// Build tips
+document.getElementById('tipsContent').innerHTML = TIPS.map(t => `
+  <div class="tip-box">
+    <strong>${t.icon} ${t.title}</strong><br>${t.body}
+  </div>`).join('');
+
+// Tab switching
+function showSection(name, btn) {
+  ['functions','shortcuts','pivot','tips'].forEach(s => {
+    document.getElementById('sec-' + s).style.display = s === name ? '' : 'none';
+  });
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+</script>
+</body>
+</html>

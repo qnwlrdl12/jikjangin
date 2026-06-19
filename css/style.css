@@ -532,6 +532,183 @@ footer strong { color: var(--primary); }
   .res-toggle, .res-rows { padding-left: 18px; padding-right: 18px; }
 }
 
+/* ═══════════════════════════════════
+   THEME TOGGLE BUTTON
+═══════════════════════════════════ */
+.theme-toggle-btn {
+  background: none;
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 8px;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 6px 10px;
+  transition: background 0.2s, border-color 0.2s;
+  flex-shrink: 0;
+  font-family: inherit;
+}
+.theme-toggle-btn:hover {
+  background: rgba(255,255,255,0.09);
+  border-color: rgba(255,255,255,0.32);
+}
+html.light .theme-toggle-btn {
+  border-color: rgba(0,0,0,0.14);
+}
+html.light .theme-toggle-btn:hover {
+  background: rgba(0,0,0,0.06);
+  border-color: rgba(0,0,0,0.28);
+}
+
+/* ═══════════════════════════════════
+   LIGHT MODE
+═══════════════════════════════════ */
+html.light {
+  --dark:       #f5f5fa;
+  --dark2:      #eaeaf2;
+  --card:       #ffffff;
+  --text:       #2c2c3e;
+  --text-muted: #6a6a82;
+  --white:      #1a1a2e;
+  --shadow:     0 4px 20px rgba(0,0,0,0.09);
+}
+
+html.light nav {
+  box-shadow: 0 1px 10px rgba(0,0,0,0.07);
+  border-bottom-color: rgba(0,0,0,0.08);
+}
+html.light .nav-links a.active { color: #fff; }
+
+/* Card borders */
+html.light .card { border-color: rgba(0,0,0,0.09); }
+html.light .card:hover { border-color: rgba(255,107,53,0.3); box-shadow: 0 6px 24px rgba(0,0,0,0.1); }
+html.light .tool-card,
+html.light .calc-info,
+html.light .input-panel,
+html.light .result-panel { border-color: rgba(0,0,0,0.09); }
+
+/* Tool card inputs */
+html.light .tool-card input,
+html.light .tool-card select {
+  background: #f0f0f8;
+  border-color: rgba(0,0,0,0.12);
+  color: var(--white);
+}
+html.light .tool-card select option { background: #fff; color: #1a1a2e; }
+
+/* Num / Sm / Date wraps */
+html.light .num-wrap,
+html.light .sm-wrap,
+html.light .date-wrap { background: #f0f0f8; border-color: rgba(0,0,0,0.12); }
+html.light .num-wrap:focus-within,
+html.light .sm-wrap:focus-within,
+html.light .date-wrap:focus-within { border-color: var(--primary); background: rgba(255,107,53,0.04); }
+html.light .num-wrap input,
+html.light .sm-wrap input,
+html.light .date-wrap input[type="date"] { color: var(--white); }
+html.light .num-wrap input::placeholder,
+html.light .sm-wrap input::placeholder { color: rgba(0,0,0,0.22); }
+html.light .date-wrap input[type="date"]::-webkit-calendar-picker-indicator { filter: none; opacity: 0.5; }
+
+/* Pills */
+html.light .pill { border-color: rgba(0,0,0,0.12); background: rgba(0,0,0,0.04); }
+html.light .pill:hover { border-color: rgba(0,0,0,0.25); color: var(--white); }
+
+/* Result panel internals */
+html.light .res-hero { border-bottom-color: rgba(0,0,0,0.08); }
+html.light .res-toggle { border-top-color: rgba(0,0,0,0.07); }
+html.light .res-row { border-bottom-color: rgba(0,0,0,0.06); }
+html.light .res-row.hi { border-top-color: rgba(255,107,53,0.25); }
+html.light .res-row .rv { color: var(--white); }
+html.light .calc-info .ci-row { border-bottom-color: rgba(0,0,0,0.06); }
+
+/* Ad banner */
+html.light .ad-banner { background: rgba(0,0,0,0.02); border-color: rgba(0,0,0,0.09); }
+
+/* Footer */
+html.light footer { border-top-color: rgba(0,0,0,0.08); }
+
+/* Page header */
+html.light .page-header { border-bottom-color: rgba(0,0,0,0.08); }
+
+/* Hero (sub-page) */
+html.light .hero { background: linear-gradient(135deg, var(--dark2) 0%, #f0eafb 100%); }
+
+/* Shared result-box */
+html.light .result-box { border-color: rgba(255,107,53,0.25); }
+html.light .result-row { border-bottom-color: rgba(0,0,0,0.06); }
+html.light .result-row .value { color: var(--white); }
+
+/* ── Generic page-specific overrides (use !important to win over inline <style>) ── */
+
+/* Inputs */
+html.light input:not([type="range"]):not([type="checkbox"]):not([type="radio"]),
+html.light select,
+html.light textarea {
+  background: #f0f0f8 !important;
+  border-color: rgba(0,0,0,0.12) !important;
+  color: var(--white) !important;
+}
+html.light select option { background: #fff !important; color: #1a1a2e !important; }
+
+/* Table borders */
+html.light th { border-bottom-color: rgba(0,0,0,0.1) !important; border-color: rgba(0,0,0,0.1) !important; }
+html.light td { border-bottom-color: rgba(0,0,0,0.06) !important; border-color: rgba(0,0,0,0.06) !important; }
+
+/* Subtle background boxes (notice, info, result items) that use rgba(255,255,255,X) */
+html.light .notice,
+html.light [class*="notice"],
+html.light [class*="info-box"],
+html.light [class*="alert-box"],
+html.light [class*="ok-box"] { border-left-color: var(--primary); }
+
+/* Pomodoro / stat items with rgba(255,255,255,X) bg */
+html.light .stat-item { background: rgba(0,0,0,0.04) !important; }
+html.light .dot { background: rgba(0,0,0,0.1) !important; }
+html.light .dot.done { background: var(--primary) !important; }
+html.light .dot.current { background: var(--secondary) !important; }
+html.light .mode-tab { background: rgba(0,0,0,0.05) !important; color: var(--text-muted) !important; }
+html.light .mode-tab.active { background: var(--primary) !important; color: #fff !important; }
+html.light .mode-tab:hover:not(.active) { background: rgba(0,0,0,0.08) !important; color: var(--white) !important; }
+html.light .ring-bg { stroke: rgba(0,0,0,0.08) !important; }
+html.light .btn-reset,
+html.light .btn-skip { background: rgba(0,0,0,0.06) !important; }
+html.light .btn-reset:hover,
+html.light .btn-skip:hover { background: rgba(0,0,0,0.1) !important; color: var(--white) !important; }
+html.light .setting-row { border-bottom-color: rgba(0,0,0,0.07) !important; }
+
+/* Drop zones */
+html.light .drop-zone { border-color: rgba(0,0,0,0.14) !important; background: rgba(0,0,0,0.02) !important; }
+html.light .drop-zone:hover { border-color: var(--primary) !important; background: rgba(255,107,53,0.04) !important; }
+html.light .drop-text { color: var(--text) !important; }
+
+/* PDF / file items */
+html.light .pdf-item,
+html.light .file-item { border-color: rgba(0,0,0,0.09) !important; }
+html.light .pi-name { color: var(--white) !important; }
+
+/* Toggle switch slider in parental-leave */
+html.light .slider { background: rgba(0,0,0,0.15) !important; }
+html.light .toggle-row { border-color: rgba(0,0,0,0.1) !important; background: rgba(0,0,0,0.03) !important; }
+
+/* Month rows in parental-leave */
+html.light .month-row { background: rgba(0,0,0,0.03) !important; border-color: rgba(0,0,0,0.08) !important; }
+html.light .month-row.active { background: rgba(78,205,196,0.07) !important; border-color: rgba(78,205,196,0.2) !important; }
+
+/* Compare grid in salary-negotiation */
+html.light .compare-col { background: rgba(0,0,0,0.04) !important; }
+html.light .compare-col.right { background: rgba(255,215,0,0.06) !important; }
+html.light .diff-box { background: rgba(46,204,113,0.06) !important; border-color: rgba(46,204,113,0.15) !important; }
+html.light .diff-row { border-bottom-color: rgba(0,0,0,0.06) !important; }
+
+/* Result items in unemployment */
+html.light .result-item { background: rgba(0,0,0,0.04) !important; }
+
+/* Preview card in resignation — already white, ensure text is dark */
+html.light .preview-card { background: #fff !important; color: #222 !important; box-shadow: 0 2px 16px rgba(0,0,0,0.08) !important; }
+html.light .preview-card .doc-title { color: #111 !important; }
+html.light .preview-card .doc-body { color: #222 !important; }
+
 /* RESPONSIVE */
 @media (max-width: 768px) {
   .nav-links { display: none; }

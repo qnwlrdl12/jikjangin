@@ -1,7 +1,8 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
+  <script>if(localStorage.getItem('theme')=='light')document.documentElement.classList.add('light')</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>색상 팔레트 생성기 - 직장인닷컴</title>
   <meta name="description" content="색상 선택 시 HEX/RGB/HSL/CMYK 변환 + 명암 팔레트 + 보색/유사색 자동 생성.">
@@ -214,5 +215,6 @@ function randomColor(){
 
 update('#FF6B35');
 </script>
+<script src="../js/theme.js"></script>
 </body>
 </html>

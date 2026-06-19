@@ -1,7 +1,8 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
+  <script>if(localStorage.getItem('theme')=='light')document.documentElement.classList.add('light')</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>회의 비용 타이머 - 직장인닷컴</title>
   <meta name="description" content="회의에 낭비되는 비용을 실시간으로 계산하는 타이머. 참석 인원과 평균 연봉을 입력하면 회의 비용이 초 단위로 올라갑니다.">
@@ -341,5 +342,6 @@ function resetTimer() {
 // 초기 표시
 updateDisplay();
 </script>
+<script src="../js/theme.js"></script>
 </body>
 </html>

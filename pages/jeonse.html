@@ -1,7 +1,8 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
+  <script>if(localStorage.getItem('theme')=='light')document.documentElement.classList.add('light')</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>전세/월세 계산기 2026 - 직장인닷컴</title>
   <meta name="description" content="전세→월세, 월세→전세 환산 및 전세vs월세 비교 계산기. 2026년 전월세 전환율 기준.">
@@ -379,5 +380,6 @@ function calcCmp() {
   document.getElementById('res-cmp-filled').style.display = 'flex';
 }
 </script>
+<script src="../js/theme.js"></script>
 </body>
 </html>

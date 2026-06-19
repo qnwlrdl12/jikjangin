@@ -1,7 +1,8 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
+  <script>if(localStorage.getItem('theme')=='light')document.documentElement.classList.add('light')</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PDF 합치기 / 페이지 추출 - 직장인닷컴</title>
   <meta name="description" content="여러 PDF를 하나로 합치거나 원하는 페이지만 추출하세요. 서버 전송 없이 브라우저에서 바로 처리.">
@@ -303,5 +304,6 @@ window.doExtract = async () => {
   btn.disabled = false;
 };
 </script>
+<script src="../js/theme.js"></script>
 </body>
 </html>

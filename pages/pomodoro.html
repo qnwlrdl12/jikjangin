@@ -1,7 +1,8 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
+  <script>if(localStorage.getItem('theme')=='light')document.documentElement.classList.add('light')</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>뽀모도로 타이머 - 직장인닷컴</title>
   <meta name="description" content="집중 25분 + 휴식 5분 뽀모도로 타이머. 업무 집중력을 높이고 번아웃을 예방하세요.">
@@ -317,5 +318,6 @@ state.remaining = cfg.work * 60;
 state.total = state.remaining;
 render();
 </script>
+<script src="../js/theme.js"></script>
 </body>
 </html>

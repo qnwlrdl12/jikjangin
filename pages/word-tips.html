@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <script>if(localStorage.getItem('theme')==='light')document.documentElement.classList.add('light')</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>워드 꿀팁 & 단축키 - 직장인닷컴</title>
+  <meta name="description" content="직장인을 위한 MS Word 필수 기능 & 단축키 모음. 스타일, 목차 자동생성, 비교, 추적 변경 등 실무에서 바로 쓰는 꿀팁.">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .tip-wrap { max-width: 780px; margin: 0 auto; }
+    .tip-card { background: var(--card); border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius); padding: 22px 24px; margin-bottom: 14px; }
+    .tip-card h2 { font-size: 1rem; font-weight: 800; color: var(--white); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+
+    .shortcut-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .sc-item { display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.03); border-radius: 8px; padding: 10px 12px; font-size: 0.84rem; }
+    .sc-keys { display: flex; gap: 3px; align-items: center; flex-shrink: 0; }
+    .key { display: inline-block; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.18); border-radius: 5px; padding: 3px 8px; font-size: 0.75rem; font-weight: 700; color: var(--white); font-family: inherit; }
+    .sc-desc { color: var(--text-muted); line-height: 1.4; }
+    .plus { color: var(--text-muted); font-size: 0.7rem; }
+
+    .tip-section { display: flex; flex-direction: column; gap: 12px; }
+    .tip-box { background: rgba(78,205,196,0.07); border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0; padding: 13px 16px; font-size: 0.85rem; color: var(--text); line-height: 1.7; }
+    .tip-box strong { color: var(--accent); }
+    .warn-box { background: rgba(255,107,53,0.07); border-left: 3px solid var(--primary); border-radius: 0 8px 8px 0; padding: 13px 16px; font-size: 0.85rem; color: var(--text); line-height: 1.7; }
+    .warn-box strong { color: var(--primary); }
+    .ok-box { background: rgba(46,204,113,0.07); border-left: 3px solid var(--success); border-radius: 0 8px 8px 0; padding: 13px 16px; font-size: 0.85rem; color: var(--text); line-height: 1.7; }
+    .ok-box strong { color: var(--success); }
+
+    .step-list { counter-reset: step; display: flex; flex-direction: column; gap: 10px; }
+    .step-item { display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; background: rgba(255,255,255,0.03); border-radius: 10px; font-size: 0.85rem; line-height: 1.65; }
+    .step-num { counter-increment: step; background: var(--accent); color: #1a1a2e; border-radius: 50%; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; font-size: 0.78rem; font-weight: 900; flex-shrink: 0; }
+    .step-body { color: var(--text); }
+    .step-body strong { color: var(--white); }
+
+    .feature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .feat-item { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 14px; }
+    .feat-icon { font-size: 1.5rem; margin-bottom: 6px; }
+    .feat-title { font-size: 0.88rem; font-weight: 700; color: var(--white); margin-bottom: 4px; }
+    .feat-desc { font-size: 0.78rem; color: var(--text-muted); line-height: 1.55; }
+
+    .tab-row { display: flex; gap: 8px; margin-bottom: 18px; flex-wrap: wrap; }
+    .tab-btn { padding: 8px 16px; border: none; border-radius: 8px; font-size: 0.85rem; font-weight: 700; cursor: pointer; background: rgba(255,255,255,0.05); color: var(--text-muted); font-family: inherit; transition: all 0.2s; }
+    .tab-btn.active { background: var(--accent); color: #1a1a2e; }
+    .tab-btn:hover:not(.active) { background: rgba(255,255,255,0.1); color: var(--white); }
+
+    @media(max-width: 560px) {
+      .shortcut-grid { grid-template-columns: 1fr; }
+      .feature-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<nav>
+  <a href="../index.html" class="logo">💼 <span>직장인</span>닷컴</a>
+  <ul class="nav-links">
+    <li><a href="../index.html#calculators">계산기</a></li>
+    <li><a href="../index.html#tools">업무도구</a></li>
+    <li><a href="../index.html#games">루팡게임</a></li>
+    <li><a href="../index.html#tests">테스트</a></li>
+    <li><a href="../index.html#info" class="active">정보</a></li>
+  </ul>
+</nav>
+
+<div class="page-header">
+  <div class="breadcrumb"><a href="../index.html">홈</a> › 직장인 정보</div>
+  <h1>📝 워드 꿀팁 & 단축키</h1>
+  <p>보고서·기안서·계획서를 빠르게 만드는 MS Word 실무 핵심 기능 모음</p>
+</div>
+
+<main>
+  <div class="ad-banner">광고 영역 (Google AdSense)</div>
+
+  <div class="tip-wrap">
+    <div class="tab-row">
+      <button class="tab-btn active" onclick="showSection('shortcuts', this)">⌨️ 단축키</button>
+      <button class="tab-btn" onclick="showSection('styles', this)">🎨 스타일 & 목차</button>
+      <button class="tab-btn" onclick="showSection('review', this)">✏️ 검토 & 협업</button>
+      <button class="tab-btn" onclick="showSection('tips', this)">💡 꿀팁 모음</button>
+    </div>
+
+    <!-- 단축키 -->
+    <div id="sec-shortcuts">
+      <div class="tip-card">
+        <h2>⌨️ 워드 필수 단축키</h2>
+        <h3 style="font-size:0.85rem;color:var(--text-muted);margin-bottom:12px">📝 기본 편집</h3>
+        <div class="shortcut-grid" id="scEdit"></div>
+        <h3 style="font-size:0.85rem;color:var(--text-muted);margin:16px 0 12px">🎨 서식</h3>
+        <div class="shortcut-grid" id="scFormat"></div>
+        <h3 style="font-size:0.85rem;color:var(--text-muted);margin:16px 0 12px">🔍 탐색 & 선택</h3>
+        <div class="shortcut-grid" id="scNav"></div>
+        <h3 style="font-size:0.85rem;color:var(--text-muted);margin:16px 0 12px">📄 문서 작업</h3>
+        <div class="shortcut-grid" id="scDoc"></div>
+      </div>
+    </div>
+
+    <!-- 스타일 & 목차 -->
+    <div id="sec-styles" style="display:none">
+      <div class="tip-card">
+        <h2>🎨 스타일 & 자동 목차 만들기</h2>
+        <div class="tip-section">
+          <div class="warn-box"><strong>⚠️ 먼저 스타일을 사용해야 목차가 생성됩니다</strong><br>직접 폰트 크기를 키우고 굵게 하는 방식은 ❌. 반드시 홈 탭의 <strong>스타일 갤러리</strong>에서 제목1·제목2·제목3을 클릭해 적용하세요.</div>
+          <div class="step-list">
+            <div class="step-item"><div class="step-num">1</div><div class="step-body"><strong>스타일 적용:</strong> 제목으로 만들 텍스트에 커서 위치 → 홈 탭 → <strong>제목1</strong>(대제목), <strong>제목2</strong>(중제목), <strong>제목3</strong>(소제목) 클릭</div></div>
+            <div class="step-item"><div class="step-num">2</div><div class="step-body"><strong>목차 위치 지정:</strong> 목차를 넣을 빈 페이지에 커서를 두세요 (보통 표지 다음 페이지)</div></div>
+            <div class="step-item"><div class="step-num">3</div><div class="step-body"><strong>자동 목차 삽입:</strong> 참조 탭 → <strong>목차</strong> → 자동 목차 1 또는 2 선택 → 즉시 생성</div></div>
+            <div class="step-item"><div class="step-num">4</div><div class="step-body"><strong>업데이트:</strong> 내용이 바뀌면 목차 클릭 → <strong>목차 업데이트</strong> → "전체 목차 업데이트" 선택</div></div>
+          </div>
+          <div class="ok-box"><strong>꿀팁:</strong> 스타일을 마우스 오른쪽 클릭 → <strong>수정</strong>을 눌러 원하는 폰트/크기/색상으로 바꿀 수 있습니다. 한 번만 설정하면 같은 스타일이 적용된 모든 제목에 자동 반영됩니다.</div>
+          <div class="tip-box"><strong>💡 탐색 창 활용:</strong> 보기 탭 → <strong>탐색 창</strong> 체크 → 왼쪽에 문서 구조가 나타납니다. 클릭하면 해당 섹션으로 바로 이동 — 긴 문서에서 필수입니다.</div>
+        </div>
+      </div>
+
+      <div class="tip-card">
+        <h2>🖨️ 페이지 번호 & 머리글/바닥글</h2>
+        <div class="tip-section">
+          <div class="step-list">
+            <div class="step-item"><div class="step-num">1</div><div class="step-body"><strong>페이지 번호 삽입:</strong> 삽입 탭 → <strong>페이지 번호</strong> → 위치 선택 (아래쪽 가운데 권장)</div></div>
+            <div class="step-item"><div class="step-num">2</div><div class="step-body"><strong>표지 번호 제외:</strong> 디자인 탭 → <strong>첫 페이지를 다르게</strong> 체크 → 표지에 번호 안 표시</div></div>
+            <div class="step-item"><div class="step-num">3</div><div class="step-body"><strong>번호 형식:</strong> 페이지 번호 더블클릭 → <strong>페이지 번호 형식</strong>에서 로마자(i, ii) 또는 아라비아 숫자 선택</div></div>
+          </div>
+          <div class="tip-box"><strong>시작 번호 조정:</strong> 특정 페이지부터 1번으로 시작하려면 그 앞에 구역 나누기를 삽입하고 "이전 섹션과 연결"을 해제한 후 시작 번호를 1로 설정하세요.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 검토 & 협업 -->
+    <div id="sec-review" style="display:none">
+      <div class="tip-card">
+        <h2>✏️ 추적 변경 & 주석 (협업 필수)</h2>
+        <div class="tip-section">
+          <div class="tip-box"><strong>추적 변경 켜기/끄기:</strong> <code>Ctrl+Shift+E</code> 또는 검토 탭 → <strong>변경 내용 추적</strong>. 켜진 상태에서 편집하면 모든 수정·삭제가 색상으로 표시됩니다. 최종 승인 전까지 원본과 비교 가능.</div>
+          <div class="tip-box"><strong>주석 달기:</strong> 댓글을 남길 텍스트 선택 → <code>Ctrl+Alt+M</code> 또는 삽입 탭 → <strong>메모</strong>. 오른쪽 여백에 메모 말풍선이 생깁니다. 응답·해결도 가능.</div>
+          <div class="tip-box"><strong>변경 사항 수락·거부:</strong> 검토 탭 → <strong>수락</strong> 또는 <strong>거부</strong>로 변경 내용을 하나씩 처리. "모두 수락"으로 한 번에 확정할 수 있습니다.</div>
+          <div class="warn-box"><strong>⚠️ 문서 제출 전 확인:</strong> 검토 탭 → <strong>문서 검사</strong>로 숨겨진 메모·추적 변경이 남아 있는지 꼭 확인하세요. 의도치 않게 수정 이력이 공유될 수 있습니다.</div>
+          <div class="tip-box"><strong>두 문서 비교:</strong> 검토 탭 → <strong>비교</strong> → 두 파일을 선택하면 변경 사항을 자동으로 추적 변경 형태로 보여줍니다. 여러 버전을 합칠 때도 유용합니다.</div>
+        </div>
+      </div>
+
+      <div class="tip-card">
+        <h2>🔒 문서 보호 & 전자서명</h2>
+        <div class="feature-grid">
+          <div class="feat-item"><div class="feat-icon">🔐</div><div class="feat-title">편집 제한</div><div class="feat-desc">검토 탭 → 편집 제한 → "이 종류의 편집만 허용"으로 서식 변경이나 내용 수정을 막을 수 있습니다.</div></div>
+          <div class="feat-item"><div class="feat-icon">🔑</div><div class="feat-title">비밀번호 암호화</div><div class="feat-desc">파일 탭 → 정보 → 문서 보호 → 암호화. 비밀번호를 잊으면 복구 불가이므로 주의.</div></div>
+          <div class="feat-item"><div class="feat-icon">📧</div><div class="feat-title">PDF로 내보내기</div><div class="feat-desc">파일 → 내보내기 → PDF/XPS 만들기. Ctrl+P에서 PDF 프린터 선택도 가능. 서식이 무너지지 않아 최종 납품용으로 권장.</div></div>
+          <div class="feat-item"><div class="feat-icon">☁️</div><div class="feat-title">OneDrive 공동 편집</div><div class="feat-desc">OneDrive에 저장 후 공유하면 여러 명이 동시에 편집 가능. 변경 사항이 실시간으로 반영됩니다.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 꿀팁 -->
+    <div id="sec-tips" style="display:none">
+      <div class="tip-card">
+        <h2>💡 모르면 손해 보는 워드 꿀팁</h2>
+        <div class="tip-section" id="wordTipsContent"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ad-banner" style="margin-top:24px">광고 영역 (Google AdSense)</div>
+</main>
+
+<footer>
+  <p><strong>직장인닷컴</strong> — 모든 정보는 참고용입니다.</p>
+</footer>
+
+<script src="../js/theme.js"></script>
+<script>
+const SC = {
+  edit: [
+    { keys:['Ctrl','C'], desc:'복사' },
+    { keys:['Ctrl','V'], desc:'붙여넣기' },
+    { keys:['Ctrl','X'], desc:'잘라내기' },
+    { keys:['Ctrl','Z'], desc:'실행 취소' },
+    { keys:['Ctrl','Y'], desc:'다시 실행' },
+    { keys:['Ctrl','A'], desc:'전체 선택' },
+    { keys:['Ctrl','F'], desc:'찾기' },
+    { keys:['Ctrl','H'], desc:'찾기 및 바꾸기' },
+    { keys:['Ctrl','G'], desc:'이동 (페이지·줄 번호로)' },
+    { keys:['Delete'], desc:'오른쪽 글자 삭제' },
+  ],
+  format: [
+    { keys:['Ctrl','B'], desc:'굵게' },
+    { keys:['Ctrl','I'], desc:'기울임꼴' },
+    { keys:['Ctrl','U'], desc:'밑줄' },
+    { keys:['Ctrl','D'], desc:'글꼴 대화상자 열기' },
+    { keys:['Ctrl','E'], desc:'가운데 정렬' },
+    { keys:['Ctrl','L'], desc:'왼쪽 정렬' },
+    { keys:['Ctrl','R'], desc:'오른쪽 정렬' },
+    { keys:['Ctrl','J'], desc:'양쪽 맞춤 (문서 기본값)' },
+    { keys:['Ctrl','Shift','C'], desc:'서식 복사' },
+    { keys:['Ctrl','Shift','V'], desc:'서식 붙여넣기' },
+  ],
+  nav: [
+    { keys:['Ctrl','Home'], desc:'문서 맨 처음으로 이동' },
+    { keys:['Ctrl','End'],  desc:'문서 맨 끝으로 이동' },
+    { keys:['Ctrl','↑↓'],  desc:'단락 단위 이동' },
+    { keys:['Ctrl','Shift','↑↓'], desc:'단락 단위 선택' },
+    { keys:['Shift','방향키'], desc:'문자 단위 선택' },
+    { keys:['Ctrl','Shift','방향키'], desc:'단어 단위 선택' },
+    { keys:['F5'], desc:'탐색 창 열기 (이동)' },
+    { keys:['Ctrl','F6'], desc:'열린 문서 간 전환' },
+    { keys:['Alt','Ctrl','P'], desc:'인쇄 미리보기' },
+    { keys:['Ctrl','Shift','8'], desc:'단락 부호 표시/숨기기' },
+  ],
+  doc: [
+    { keys:['Ctrl','S'],        desc:'저장' },
+    { keys:['F12'],             desc:'다른 이름으로 저장' },
+    { keys:['Ctrl','N'],        desc:'새 문서' },
+    { keys:['Ctrl','W'],        desc:'문서 닫기' },
+    { keys:['Ctrl','P'],        desc:'인쇄' },
+    { keys:['Ctrl','Enter'],    desc:'페이지 나누기 삽입' },
+    { keys:['Ctrl','Shift','E'], desc:'추적 변경 켜기/끄기' },
+    { keys:['Ctrl','Alt','M'],  desc:'메모 삽입' },
+    { keys:['Alt','Ctrl','S'],  desc:'창 분할 (두 곳 동시 보기)' },
+    { keys:['Ctrl','Shift','F9'], desc:'필드 연결 끊기 (목차 등)' },
+  ],
+};
+
+function scHTML(list) {
+  return list.map(s => `
+    <div class="sc-item">
+      <div class="sc-keys">${s.keys.map((k,i) => `${i>0?'<span class="plus">+</span>':''}<span class="key">${k}</span>`).join('')}</div>
+      <div class="sc-desc">${s.desc}</div>
+    </div>`).join('');
+}
+document.getElementById('scEdit').innerHTML   = scHTML(SC.edit);
+document.getElementById('scFormat').innerHTML = scHTML(SC.format);
+document.getElementById('scNav').innerHTML    = scHTML(SC.nav);
+document.getElementById('scDoc').innerHTML    = scHTML(SC.doc);
+
+const TIPS = [
+  { cls:'tip-box',  icon:'🧼', title:'붙여넣기는 Ctrl+Shift+V (서식 없이)', body:'웹·다른 문서에서 복사한 텍스트를 그냥 Ctrl+V로 붙여넣으면 원본 서식이 함께 들어와 문서가 엉망이 됩니다. <strong>Ctrl+Shift+V</strong> 또는 붙여넣기 옵션 → "텍스트만 유지"를 쓰면 깔끔하게 삽입됩니다.' },
+  { cls:'tip-box',  icon:'🔁', title:'찾기·바꾸기로 일괄 수정', body:'Ctrl+H → 찾을 내용 입력 → 바꿀 내용 입력 → <strong>모두 바꾸기</strong>. 형식 버튼에서 특정 서식(굵게, 특정 폰트)을 대상으로 하는 것도 가능합니다.' },
+  { cls:'ok-box',   icon:'📌', title:'Ctrl+Enter — 페이지 나누기', body:'빈 줄을 여러 개 눌러서 다음 페이지로 넘기면 ❌. 텍스트를 수정할 때마다 레이아웃이 무너집니다. <strong>Ctrl+Enter</strong>로 "페이지 나누기"를 삽입하세요.' },
+  { cls:'tip-box',  icon:'🖼️', title:'그림 텍스트 배치 — "텍스트 배치"를 바꿔라', body:'이미지를 삽입하면 기본이 "인라인"으로 텍스트 흐름이 이상해집니다. 이미지 우클릭 → <strong>텍스트 배치</strong> → "정사각형" 또는 "위아래" 선택. 그래야 이미지를 자유롭게 이동할 수 있습니다.' },
+  { cls:'tip-box',  icon:'📋', title:'서식 복사 — 붓 아이콘 더블클릭', body:'홈 탭의 서식 복사(붓 아이콘)를 <strong>더블클릭</strong>하면 여러 곳에 반복 적용됩니다. 한 번 클릭하면 한 번만 적용되고 해제됩니다. Esc로 모드 종료.' },
+  { cls:'warn-box', icon:'⚠️', title:'자동 고침이 방해될 때', body:'URL·코드·약어를 입력할 때 자동 고침이 문자를 바꿔버리는 경우, 파일 → 옵션 → 언어 교정 → <strong>자동 고침 옵션</strong>에서 불필요한 옵션을 끄세요.' },
+  { cls:'tip-box',  icon:'📏', title:'줄 간격 & 단락 간격 통일', body:'홈 탭 → 단락 → <strong>줄 및 단락 간격</strong>. 또는 Ctrl+A로 전체 선택 후 줄 간격을 설정하면 문서 전체에 한 번에 적용됩니다. 보고서 기본값은 줄 간격 1.5~1.8배가 읽기 좋습니다.' },
+  { cls:'ok-box',   icon:'🔢', title:'표 셀 안에서 탭(Tab) 사용', body:'표 안에서 Tab을 누르면 다음 셀로 이동합니다. 마지막 셀에서 Tab을 누르면 새 행이 자동으로 추가됩니다. 표 안에서 탭 문자를 입력하려면 <strong>Ctrl+Tab</strong>을 쓰세요.' },
+  { cls:'tip-box',  icon:'🔤', title:'단락 부호 보이기 — Ctrl+Shift+8', body:'문서 레이아웃이 이상할 때는 <strong>Ctrl+Shift+8</strong>로 단락 부호(¶)를 표시하세요. 빈 줄이 너무 많거나 불필요한 페이지 나누기가 있는지 바로 확인할 수 있습니다.' },
+  { cls:'tip-box',  icon:'🌐', title:'웹 문서로 저장 vs PDF', body:'다른 사람에게 보낼 때는 <strong>PDF로 내보내기</strong>(파일 → 내보내기)가 최선입니다. .docx로 보내면 상대방 워드 버전·폰트에 따라 서식이 깨질 수 있습니다.' },
+  { cls:'ok-box',   icon:'📁', title:'자동 복구 주기 줄이기', body:'파일 → 옵션 → 저장 → <strong>자동 복구 정보 저장 간격</strong>을 5분 이하로 설정하세요. 강제 종료 시 손실을 최소화할 수 있습니다.' },
+];
+
+document.getElementById('wordTipsContent').innerHTML = TIPS.map(t => `
+  <div class="${t.cls}"><strong>${t.icon} ${t.title}</strong><br>${t.body}</div>`).join('');
+
+function showSection(name, btn) {
+  ['shortcuts','styles','review','tips'].forEach(s => {
+    document.getElementById('sec-' + s).style.display = s === name ? '' : 'none';
+  });
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+</script>
+</body>
+</html>

@@ -1,7 +1,8 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
+  <script>if(localStorage.getItem('theme')=='light')document.documentElement.classList.add('light')</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>대출 이자 계산기 - 직장인닷컴</title>
   <meta name="description" content="원리금균등, 원금균등 상환 방식 대출 이자 계산기. 월별 상환 스케줄 및 차트 제공.">
@@ -291,5 +292,6 @@ function drawPie(principal, interest) {
   ctx.beginPath(); ctx.arc(cx, cy, 20, 0, Math.PI * 2); ctx.fillStyle = bg; ctx.fill();
 }
 </script>
+<script src="../js/theme.js"></script>
 </body>
 </html>

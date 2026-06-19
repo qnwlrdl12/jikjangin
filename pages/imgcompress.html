@@ -1,7 +1,8 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
+  <script>if(localStorage.getItem('theme')=='light')document.documentElement.classList.add('light')</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>이미지 압축기 - 직장인닷컴</title>
   <meta name="description" content="이미지 파일을 브라우저에서 바로 압축하세요. 서버 전송 없이 안전하고 빠르게. JPEG·PNG·WebP 지원.">
@@ -218,5 +219,6 @@ function downloadBlob(item) {
   a.click();
 }
 </script>
+<script src="../js/theme.js"></script>
 </body>
 </html>

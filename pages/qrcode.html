@@ -1,7 +1,8 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
+  <script>if(localStorage.getItem('theme')=='light')document.documentElement.classList.add('light')</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>QR코드 생성기 - 직장인닷컴</title>
   <meta name="description" content="URL, 텍스트를 QR코드로 즉시 변환. 색상 커스텀 + PNG 다운로드 무료 QR 생성기.">
@@ -183,5 +184,6 @@ async function copyQR(){
   }
 }
 </script>
+<script src="../js/theme.js"></script>
 </body>
 </html>

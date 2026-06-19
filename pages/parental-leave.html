@@ -1,7 +1,8 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
+  <script>if(localStorage.getItem('theme')=='light')document.documentElement.classList.add('light')</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>육아휴직 급여 계산기 2026 - 직장인닷컴</title>
   <meta name="description" content="2026년 육아휴직 급여를 계산하세요. 통상임금 80%, 기간별 상한(250만원·200만원·160만원) 자동 반영. 6+6 부모육아휴직제 포함.">
@@ -189,5 +190,6 @@ function calculate() {
   document.getElementById('resultBox').style.display = 'block';
 }
 </script>
+<script src="../js/theme.js"></script>
 </body>
 </html>
