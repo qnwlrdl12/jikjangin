@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
@@ -60,7 +60,7 @@
 </nav>
 
 <div class="page-header">
-  <div class="breadcrumb"><a href="../index.html">홈</a> › 계산기</div>
+  <div class="breadcrumb"><a href="../index.html">홈</a> › 직장인 계산기</div>
   <h1>💼 연봉 협상 계산기</h1>
   <p>인상률·실수령액 변화·월급 차이를 한눈에 비교하세요</p>
 </div>
@@ -180,9 +180,10 @@ function calcTax(annual, dep, child) {
 
 function calcInsurance(annual) {
   const monthly = annual / 12;
-  const pension = monthly * 0.0475;       // 국민연금 4.75%
+  const pensionBase = Math.min(monthly, 6370000);
+  const pension = pensionBase * 0.0475;   // 국민연금 4.75% (상한 637만원)
   const health = monthly * 0.03595;       // 건강보험 3.595%
-  const ltc = health * 0.1314;            // 장기요양 12.95% of 건강보험
+  const ltc = health * 0.1314;            // 장기요양 13.14% of 건강보험
   const employ = monthly * 0.009;         // 고용보험 0.9%
   return { pension, health, ltc, employ, total: pension + health + ltc + employ };
 }
