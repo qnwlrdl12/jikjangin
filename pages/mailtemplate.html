@@ -5,11 +5,10 @@
   <script>if(localStorage.getItem('theme')=='light')document.documentElement.classList.add('light')</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>업무 메일 템플릿 모음 - 직장인닷컴</title>
-  <meta name="description" content="직장인을 위한 업무 메일 템플릿 모음. 연차, 지각사과, 회의, 퇴사인사 등 12가지 전문 메일을 바로 복사하세요.">
+  <meta name="description" content="직장인을 위한 업무 메일 템플릿 모음. 연차, 지각사과, 회의, 퇴사인사, 감사, 거절 등 26가지 전문 메일을 바로 복사하세요.">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../css/style.css">
   <style>
-    /* ── Filter bar ── */
     .filter-bar {
       display: flex;
       flex-wrap: wrap;
@@ -30,7 +29,6 @@
     .filter-btn:hover { background: rgba(255,107,53,0.15); color: var(--white); }
     .filter-btn.active { background: var(--primary); border-color: var(--primary); color: var(--white); }
 
-    /* ── Template grid ── */
     .template-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -72,6 +70,10 @@
     .cat-meeting  { background: rgba(255,215,0,0.15);  color: var(--secondary); }
     .cat-sorry    { background: rgba(231,76,60,0.15);  color: #e74c3c; }
     .cat-farewell { background: rgba(155,89,182,0.15); color: #9b59b6; }
+    .cat-thanks   { background: rgba(39,174,96,0.15);  color: #2ecc71; }
+    .cat-decline  { background: rgba(127,140,141,0.15);color: #95a5a6; }
+    .cat-schedule { background: rgba(52,152,219,0.15); color: #3498db; }
+    .cat-claim    { background: rgba(230,126,34,0.15); color: #e67e22; }
 
     .tpl-title { font-size: 1rem; font-weight: 700; color: var(--white); margin-bottom: 6px; }
     .tpl-desc  { font-size: 0.82rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 12px; }
@@ -92,6 +94,16 @@
       font-weight: 700;
       color: var(--primary);
     }
+    .tpl-examples-count {
+      position: absolute;
+      top: 14px; right: 14px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      background: rgba(255,255,255,0.08);
+      border-radius: 10px;
+      padding: 2px 8px;
+      color: var(--text-muted);
+    }
 
     /* ── Modal ── */
     .modal-overlay {
@@ -111,7 +123,7 @@
       border: 1px solid rgba(255,255,255,0.1);
       border-radius: var(--radius);
       width: 100%;
-      max-width: 680px;
+      max-width: 700px;
       padding: 32px;
       position: relative;
     }
@@ -127,7 +139,34 @@
     }
     .modal-close:hover { color: var(--white); }
     .modal h2 { font-size: 1.2rem; font-weight: 800; color: var(--white); margin-bottom: 6px; }
-    .modal .modal-cat { margin-bottom: 20px; }
+    .modal .modal-cat { margin-bottom: 16px; }
+
+    /* ── Example tabs ── */
+    .example-label {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    .example-tabs {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+    .example-tab {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 20px;
+      padding: 6px 16px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: all 0.18s;
+    }
+    .example-tab:hover { background: rgba(255,107,53,0.15); color: var(--white); }
+    .example-tab.active { background: var(--primary); border-color: var(--primary); color: var(--white); }
 
     .var-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
     .var-field label { display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px; }
@@ -177,7 +216,6 @@
     }
     .copy-btn:hover { opacity: 0.85; }
 
-    /* ── Toast ── */
     .toast {
       position: fixed;
       bottom: 32px;
@@ -218,7 +256,7 @@
 <div class="page-header">
   <div class="breadcrumb"><a href="../index.html">홈</a> › 업무도구</div>
   <h1>✉️ 업무 메일 템플릿</h1>
-  <p>12가지 상황별 메일 템플릿 — 빈칸만 채우고 바로 보내세요</p>
+  <p>26가지 상황별 메일 템플릿 · 상황에 맞는 예시 선택 · 빈칸만 채우고 바로 보내세요</p>
 </div>
 
 <main>
@@ -230,6 +268,10 @@
     <button class="filter-btn" data-cat="보고" onclick="setFilter(this,'보고')">📊 보고</button>
     <button class="filter-btn" data-cat="회의" onclick="setFilter(this,'회의')">🤝 회의</button>
     <button class="filter-btn" data-cat="사과/해명" onclick="setFilter(this,'사과/해명')">🙇 사과/해명</button>
+    <button class="filter-btn" data-cat="감사/칭찬" onclick="setFilter(this,'감사/칭찬')">🙏 감사/칭찬</button>
+    <button class="filter-btn" data-cat="거절/사양" onclick="setFilter(this,'거절/사양')">🚫 거절/사양</button>
+    <button class="filter-btn" data-cat="일정변경" onclick="setFilter(this,'일정변경')">📅 일정변경</button>
+    <button class="filter-btn" data-cat="클레임" onclick="setFilter(this,'클레임')">⚠️ 클레임</button>
     <button class="filter-btn" data-cat="퇴사/인사" onclick="setFilter(this,'퇴사/인사')">👋 퇴사/인사</button>
   </div>
 
@@ -244,6 +286,7 @@
     <button class="modal-close" onclick="closeModal()">✕</button>
     <h2 id="modalTitle"></h2>
     <div class="modal-cat" id="modalCat"></div>
+    <div id="exampleSection"></div>
     <div class="var-fields" id="varFields"></div>
     <div class="preview-label">📋 미리보기</div>
     <div class="mail-preview" id="mailPreview"></div>
@@ -259,15 +302,15 @@
 
 <script>
 const TEMPLATES = [
+  // ── 휴가/연차 ──
   {
-    id: 1,
-    title: '연차 신청',
-    category: '휴가/연차',
-    catClass: 'cat-leave',
+    id: 1, title: '연차 신청', category: '휴가/연차', catClass: 'cat-leave',
     desc: '연차 사용 사전 통보 메일. 인수인계 담당자 포함.',
     preview: '안녕하세요. [이름]입니다. 연차 사용을 아래와 같이...',
-    vars: ['이름','연차시작일','연차종료일','일수','업무인수인계담당자'],
-    body: `안녕하세요. [이름]입니다.
+    examples: [
+      {
+        label: '기본형',
+        body: `안녕하세요. [이름]입니다.
 
 다름이 아니라, 아래와 같이 연차 사용을 신청드립니다.
 
@@ -281,16 +324,46 @@ const TEMPLATES = [
 
 감사합니다.
 [이름] 드림`
+      },
+      {
+        label: '간결형',
+        body: `[이름]입니다.
+
+[연차시작일] ~ [연차종료일] ([일수]일) 연차 사용 요청드립니다.
+부재 중 업무는 [업무인수인계담당자]님께 인계 예정입니다.
+
+승인 부탁드립니다.
+[이름]`
+      },
+      {
+        label: '장기연차형',
+        body: `안녕하세요. [이름]입니다.
+
+장기 연차 사용을 아래와 같이 신청드립니다.
+
+■ 연차 기간: [연차시작일] ~ [연차종료일] ([일수]일)
+■ 사유: [사유]
+■ 업무 인수인계 담당자: [업무인수인계담당자]
+
+장기 부재에 앞서 현재 진행 중인 업무의 인수인계 문서를 [연차시작일] 이전까지 작성하여 [업무인수인계담당자] 담당자님께 전달드리겠습니다.
+긴급 시에는 개인 연락처로 연락 주시면 대응 가능합니다.
+
+장기 부재로 인한 불편을 드려 진심으로 죄송합니다.
+검토 후 승인 부탁드립니다.
+
+감사합니다.
+[이름] 드림`
+      }
+    ]
   },
   {
-    id: 2,
-    title: '재택근무 신청',
-    category: '휴가/연차',
-    catClass: 'cat-leave',
+    id: 2, title: '재택근무 신청', category: '휴가/연차', catClass: 'cat-leave',
     desc: '재택근무 사전 승인 요청 메일.',
     preview: '안녕하세요. [이름]입니다. 재택근무 신청 건으로...',
-    vars: ['이름','날짜','사유'],
-    body: `안녕하세요. [이름]입니다.
+    examples: [
+      {
+        label: '기본형',
+        body: `안녕하세요. [이름]입니다.
 
 [날짜]에 재택근무를 신청드리고자 합니다.
 
@@ -304,16 +377,111 @@ const TEMPLATES = [
 
 감사합니다.
 [이름] 드림`
+      },
+      {
+        label: '정기재택형',
+        body: `안녕하세요. [이름]입니다.
+
+[시작월]부터 매주 [요일]요일 정기 재택근무를 신청드립니다.
+
+■ 사유: [사유]
+■ 기간: [시작월] ~ [종료월]
+
+재택 근무일에도 업무 연속성이 유지될 수 있도록 아침 업무 시작 시 슬랙/메신저로 일일 계획을 공유하고, 저녁에 완료 보고를 드리겠습니다.
+
+정기 재택근무 승인 검토 부탁드립니다.
+
+감사합니다.
+[이름] 드림`
+      }
+    ]
   },
   {
-    id: 3,
-    title: '지각 사과',
-    category: '사과/해명',
-    catClass: 'cat-sorry',
+    id: 3, title: '조퇴 요청', category: '휴가/연차', catClass: 'cat-leave',
+    desc: '불가피한 조기 퇴근 요청 메일.',
+    preview: '안녕하세요. [이름]입니다. [조퇴시간]에 조퇴를...',
+    examples: [
+      {
+        label: '기본형',
+        body: `안녕하세요. [이름]입니다.
+
+부득이한 사정으로 오늘 [조퇴시간]에 조퇴를 요청드립니다.
+
+■ 사유: [사유]
+
+가능하다면 조퇴 전까지 현재 진행 중인 업무를 최대한 처리하고, 잔여 업무는 내일 오전 중으로 완료하겠습니다.
+긴급한 사항은 연락 주시면 외부에서도 빠르게 대응하겠습니다.
+
+갑작스러운 요청으로 불편을 드려 죄송합니다.
+
+감사합니다.
+[이름] 드림`
+      },
+      {
+        label: '병원방문형',
+        body: `안녕하세요. [이름]입니다.
+
+건강 문제로 오늘 [조퇴시간]에 병원 방문이 필요하여 조퇴 요청드립니다.
+
+진료 예약이 [조퇴시간]으로 되어 있어 부득이하게 조기 퇴근이 필요한 상황입니다.
+오늘 오전 중으로 긴급 업무를 우선 처리하겠으며, 내일 출근 후 나머지 업무를 이어서 진행하겠습니다.
+
+양해 부탁드립니다.
+
+감사합니다.
+[이름] 드림`
+      }
+    ]
+  },
+  {
+    id: 4, title: '반차 신청', category: '휴가/연차', catClass: 'cat-leave',
+    desc: '오전 또는 오후 반차 신청 메일.',
+    preview: '안녕하세요. [이름]입니다. [날짜] 반차 사용을...',
+    examples: [
+      {
+        label: '오전반차',
+        body: `안녕하세요. [이름]입니다.
+
+[날짜] 오전 반차 사용을 신청드립니다.
+
+■ 사유: [사유]
+■ 출근 예정 시간: 오후 1시
+
+오후에는 정상 근무하며 오전 중 밀린 업무를 빠르게 처리하겠습니다.
+긴급한 사항은 오전 중에도 연락 주시면 대응 가능합니다.
+
+감사합니다.
+[이름] 드림`
+      },
+      {
+        label: '오후반차',
+        body: `안녕하세요. [이름]입니다.
+
+[날짜] 오후 반차 사용을 신청드립니다.
+
+■ 사유: [사유]
+■ 퇴근 예정 시간: 오후 1시
+
+오전 근무 시간 동안 주요 업무를 최대한 처리하겠습니다.
+이후 업무는 익일 오전 중으로 마무리하겠습니다.
+
+양해 부탁드립니다.
+
+감사합니다.
+[이름] 드림`
+      }
+    ]
+  },
+
+  // ── 사과/해명 ──
+  {
+    id: 5, title: '지각 사과', category: '사과/해명', catClass: 'cat-sorry',
     desc: '지각 사실을 즉시 알리고 사과하는 메일.',
-    preview: '안녕하세요. [이름]입니다. 오늘 [지각시간] 지각한 점...',
-    vars: ['이름','지각시간','사유'],
-    body: `안녕하세요. [이름]입니다.
+    preview: '안녕하세요. [이름]입니다. 오늘 지각한 점...',
+    examples: [
+      {
+        label: '기본형',
+        body: `안녕하세요. [이름]입니다.
 
 오늘 [지각시간] 지각한 점 진심으로 사과드립니다.
 
@@ -327,64 +495,183 @@ const TEMPLATES = [
 
 감사합니다.
 [이름] 드림`
+      },
+      {
+        label: '정중형',
+        body: `안녕하세요. [이름]입니다.
+
+오늘 [지각시간] 늦게 도착한 점, 진심으로 사과드립니다.
+
+[사유]로 인하여 예상치 못한 지연이 발생하였습니다.
+업무 시간을 준수하는 것이 팀 전체에 미치는 영향을 잘 알고 있음에도 이런 일이 발생하여 매우 죄송스럽습니다.
+
+향후 이러한 상황이 반복되지 않도록 더욱 철저히 준비하겠습니다.
+오늘 지각분에 해당하는 업무는 야근 또는 잔류를 통해 반드시 완료하겠습니다.
+
+부끄럽고 죄송합니다.
+
+[이름] 드림`
+      }
+    ]
   },
   {
-    id: 4,
-    title: '조퇴 요청',
-    category: '휴가/연차',
-    catClass: 'cat-leave',
-    desc: '불가피한 조기 퇴근 요청 메일.',
-    preview: '안녕하세요. [이름]입니다. [조퇴시간]에 조퇴를...',
-    vars: ['이름','조퇴시간','사유'],
-    body: `안녕하세요. [이름]입니다.
+    id: 6, title: '업무 실수 사과', category: '사과/해명', catClass: 'cat-sorry',
+    desc: '업무 처리 중 발생한 실수에 대한 사과 및 재발 방지 메일.',
+    preview: '안녕하세요. [이름]입니다. [실수내용] 관련하여...',
+    examples: [
+      {
+        label: '기본형',
+        body: `안녕하세요. [이름]입니다.
 
-부득이한 사정으로 오늘 [조퇴시간]에 조퇴를 요청드립니다.
+[실수내용] 관련하여 제 실수로 불편을 드린 점 깊이 사과드립니다.
 
-■ 사유: [사유]
+■ 발생 경위: [경위]
+■ 현재 조치 상황: [조치내용]
 
-가능하다면 조퇴 전까지 현재 진행 중인 업무를 최대한 처리하고, 잔여 업무는 내일 오전 중으로 완료하겠습니다.
-긴급한 사항은 연락 주시면 외부에서도 빠르게 대응하겠습니다.
-
-갑작스러운 요청으로 불편을 드려 죄송합니다. 검토 부탁드립니다.
+해당 오류는 [해결예정일]까지 수정 완료할 예정이며, 재발 방지를 위해 프로세스 개선에 최선을 다하겠습니다.
+다시 한번 불편을 드려 대단히 죄송합니다.
 
 감사합니다.
 [이름] 드림`
+      },
+      {
+        label: '심각한실수형',
+        body: `안녕하세요. [이름]입니다.
+
+먼저 [실수내용]으로 인해 발생한 불편에 대해 진심으로 사과 말씀 드립니다.
+
+이번 실수는 전적으로 제 부주의로 발생한 것으로, 어떠한 변명의 여지도 없습니다.
+
+■ 발생 일시: [발생일시]
+■ 발생 경위: [경위]
+■ 영향 범위: [영향범위]
+■ 즉각 조치 내용: [조치내용]
+■ 완전 해결 예정일: [해결예정일]
+
+이번 사태의 재발을 막기 위해 [재발방지대책]을 즉시 시행하겠습니다.
+이 건으로 인해 발생하는 모든 후속 처리에 적극 협력하겠습니다.
+
+다시 한번 깊은 사과를 드립니다.
+
+[이름] 드림`
+      }
+    ]
   },
   {
-    id: 5,
-    title: '회의 초대',
-    category: '회의',
-    catClass: 'cat-meeting',
+    id: 7, title: '납기/제출 지연 사과', category: '사과/해명', catClass: 'cat-sorry',
+    desc: '결과물 또는 자료 제출 기한을 지키지 못한 경우 사과 메일.',
+    preview: '안녕하세요. [이름]입니다. [자료명] 제출이 늦어져...',
+    examples: [
+      {
+        label: '기본형',
+        body: `안녕하세요. [이름]입니다.
+
+[자료명] 제출이 예정 기한인 [원래기한]을 넘기게 되어 진심으로 사과드립니다.
+
+■ 지연 사유: [사유]
+■ 제출 가능 예정일: [변경기한]
+
+최대한 빠르게 완성하여 [변경기한]까지 전달드리겠습니다.
+업무에 차질을 드려 죄송합니다.
+
+감사합니다.
+[이름] 드림`
+      },
+      {
+        label: '양해요청형',
+        body: `안녕하세요. [이름]입니다.
+
+[자료명] 마감과 관련하여 말씀 드릴 사항이 있어 메일 드립니다.
+
+예상치 못한 [사유]로 인해 [원래기한] 기한 내 제출이 어려운 상황입니다.
+[변경기한]까지는 완성본을 전달드릴 수 있을 것으로 예상됩니다.
+
+일정에 차질이 생기는 점 정말 죄송하며,
+만약 [변경기한]도 일정에 맞지 않으신 경우 말씀 주시면 최대한 조율하겠습니다.
+
+양해해 주셔서 감사드립니다.
+
+[이름] 드림`
+      }
+    ]
+  },
+
+  // ── 회의 ──
+  {
+    id: 8, title: '회의 초대', category: '회의', catClass: 'cat-meeting',
     desc: '정식 회의 일정 안내 및 참석 요청 메일.',
     preview: '안녕하세요. [이름]입니다. [회의명] 회의를 아래와...',
-    vars: ['이름','회의명','날짜','시간','장소','안건'],
-    body: `안녕하세요. [이름]입니다.
+    examples: [
+      {
+        label: '대면회의',
+        body: `안녕하세요. [이름]입니다.
 
-[회의명] 관련 회의를 아래와 같이 안내드립니다.
-바쁘신 중에 참석 부탁드립니다.
+[회의명] 관련 대면 회의를 아래와 같이 안내드립니다.
 
 ──────────────────────
 ■ 회의명: [회의명]
 ■ 일시: [날짜] [시간]
 ■ 장소: [장소]
+■ 참석 대상: [참석자]
 ■ 안건: [안건]
 ──────────────────────
 
-사전에 논의하실 내용이 있으시면 회의 전까지 공유해 주시면 더욱 효율적인 회의 진행에 도움이 됩니다.
-참석 여부를 [날짜] 오전까지 회신 주시면 감사하겠습니다.
+사전에 논의하실 내용이 있으시면 회의 전까지 공유해 주시면 효율적인 진행에 도움이 됩니다.
+참석 여부를 [확인기한]까지 회신 주시면 감사하겠습니다.
 
 감사합니다.
 [이름] 드림`
+      },
+      {
+        label: '화상회의',
+        body: `안녕하세요. [이름]입니다.
+
+[회의명] 화상 회의를 아래와 같이 안내드립니다.
+
+──────────────────────
+■ 회의명: [회의명]
+■ 일시: [날짜] [시간]
+■ 플랫폼: [화상플랫폼] (Zoom / Teams / Google Meet 등)
+■ 접속 링크: [접속링크]
+■ 안건: [안건]
+──────────────────────
+
+회의 시작 5분 전 접속하여 마이크 및 화상 연결 상태를 미리 확인해 주시기 바랍니다.
+참석 여부를 [확인기한]까지 회신 주시면 감사하겠습니다.
+
+감사합니다.
+[이름] 드림`
+      },
+      {
+        label: '외부미팅형',
+        body: `안녕하세요.
+[회사명] [이름]입니다.
+
+이번에 미팅 기회를 주셔서 감사드립니다.
+아래와 같이 미팅 일정을 확정하여 안내드립니다.
+
+──────────────────────
+■ 미팅 목적: [미팅목적]
+■ 일시: [날짜] [시간]
+■ 장소: [장소]
+■ 참석 예정자: [참석자]
+──────────────────────
+
+논의하실 추가 안건이 있으시면 사전에 알려 주시면 자료를 준비해 가겠습니다.
+감사드리며, 좋은 자리가 되기를 기대합니다.
+
+[회사명] [이름] 드림`
+      }
+    ]
   },
   {
-    id: 6,
-    title: '회의 결과 공유',
-    category: '보고',
-    catClass: 'cat-report',
+    id: 9, title: '회의 결과 공유', category: '회의', catClass: 'cat-meeting',
     desc: '회의 종료 후 결정사항 및 후속 액션 공유 메일.',
     preview: '안녕하세요. [이름]입니다. [회의명] 회의 결과를...',
-    vars: ['이름','회의명','날짜','결정사항','액션아이템'],
-    body: `안녕하세요. [이름]입니다.
+    examples: [
+      {
+        label: '기본형',
+        body: `안녕하세요. [이름]입니다.
 
 [날짜]에 진행된 [회의명] 회의 결과를 공유드립니다.
 
@@ -396,21 +683,90 @@ const TEMPLATES = [
 [액션아이템]
 ──────────────────────
 
-위 내용 중 수정하거나 추가할 사항이 있으시면 [날짜]로부터 2영업일 이내에 회신 주시기 바랍니다.
+위 내용 중 수정하거나 추가할 사항이 있으시면 [이의제기기한]까지 회신 주시기 바랍니다.
 이견이 없으시면 해당 내용대로 진행하겠습니다.
 
 감사합니다.
 [이름] 드림`
+      },
+      {
+        label: '상세형',
+        body: `안녕하세요. [이름]입니다.
+
+[날짜] [회의명] 회의록을 공유드립니다.
+
+──────────────────────
+■ 참석자: [참석자]
+■ 회의 일시: [날짜] [시간]
+
+■ 주요 논의 내용
+[논의내용]
+
+■ 결정사항
+[결정사항]
+
+■ 담당자별 액션아이템
+[액션아이템]
+
+■ 다음 회의 예정일
+[다음회의일]
+──────────────────────
+
+상기 내용은 회의 중 메모를 기반으로 작성하였으며, 누락되거나 수정이 필요한 내용은 [이의제기기한]까지 말씀해 주시면 반영하겠습니다.
+
+감사합니다.
+[이름] 드림`
+      }
+    ]
   },
   {
-    id: 7,
-    title: '업무 진행 보고',
-    category: '보고',
-    catClass: 'cat-report',
+    id: 10, title: '회의 일정 변경/취소', category: '회의', catClass: 'cat-meeting',
+    desc: '확정된 회의 일정을 변경하거나 취소하는 안내 메일.',
+    preview: '안녕하세요. [이름]입니다. [회의명] 일정 변경을...',
+    examples: [
+      {
+        label: '일정변경',
+        body: `안녕하세요. [이름]입니다.
+
+[날짜]로 예정되어 있던 [회의명] 일정이 불가피하게 변경되었음을 안내드립니다.
+
+■ 변경 전: [원래날짜] [원래시간]
+■ 변경 후: [변경날짜] [변경시간]
+■ 장소: 동일 ([장소])
+
+갑작스러운 일정 변경으로 불편을 드려 죄송합니다.
+변경된 일정에 참석이 어려우신 분께서는 회신 주시면 감사하겠습니다.
+
+감사합니다.
+[이름] 드림`
+      },
+      {
+        label: '일정취소',
+        body: `안녕하세요. [이름]입니다.
+
+[날짜] [시간]으로 예정되어 있던 [회의명] 회의가 아래 사유로 취소되었음을 안내드립니다.
+
+■ 취소 사유: [취소사유]
+■ 향후 일정: [향후일정]
+
+준비하고 계셨을 분들께 갑작스러운 취소 안내를 드려 대단히 죄송합니다.
+새로운 일정이 확정되는 대로 빠르게 안내드리겠습니다.
+
+감사합니다.
+[이름] 드림`
+      }
+    ]
+  },
+
+  // ── 보고 ──
+  {
+    id: 11, title: '업무 진행 보고', category: '보고', catClass: 'cat-report',
     desc: '프로젝트 진행 현황 및 이슈 사항 정기 보고 메일.',
     preview: '안녕하세요. [이름]입니다. [프로젝트명] 진행 현황...',
-    vars: ['이름','프로젝트명','진행률','완료내용','예정내용','이슈사항'],
-    body: `안녕하세요. [이름]입니다.
+    examples: [
+      {
+        label: '기본형',
+        body: `안녕하세요. [이름]입니다.
 
 [프로젝트명] 진행 현황을 보고드립니다.
 
@@ -428,20 +784,62 @@ const TEMPLATES = [
 ──────────────────────
 
 이슈 사항에 대해서는 별도로 의견 주시면 신속히 반영하겠습니다.
-추가로 확인이 필요한 사항이 있으시면 말씀해 주세요.
 
 감사합니다.
 [이름] 드림`
+      },
+      {
+        label: '주간보고형',
+        body: `안녕하세요. [이름]입니다.
+
+[기간] 주간 업무 보고 드립니다.
+
+──────────────────────
+[이번주완료]
+
+[다음주예정]
+
+[이슈및건의]
+──────────────────────
+
+확인 부탁드립니다. 감사합니다.
+
+[이름] 드림`
+      },
+      {
+        label: '월간보고형',
+        body: `안녕하세요. [이름]입니다.
+
+[월]월 업무 현황 보고 드립니다.
+
+──────────────────────
+■ 이번 달 주요 성과
+[주요성과]
+
+■ 목표 대비 달성률
+[달성률]
+
+■ 다음 달 계획
+[다음달계획]
+
+■ 이슈 및 건의사항
+[이슈건의]
+──────────────────────
+
+검토 후 피드백 주시면 감사하겠습니다.
+
+[이름] 드림`
+      }
+    ]
   },
   {
-    id: 8,
-    title: '업무 인수인계 요청',
-    category: '보고',
-    catClass: 'cat-report',
+    id: 12, title: '업무 인수인계 요청', category: '보고', catClass: 'cat-report',
     desc: '업무 인수인계 협조 요청 메일.',
     preview: '안녕하세요. [이름]입니다. 업무 인수인계 관련하여...',
-    vars: ['이름','담당자명','인수인계날짜','업무목록'],
-    body: `안녕하세요. [이름]입니다.
+    examples: [
+      {
+        label: '기본형',
+        body: `안녕하세요. [이름]입니다.
 
 업무 인수인계 건으로 메일 드립니다.
 
@@ -455,69 +853,47 @@ const TEMPLATES = [
 ──────────────────────
 
 관련 자료 및 히스토리는 별도 파일로 정리하여 전달드리겠습니다.
-인수인계 과정에서 궁금한 사항은 언제든지 질문해 주세요.
-
-일정 확인 후 회신 부탁드립니다.
+궁금한 사항은 언제든지 질문해 주세요.
 
 감사합니다.
 [이름] 드림`
-  },
-  {
-    id: 9,
-    title: '퇴사 인사',
-    category: '퇴사/인사',
-    catClass: 'cat-farewell',
-    desc: '재직 기간 감사 인사 및 퇴사 인사 메일.',
-    preview: '안녕하세요. [이름]입니다. 갑작스러운 소식을...',
-    vars: ['이름','퇴사일','재직기간'],
-    body: `안녕하세요. [이름]입니다.
+      },
+      {
+        label: '상세형',
+        body: `안녕하세요. [이름]입니다.
 
-갑작스러운 소식을 이렇게 메일로 전하게 되어 양해 부탁드립니다.
-저는 [퇴사일]부로 퇴사하게 되었습니다.
+[사유]로 인해 [인수인계날짜]부로 담당 업무를 인수인계드리고자 합니다.
 
-[재직기간] 동안 함께 일하며 많은 것을 배우고 성장할 수 있었습니다.
-힘든 순간마다 도움 주신 덕분에 즐겁게 근무할 수 있었습니다.
+──────────────────────
+■ 인수자: [담당자명]
+■ 인수인계 기간: [시작일] ~ [인수인계날짜]
 
-짧은 시간이었지만 좋은 추억만 가지고 떠납니다.
-앞으로도 모두 건강하시고, 하시는 일 모두 잘 되시길 진심으로 바랍니다.
+■ 인수 대상 업무 목록
+[업무목록]
 
-개인 연락처: [이름]의 이메일 / 카카오톡 ID
-언제든 연락 주시면 반갑게 받겠습니다.
+■ 진행 중인 업무 현황
+[진행현황]
 
-그동안 정말 감사했습니다.
+■ 참고 자료 위치
+[자료위치]
+──────────────────────
 
+인수인계 기간 동안 함께 대화하며 충분히 공유드리겠습니다.
+인수 과정에서 불편한 점이나 추가 자료가 필요하시면 말씀해 주세요.
+
+감사합니다.
 [이름] 드림`
+      }
+    ]
   },
   {
-    id: 10,
-    title: '신입 자기소개',
-    category: '퇴사/인사',
-    catClass: 'cat-farewell',
-    desc: '첫 출근 후 팀원들에게 보내는 자기소개 메일.',
-    preview: '안녕하세요. 이번에 [부서]에 합류하게 된 [이름]입니다.',
-    vars: ['이름','부서','직무'],
-    body: `안녕하세요 :)
-이번에 [부서]에 합류하게 된 [이름]입니다.
-
-[직무] 담당으로 근무하게 되었으며, 앞으로 여러분과 함께 일하게 되어 매우 설레고 기대가 됩니다.
-
-아직 배울 것이 많지만, 빠르게 적응하여 팀에 기여할 수 있도록 최선을 다하겠습니다.
-궁금한 점이 있으시거나 도움이 필요한 일이 있으면 편하게 말씀해 주세요.
-저도 모르는 것은 언제든지 여쭤보겠습니다.
-
-앞으로 잘 부탁드립니다!
-
-[이름] 드림`
-  },
-  {
-    id: 11,
-    title: '견적 요청',
-    category: '보고',
-    catClass: 'cat-report',
+    id: 13, title: '견적 요청', category: '보고', catClass: 'cat-report',
     desc: '외부 업체에 제품 또는 서비스 견적을 요청하는 메일.',
     preview: '안녕하세요. [회사명] [이름]입니다. 귀사의 제품...',
-    vars: ['이름','회사명','제품/서비스명','수량','납기'],
-    body: `안녕하세요.
+    examples: [
+      {
+        label: '기본형',
+        body: `안녕하세요.
 [회사명]의 [이름]입니다.
 
 귀사의 [제품/서비스명]에 관심이 있어 견적을 요청드립니다.
@@ -526,25 +902,43 @@ const TEMPLATES = [
 ■ 요청 품목: [제품/서비스명]
 ■ 수량: [수량]
 ■ 희망 납기: [납기]
-■ 납품 장소: 추후 협의
 ──────────────────────
 
-위 조건에 맞는 견적서(단가, 총액, 부가세 포함 여부, 납기 일정 포함)를 [납기] 이전까지 보내 주시면 감사하겠습니다.
-
-추가로 궁금한 사항이 있으시면 언제든지 연락 주세요.
-귀사의 협조에 미리 감사드립니다.
+견적서(단가, 총액, 부가세 포함 여부, 납기 일정 포함)를 [회신기한]까지 보내 주시면 감사하겠습니다.
 
 [회사명] [이름] 드림`
+      },
+      {
+        label: '상세비교형',
+        body: `안녕하세요.
+[회사명] [이름]입니다.
+
+아래 사양에 맞는 제품/서비스 견적을 요청드립니다.
+
+──────────────────────
+■ 품목: [제품/서비스명]
+■ 규격/사양: [규격사양]
+■ 수량: [수량]
+■ 납품 장소: [납품장소]
+■ 희망 납기: [납기]
+■ 기타 요구사항: [요구사항]
+──────────────────────
+
+비교 검토를 위해 가능한 경우 옵션별 단가도 함께 제시해 주시면 감사하겠습니다.
+[회신기한]까지 회신 부탁드립니다.
+
+[회사명] [이름] 드림`
+      }
+    ]
   },
   {
-    id: 12,
-    title: '협조 요청',
-    category: '보고',
-    catClass: 'cat-report',
+    id: 14, title: '협조 요청', category: '보고', catClass: 'cat-report',
     desc: '타 부서 또는 팀에 업무 협조를 요청하는 공식 메일.',
     preview: '안녕하세요. [이름]입니다. 아래 사항에 대해 협조...',
-    vars: ['이름','요청내용','마감일','담당자명'],
-    body: `안녕하세요. [이름]입니다.
+    examples: [
+      {
+        label: '기본형',
+        body: `안녕하세요. [이름]입니다.
 
 바쁘신 중에 메일 드려 죄송합니다.
 아래 사항에 대해 협조 요청드립니다.
@@ -560,28 +954,547 @@ const TEMPLATES = [
 업무에 차질 없도록 [마감일]까지 완료해 주시면 정말 감사하겠습니다.
 진행 중 어려운 점이나 추가 설명이 필요하신 경우 편하게 말씀해 주세요.
 
-바쁜 일정에 협조 부탁드려 감사합니다.
+감사합니다.
+[이름] 드림`
+      },
+      {
+        label: '긴급형',
+        body: `안녕하세요. [이름]입니다.
+
+긴급하게 협조 요청드릴 사항이 있어 연락드립니다.
+
+──────────────────────
+■ 긴급 요청 내용
+[요청내용]
+
+■ 요청 사유: [긴급사유]
+■ 완료 필요 시간: [마감시간]
+──────────────────────
+
+촉박한 일정에 갑작스럽게 요청드려 정말 죄송합니다.
+최대한 빠른 협조 부탁드리며, 어려움이 있으시면 바로 연락 주세요.
+
+감사합니다.
+[이름] 드림`
+      }
+    ]
+  },
+  {
+    id: 15, title: '외부 협력 제안', category: '보고', catClass: 'cat-report',
+    desc: '파트너십, 공동사업, 제휴 등 외부 협력을 제안하는 메일.',
+    preview: '안녕하세요. [회사명] [이름]입니다. 협력 제안 건으로...',
+    examples: [
+      {
+        label: '제휴제안형',
+        body: `안녕하세요.
+[회사명]의 [이름]입니다.
+
+귀사와의 협력 기회를 타진하고자 메일 드립니다.
+
+저희 [회사명]은 [회사소개] 분야에서 활동하고 있으며,
+귀사의 [귀사강점]과 저희의 역량이 결합된다면 양측 모두에 큰 시너지가 있을 것으로 기대합니다.
+
+■ 제안 내용: [제안내용]
+■ 기대 효과: [기대효과]
+
+우선 가볍게 미팅을 통해 가능성을 논의해 보면 어떨까요?
+일정 조율이 가능하신지 편하신 시간을 알려 주시면 감사하겠습니다.
+
+[회사명] [이름] 드림
+연락처: [연락처]`
+      },
+      {
+        label: '공동프로젝트형',
+        body: `안녕하세요.
+[회사명] [이름]입니다.
+
+[프로젝트명] 공동 추진과 관련하여 협력 제안을 드리고자 연락드립니다.
+
+──────────────────────
+■ 프로젝트 개요: [프로젝트설명]
+■ 제안 협력 방식: [협력방식]
+■ 예상 일정: [예상일정]
+■ 기대 성과: [기대성과]
+──────────────────────
+
+관심이 있으시다면 자세한 제안서를 별도로 보내드리거나 미팅을 통해 설명드릴 수 있습니다.
+긍정적인 검토 부탁드립니다.
+
+[회사명] [이름] 드림`
+      }
+    ]
+  },
+
+  // ── 감사/칭찬 ──
+  {
+    id: 16, title: '감사 인사', category: '감사/칭찬', catClass: 'cat-thanks',
+    desc: '업무 협조, 도움, 수고에 대한 감사 메일.',
+    preview: '안녕하세요. [이름]입니다. 이번에 도움 주셔서...',
+    examples: [
+      {
+        label: '업무협조감사',
+        body: `안녕하세요. [이름]입니다.
+
+이번 [업무명] 건에 있어 적극적으로 협조해 주셔서 진심으로 감사드립니다.
+
+[담당자명] 님의 빠른 대응 덕분에 업무가 원활하게 마무리될 수 있었습니다.
+앞으로도 함께 좋은 결과를 만들어 갈 수 있기를 기대합니다.
+
+다시 한번 감사드립니다.
 
 [이름] 드림`
+      },
+      {
+        label: '도움감사',
+        body: `안녕하세요. [이름]입니다.
+
+[상황] 때 도움 주신 덕분에 잘 해결할 수 있었습니다.
+정말 감사합니다.
+
+바쁘신 중에도 시간 내어 주셔서 마음이 따뜻했습니다.
+기회가 된다면 저도 도움이 될 수 있도록 하겠습니다.
+
+감사합니다.
+[이름] 드림`
+      },
+      {
+        label: '프로젝트완료감사',
+        body: `안녕하세요. [이름]입니다.
+
+[프로젝트명] 프로젝트가 성공적으로 마무리되었습니다.
+이번 프로젝트 기간 동안 함께 고생해 주신 모든 분들께 진심으로 감사드립니다.
+
+특히 [담당자명] 님을 비롯한 팀원 여러분의 헌신과 노력이 없었다면 이런 결과는 불가능했을 것입니다.
+
+앞으로도 함께 좋은 일을 만들어 가면 좋겠습니다.
+다시 한번 감사드립니다.
+
+[이름] 드림`
+      }
+    ]
+  },
+  {
+    id: 17, title: '칭찬/격려 메일', category: '감사/칭찬', catClass: 'cat-thanks',
+    desc: '팀원이나 협력사의 뛰어난 성과를 칭찬하는 메일.',
+    preview: '안녕하세요. [이름]입니다. [담당자명] 님의 활약이...',
+    examples: [
+      {
+        label: '팀원칭찬',
+        body: `안녕하세요. [이름]입니다.
+
+이번 [업무/프로젝트명]에서 [담당자명] 님의 활약이 정말 인상적이었습니다.
+
+특히 [구체적칭찬내용] 부분에서 탁월한 역량을 발휘해 주셔서 팀 전체에 큰 힘이 되었습니다.
+앞으로도 지금처럼 열정적으로 함께 해주시면 감사하겠습니다.
+
+수고 많으셨습니다!
+
+[이름] 드림`
+      },
+      {
+        label: '외부협력사칭찬',
+        body: `안녕하세요.
+[회사명] [이름]입니다.
+
+이번 [프로젝트명] 협업을 통해 귀사의 전문성과 대응 능력에 깊은 인상을 받았습니다.
+
+[구체적칭찬내용] 등 여러 면에서 기대 이상의 퀄리티를 보여 주셔서 감사합니다.
+향후에도 좋은 협력 관계를 이어가고 싶습니다.
+
+앞으로도 잘 부탁드립니다.
+
+[회사명] [이름] 드림`
+      }
+    ]
+  },
+
+  // ── 거절/사양 ──
+  {
+    id: 18, title: '미팅/영업 제안 거절', category: '거절/사양', catClass: 'cat-decline',
+    desc: '외부 미팅 또는 영업 제안을 정중히 거절하는 메일.',
+    preview: '안녕하세요. 관심 가져주셔서 감사합니다만...',
+    examples: [
+      {
+        label: '정중거절',
+        body: `안녕하세요.
+[회사명] [이름]입니다.
+
+연락 주셔서 감사합니다.
+
+검토 결과, 현재 저희 내부 사정 및 일정상 [제안내용]을 진행하기 어려운 상황입니다.
+좋은 제안을 해주셨음에도 기대에 부응하지 못하여 죄송합니다.
+
+추후 상황이 달라질 경우 먼저 연락드리겠습니다.
+앞으로도 귀사의 좋은 성과를 기원합니다.
+
+감사합니다.
+[이름] 드림`
+      },
+      {
+        label: '재연락거절',
+        body: `안녕하세요.
+연락 주셔서 감사합니다.
+
+현재는 해당 제안을 검토할 여건이 되지 않아 정중히 사양합니다.
+
+앞으로도 유사한 제안의 연락은 삼가 주시면 감사하겠습니다.
+바쁘신 중에 시간 내어 주셔서 감사드립니다.
+
+[이름] 드림`
+      }
+    ]
+  },
+  {
+    id: 19, title: '채용 제안 거절', category: '거절/사양', catClass: 'cat-decline',
+    desc: '헤드헌터나 회사로부터 받은 채용 제안을 거절하는 메일.',
+    preview: '안녕하세요. 좋은 기회 제안해 주셔서 감사합니다만...',
+    examples: [
+      {
+        label: '기본형',
+        body: `안녕하세요. [이름]입니다.
+
+이번에 좋은 기회를 제안해 주셔서 진심으로 감사드립니다.
+
+신중하게 검토하였으나, 현재 시점에서는 이직을 결정하기 어려운 상황입니다.
+소중한 제안임에도 기대에 부응하지 못하게 되어 죄송합니다.
+
+향후 기회가 된다면 다시 연락드리겠습니다.
+앞으로도 좋은 인연이 이어지기를 바랍니다.
+
+감사합니다.
+[이름] 드림`
+      },
+      {
+        label: '긍정적거절',
+        body: `안녕하세요.
+귀사의 채용 제안에 감사드립니다.
+
+제안해 주신 포지션과 조건에 대해 진지하게 검토하였습니다.
+[회사명]은 매력적인 회사임에 틀림없으나, 현재 저의 커리어 방향과 맞지 않아 이번에는 정중히 사양드립니다.
+
+혹시 [관심분야] 관련 포지션이 생긴다면 그때 다시 연락 주시면 더욱 진지하게 검토하겠습니다.
+좋은 제안 주셔서 감사드립니다.
+
+[이름] 드림`
+      }
+    ]
+  },
+  {
+    id: 20, title: '요청 거절', category: '거절/사양', catClass: 'cat-decline',
+    desc: '내부 또는 외부의 업무 요청을 사양하는 메일.',
+    preview: '안녕하세요. [이름]입니다. 요청 주신 건 관련하여...',
+    examples: [
+      {
+        label: '내부요청거절',
+        body: `안녕하세요. [이름]입니다.
+
+[요청내용] 관련하여 검토드렸습니다.
+
+현재 [이유]로 인해 해당 요청을 처리하기 어려운 상황입니다.
+기대에 부응하지 못해 죄송하며, [대안]을 검토해 보시는 것도 좋을 것 같습니다.
+
+추가 논의가 필요하시면 말씀해 주세요.
+
+감사합니다.
+[이름] 드림`
+      },
+      {
+        label: '외부요청거절',
+        body: `안녕하세요.
+[이름]입니다.
+
+[요청내용] 관련하여 말씀드립니다.
+
+검토 결과, [이유]로 인해 현재 해당 요청을 수락하기 어렵습니다.
+다소 실망스러우실 수 있으나 양해 부탁드립니다.
+
+감사합니다.
+[이름] 드림`
+      }
+    ]
+  },
+
+  // ── 일정변경 ──
+  {
+    id: 21, title: '일정 변경 요청', category: '일정변경', catClass: 'cat-schedule',
+    desc: '약속된 일정을 변경 요청하는 메일.',
+    preview: '안녕하세요. [이름]입니다. [일정명] 일정 변경 요청...',
+    examples: [
+      {
+        label: '미팅일정변경',
+        body: `안녕하세요. [이름]입니다.
+
+[원래날짜] [원래시간]으로 예정된 [일정명] 일정과 관련하여 말씀드립니다.
+
+부득이한 사정으로 해당 일정 변경을 요청드리고 싶습니다.
+
+■ 변경 사유: [사유]
+■ 희망 변경 일정: [희망날짜] [희망시간] (또는 상호 편한 시간으로 조율 가능)
+
+갑작스러운 요청으로 불편을 드려 진심으로 죄송합니다.
+일정 조율이 가능하신지 확인 부탁드립니다.
+
+감사합니다.
+[이름] 드림`
+      },
+      {
+        label: '납기변경',
+        body: `안녕하세요. [이름]입니다.
+
+[업무명] 납기 변경 요청드립니다.
+
+당초 [원래납기]로 협의드렸으나, [사유]로 인해 일정 연장이 필요한 상황입니다.
+
+■ 기존 납기: [원래납기]
+■ 요청 납기: [변경납기]
+
+부득이한 사정임을 이해해 주시기를 부탁드리며, 변경된 납기 내에는 반드시 완료하겠습니다.
+승인 여부 회신 부탁드립니다.
+
+감사합니다.
+[이름] 드림`
+      }
+    ]
+  },
+  {
+    id: 22, title: '일정 취소 통보', category: '일정변경', catClass: 'cat-schedule',
+    desc: '예정된 약속이나 일정을 취소하는 메일.',
+    preview: '안녕하세요. [이름]입니다. [일정명] 취소 관련...',
+    examples: [
+      {
+        label: '기본형',
+        body: `안녕하세요. [이름]입니다.
+
+[날짜] [시간]에 예정되어 있던 [일정명]을 취소하게 되었음을 알려드립니다.
+
+■ 취소 사유: [사유]
+
+준비해 주셨을 것 같아 정말 죄송합니다.
+일정이 다시 잡히면 빠르게 안내드리겠습니다.
+
+[이름] 드림`
+      },
+      {
+        label: '대안제시형',
+        body: `안녕하세요. [이름]입니다.
+
+[날짜]로 예정된 [일정명]이 [사유]로 인해 취소되었습니다.
+
+대신 [대안일정]으로 다시 진행할 수 있을 것으로 예상합니다.
+혹시 해당 일정에 가능하신지 확인 부탁드립니다.
+
+갑작스러운 일정 변경으로 불편을 드려 죄송합니다.
+
+감사합니다.
+[이름] 드림`
+      }
+    ]
+  },
+
+  // ── 클레임 ──
+  {
+    id: 23, title: '제품/서비스 클레임', category: '클레임', catClass: 'cat-claim',
+    desc: '제품 불량, 서비스 불만족, 약속 불이행에 대한 공식 클레임 메일.',
+    preview: '안녕하세요. [회사명] [이름]입니다. [건명] 관련...',
+    examples: [
+      {
+        label: '제품불량',
+        body: `안녕하세요.
+[회사명] [이름]입니다.
+
+[날짜] 수령한 [제품명] 관련하여 불량 문제를 제기드립니다.
+
+──────────────────────
+■ 주문 번호: [주문번호]
+■ 불량 내용: [불량내용]
+■ 발생 일시: [발생일시]
+──────────────────────
+
+제품 수령 후 [불량내용]이 확인되어 정상적인 사용이 불가한 상황입니다.
+아래와 같은 조치를 요청드립니다.
+
+요청 사항: [요청사항] (교환 / 환불 / 수리 등)
+
+[확인기한]까지 처리 방안 회신 부탁드립니다.
+관련 사진 및 자료는 첨부해 드렸습니다.
+
+[회사명] [이름] 드림`
+      },
+      {
+        label: '서비스불만',
+        body: `안녕하세요.
+[회사명] [이름]입니다.
+
+[서비스명] 이용 중 발생한 문제에 대해 공식적으로 불만을 제기드립니다.
+
+──────────────────────
+■ 발생 일시: [발생일시]
+■ 불만 내용: [불만내용]
+■ 담당자 응대 내용: [응대내용]
+──────────────────────
+
+이 건에 대해 명확한 원인 설명과 재발 방지 대책, 그리고 적절한 보상을 요구드립니다.
+
+[확인기한]까지 공식 답변 부탁드립니다.
+
+[회사명] [이름] 드림`
+      },
+      {
+        label: '납기지연항의',
+        body: `안녕하세요.
+[회사명] [이름]입니다.
+
+[계약명] 관련하여 납기 지연에 대해 공식 이의를 제기드립니다.
+
+──────────────────────
+■ 계약 납기: [계약납기]
+■ 현재 상태: [현상황]
+■ 지연 일수: [지연일수]일
+■ 피해 내용: [피해내용]
+──────────────────────
+
+계약상 납기를 준수하지 못함에 따른 손해에 대한 설명과 보상 방안을 요청드립니다.
+[확인기한]까지 공식 회신 부탁드립니다.
+
+[회사명] [이름] 드림`
+      }
+    ]
+  },
+
+  // ── 퇴사/인사 ──
+  {
+    id: 24, title: '퇴사 인사', category: '퇴사/인사', catClass: 'cat-farewell',
+    desc: '재직 기간 감사 인사 및 퇴사 인사 메일.',
+    preview: '안녕하세요. [이름]입니다. 갑작스러운 소식을...',
+    examples: [
+      {
+        label: '정중형',
+        body: `안녕하세요. [이름]입니다.
+
+갑작스러운 소식을 이렇게 메일로 전하게 되어 양해 부탁드립니다.
+저는 [퇴사일]부로 퇴사하게 되었습니다.
+
+[재직기간] 동안 함께 일하며 많은 것을 배우고 성장할 수 있었습니다.
+힘든 순간마다 도움 주신 덕분에 즐겁게 근무할 수 있었습니다.
+
+앞으로도 모두 건강하시고, 하시는 일 모두 잘 되시길 진심으로 바랍니다.
+
+그동안 정말 감사했습니다.
+
+[이름] 드림`
+      },
+      {
+        label: '따뜻한형',
+        body: `안녕하세요 :) [이름]입니다.
+
+[퇴사일]을 마지막으로 자리를 떠나게 되었습니다.
+
+[재직기간]이라는 시간 동안 여러분과 함께였던 모든 순간이 소중한 추억으로 남을 것 같습니다.
+웃으며 함께했던 순간들, 어려운 프로젝트를 이겨냈던 순간들... 모두 잊지 못할 것 같습니다.
+
+새로운 곳에서도 지금처럼 최선을 다하겠습니다.
+앞으로도 언제든 연락 주세요 — 늘 반갑게 받겠습니다!
+
+모두 건강하고 행복하세요. 정말 감사했습니다.
+
+[이름] 드림
+개인 연락처: [개인연락처]`
+      },
+      {
+        label: '간결형',
+        body: `안녕하세요. [이름]입니다.
+
+[퇴사일]부로 퇴사하게 되었습니다.
+
+[재직기간] 동안 감사했습니다.
+앞으로도 모두 잘 되시길 바랍니다.
+
+[이름] 드림`
+      }
+    ]
+  },
+  {
+    id: 25, title: '신입 자기소개', category: '퇴사/인사', catClass: 'cat-farewell',
+    desc: '첫 출근 후 팀원들에게 보내는 자기소개 메일.',
+    preview: '안녕하세요. 이번에 [부서]에 합류하게 된 [이름]입니다.',
+    examples: [
+      {
+        label: '기본형',
+        body: `안녕하세요 :)
+이번에 [부서]에 합류하게 된 [이름]입니다.
+
+[직무] 담당으로 근무하게 되었으며, 앞으로 여러분과 함께 일하게 되어 매우 설레고 기대가 됩니다.
+
+아직 배울 것이 많지만, 빠르게 적응하여 팀에 기여할 수 있도록 최선을 다하겠습니다.
+궁금한 점이 있으시거나 도움이 필요한 일이 있으면 편하게 말씀해 주세요.
+
+앞으로 잘 부탁드립니다!
+
+[이름] 드림`
+      },
+      {
+        label: '경력직형',
+        body: `안녕하세요.
+[부서]에 새로 합류하게 된 [이름]입니다.
+
+이전에 [이전회사/경력]에서 근무하였으며, 이번에 [직무] 포지션으로 함께하게 되었습니다.
+
+새로운 환경에서 이전 경험을 잘 살려 팀에 빠르게 기여하고 싶습니다.
+모르는 부분은 적극적으로 여쭤보며 빠르게 적응하겠습니다.
+
+앞으로 잘 부탁드립니다!
+
+[이름] 드림`
+      }
+    ]
+  },
+  {
+    id: 26, title: '이직/부서이동 인사', category: '퇴사/인사', catClass: 'cat-farewell',
+    desc: '이직이나 부서 이동 시 보내는 인사 메일.',
+    preview: '안녕하세요. [이름]입니다. 이번에 자리를 옮기게 되어...',
+    examples: [
+      {
+        label: '이직인사',
+        body: `안녕하세요. [이름]입니다.
+
+이번에 새로운 기회를 찾아 [이직회사]로 이직하게 되어 인사드립니다.
+
+[재직기간] 동안 함께 일하며 많이 배우고 성장할 수 있었습니다.
+부족한 저를 믿어주시고 이끌어 주신 덕분입니다.
+
+새 자리에서도 지금까지 배운 것들을 바탕으로 더 잘 성장하겠습니다.
+앞으로도 좋은 인연 이어가며 서로 도움이 되면 좋겠습니다.
+
+감사했습니다.
+[이름] 드림
+개인 연락처: [개인연락처]`
+      },
+      {
+        label: '부서이동인사',
+        body: `안녕하세요. [이름]입니다.
+
+이번에 [원래부서]에서 [이동부서]로 이동하게 되어 인사드립니다.
+
+[재직기간] 동안 [원래부서]에서 함께해 주셔서 감사합니다.
+여러분과 함께한 경험이 앞으로의 업무에도 큰 자산이 될 것입니다.
+
+새 부서에서도 열심히 하겠습니다!
+앞으로도 잘 부탁드립니다.
+
+[이름] 드림`
+      }
+    ]
   }
 ];
 
 let currentTemplateId = null;
+let currentExampleIdx = 0;
 
-// ── Category CSS class map ──
-const catClassMap = {
-  '휴가/연차': 'cat-leave',
-  '보고':      'cat-report',
-  '회의':      'cat-meeting',
-  '사과/해명': 'cat-sorry',
-  '퇴사/인사': 'cat-farewell',
-};
-
-// ── Render grid ──
 function renderGrid() {
   const grid = document.getElementById('templateGrid');
   grid.innerHTML = TEMPLATES.map(t => `
     <div class="template-card" id="card-${t.id}" data-cat="${t.category}" onclick="openModal(${t.id})">
+      ${t.examples.length > 1 ? `<span class="tpl-examples-count">${t.examples.length}가지 예시</span>` : ''}
       <span class="tpl-cat ${t.catClass}">${t.category}</span>
       <div class="tpl-title">${t.title}</div>
       <div class="tpl-desc">${t.desc}</div>
@@ -591,21 +1504,14 @@ function renderGrid() {
   `).join('');
 }
 
-// ── Filter ──
 function setFilter(btn, cat) {
   document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-
   document.querySelectorAll('.template-card').forEach(card => {
-    if (cat === '전체' || card.dataset.cat === cat) {
-      card.classList.remove('hidden');
-    } else {
-      card.classList.add('hidden');
-    }
+    card.classList.toggle('hidden', cat !== '전체' && card.dataset.cat !== cat);
   });
 }
 
-// ── Parse variable names from body ──
 function parseVars(body) {
   const matches = body.match(/\[([^\]]+)\]/g) || [];
   const unique = [];
@@ -616,58 +1522,78 @@ function parseVars(body) {
   return unique;
 }
 
-// ── Open modal ──
 function openModal(id) {
   const tpl = TEMPLATES.find(t => t.id === id);
   if (!tpl) return;
   currentTemplateId = id;
+  currentExampleIdx = 0;
 
   document.getElementById('modalTitle').textContent = tpl.title;
   document.getElementById('modalCat').innerHTML =
     `<span class="tpl-cat ${tpl.catClass}">${tpl.category}</span>`;
 
-  // Build variable input fields
-  const varNames = parseVars(tpl.body);
-  const fields = document.getElementById('varFields');
-  fields.innerHTML = varNames.map(v => `
-    <div class="var-field">
-      <label>${v}</label>
-      <input type="text" data-var="${v}" placeholder="${v}" oninput="updatePreview(${id})">
-    </div>
-  `).join('');
-
-  updatePreview(id);
+  renderExampleTabs(tpl);
+  renderVarFields(tpl, 0);
   document.getElementById('modalOverlay').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
 
-// ── Update preview with current input values ──
-function updatePreview(id) {
-  const tpl = TEMPLATES.find(t => t.id === id);
-  if (!tpl) return;
-  let body = tpl.body;
-
-  document.querySelectorAll('#varFields input').forEach(input => {
-    const varName = input.dataset.var;
-    const val = input.value.trim() || `[${varName}]`;
-    // replace all occurrences
-    body = body.split(`[${varName}]`).join(val);
-  });
-
-  // Highlight remaining placeholders
-  const preview = document.getElementById('mailPreview');
-  const escaped = body
-    .replace(/&/g,'&amp;')
-    .replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;');
-  const highlighted = escaped.replace(
-    /\[([^\]]+)\]/g,
-    '<span class="placeholder">[$1]</span>'
-  );
-  preview.innerHTML = highlighted;
+function renderExampleTabs(tpl) {
+  const section = document.getElementById('exampleSection');
+  if (tpl.examples.length <= 1) {
+    section.innerHTML = '';
+    return;
+  }
+  section.innerHTML = `
+    <div class="example-label">예시 선택</div>
+    <div class="example-tabs">
+      ${tpl.examples.map((ex, i) => `
+        <button class="example-tab${i === currentExampleIdx ? ' active' : ''}" onclick="selectExample(${i})">${ex.label}</button>
+      `).join('')}
+    </div>
+  `;
 }
 
-// ── Close modal ──
+function selectExample(idx) {
+  const tpl = TEMPLATES.find(t => t.id === currentTemplateId);
+  if (!tpl) return;
+  currentExampleIdx = idx;
+
+  document.querySelectorAll('.example-tab').forEach((tab, i) => {
+    tab.classList.toggle('active', i === idx);
+  });
+
+  renderVarFields(tpl, idx);
+}
+
+function renderVarFields(tpl, exIdx) {
+  const body = tpl.examples[exIdx].body;
+  const varNames = parseVars(body);
+  const fields = document.getElementById('varFields');
+  fields.innerHTML = varNames.map(v => `
+    <div class="var-field">
+      <label>${v}</label>
+      <input type="text" data-var="${v}" placeholder="${v}" oninput="updatePreview()">
+    </div>
+  `).join('');
+  updatePreview();
+}
+
+function updatePreview() {
+  const tpl = TEMPLATES.find(t => t.id === currentTemplateId);
+  if (!tpl) return;
+  let body = tpl.examples[currentExampleIdx].body;
+
+  document.querySelectorAll('#varFields input').forEach(input => {
+    const val = input.value.trim() || `[${input.dataset.var}]`;
+    body = body.split(`[${input.dataset.var}]`).join(val);
+  });
+
+  const escaped = body.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const highlighted = escaped.replace(/\[([^\]]+)\]/g, '<span class="placeholder">[$1]</span>');
+  document.getElementById('mailPreview').innerHTML = highlighted;
+}
+
 function closeModal() {
   document.getElementById('modalOverlay').classList.remove('open');
   document.body.style.overflow = '';
@@ -678,26 +1604,20 @@ function closeModalOnBg(e) {
   if (e.target === document.getElementById('modalOverlay')) closeModal();
 }
 
-// ── Copy ──
 function copyMail() {
   const tpl = TEMPLATES.find(t => t.id === currentTemplateId);
   if (!tpl) return;
-  let body = tpl.body;
+  let body = tpl.examples[currentExampleIdx].body;
 
   document.querySelectorAll('#varFields input').forEach(input => {
-    const varName = input.dataset.var;
-    const val = input.value.trim() || `[${varName}]`;
-    body = body.split(`[${varName}]`).join(val);
+    const val = input.value.trim() || `[${input.dataset.var}]`;
+    body = body.split(`[${input.dataset.var}]`).join(val);
   });
 
-  navigator.clipboard.writeText(body).then(() => {
-    showToast();
-  }).catch(() => {
-    // fallback
+  navigator.clipboard.writeText(body).then(showToast).catch(() => {
     const ta = document.createElement('textarea');
     ta.value = body;
-    ta.style.position = 'fixed';
-    ta.style.opacity = '0';
+    ta.style.cssText = 'position:fixed;opacity:0';
     document.body.appendChild(ta);
     ta.select();
     document.execCommand('copy');
@@ -712,12 +1632,8 @@ function showToast() {
   setTimeout(() => toast.classList.remove('show'), 2200);
 }
 
-// Close modal on Escape key
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') closeModal();
-});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
-// Init
 renderGrid();
 </script>
 <script src="../js/theme.js"></script>
