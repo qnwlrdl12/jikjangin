@@ -40,7 +40,7 @@
 <div class="page-header">
   <div class="breadcrumb"><a href="../index.html">홈</a> › 업무 도구</div>
   <h1>📱 QR코드 생성기</h1>
-  <p>URL·텍스트·연락처를 QR코드로 즉시 변환 + PNG 다운로드</p>
+  <p>링크·텍스트·연락처를 QR코드로 즉시 변환 + 이미지 다운로드</p>
 </div>
 <main>
   <div class="ad-banner">광고 영역 (Google AdSense)</div>
@@ -48,7 +48,7 @@
 
     <div style="font-size:0.82rem;color:var(--text-muted);margin-bottom:8px;font-weight:600">⚡ 빠른 템플릿</div>
     <div class="template-row">
-      <button class="tpl-btn" onclick="setTpl('url')">🔗 URL 링크</button>
+      <button class="tpl-btn" onclick="setTpl('url')">🔗 링크</button>
       <button class="tpl-btn" onclick="setTpl('email')">📧 이메일</button>
       <button class="tpl-btn" onclick="setTpl('tel')">📞 전화번호</button>
       <button class="tpl-btn" onclick="setTpl('sms')">💬 문자</button>
@@ -177,9 +177,9 @@ async function copyQR(){
       blob=await res.blob();
     }
     await navigator.clipboard.write([new ClipboardItem({'image/png':blob})]);
-    alert('이미지가 클립보드에 복사되었습니다!');
+    alert('이미지가 복사되었습니다!');
   }catch(e){
-    alert('복사 실패: HTTPS 환경이 필요하거나 브라우저가 지원하지 않습니다.');
+    alert('복사에 실패했습니다. 다운로드를 이용해 주세요.');
   }
 }
 </script>

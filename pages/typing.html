@@ -174,7 +174,7 @@
 
   <div class="game-wrap">
     <div class="stat-bar">
-      <div class="stat-box"><div class="lbl">현재 WPM</div><div class="val" id="wpmVal">0</div></div>
+      <div class="stat-box"><div class="lbl">분당 타수</div><div class="val" id="wpmVal">0</div></div>
       <div class="stat-box"><div class="lbl">정확도</div><div class="val" id="accVal">100%</div></div>
       <div class="stat-box timer-box" id="timerBox"><div class="lbl">남은 시간</div><div class="val" id="timerVal">60</div></div>
       <div class="stat-box highlight"><div class="lbl">최고 기록</div><div class="val" id="bestVal">0</div></div>
@@ -216,7 +216,7 @@
     <div class="sub" id="resultSub">60초 동안 수고하셨습니다</div>
     <div class="result-grid">
       <div class="result-item" id="ri-wpm">
-        <div class="r-lbl">WPM (분당 타수)</div>
+        <div class="r-lbl">분당 타수</div>
         <div class="r-val" id="r-wpm">0</div>
       </div>
       <div class="result-item" id="ri-acc">
@@ -512,11 +512,11 @@ function closeResultAndRestart() {
 function shareResult() {
   const wpm = document.getElementById('r-wpm').textContent;
   const acc = document.getElementById('r-acc').textContent;
-  const text = `⌨️ 직장인 타자 게임 결과\nWPM: ${wpm} | 정확도: ${acc}\n직장인닷컴에서 도전해보세요!`;
+  const text = `⌨️ 직장인 타자 게임 결과\n분당 타수: ${wpm} | 정확도: ${acc}\n직장인닷컴에서 도전해보세요!`;
   if (navigator.share) {
     navigator.share({ title: '직장인 타자 게임', text });
   } else if (navigator.clipboard) {
-    navigator.clipboard.writeText(text).then(() => alert('결과가 클립보드에 복사되었습니다!'));
+    navigator.clipboard.writeText(text).then(() => alert('결과가 복사되었습니다!'));
   } else {
     alert(text);
   }
