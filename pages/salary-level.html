@@ -209,7 +209,8 @@ function analyze() {
   const topPct = 100 - pct;
 
   document.getElementById('pctVal').textContent = '상위 ' + topPct + '%';
-  document.getElementById('pctSub').textContent = `${age}세 · 경력 ${exp}년 · ${['IT','finance','mfg','sales','hr','service','medical','edu','public'].find(k=>k===industry)||industry} 기준`;
+  const IND_KR = {IT:'IT·소프트웨어', finance:'금융·보험', mfg:'제조·엔지니어링', sales:'영업·마케팅', hr:'인사·총무', service:'서비스·유통', medical:'의료·제약', edu:'교육', public:'공기업·공공'};
+  document.getElementById('pctSub').textContent = `${age}세 · 경력 ${exp}년 · ${IND_KR[industry]||industry} 기준`;
   document.getElementById('myVal').textContent = fw(mine);
   document.getElementById('q1').textContent = fw(q1);
   document.getElementById('q3').textContent = fw(q3);

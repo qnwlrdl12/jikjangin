@@ -138,7 +138,7 @@ function calculate() {
   const avgIncomeWon = (parseFloat(document.getElementById('avgIncome').value) || 0) * 10000;
 
   if (!avgIncomeWon) { alert('평균 월 소득을 입력해주세요.'); return; }
-  if (currentAge >= retireAge) { alert('현재 나이가 은퇴 나이보다 작아야 합니다.'); return; }
+  if (currentAge >= retireAge) { alert('현재 나이가 은퇴 나이 이상입니다. 은퇴 나이를 더 높게 설정해주세요.'); return; }
 
   const remainYears = retireAge - currentAge;
   const totalYears = paidYears + remainYears;

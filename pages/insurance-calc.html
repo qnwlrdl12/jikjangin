@@ -119,7 +119,7 @@
     <div class="rate-row"><span class="r-name">건강보험</span><div class="r-vals"><span class="r-emp">직원 3.595%</span><span class="r-erm">사업자 3.595%</span></div></div>
     <div class="rate-row"><span class="r-name">장기요양보험</span><div class="r-vals"><span class="r-emp">건강보험료 × 13.14%</span><span class="r-erm">건강보험료 × 13.14%</span></div></div>
     <div class="rate-row"><span class="r-name">고용보험</span><div class="r-vals"><span class="r-emp">직원 0.9%</span><span class="r-erm">사업자 1.15%</span></div></div>
-    <div class="rate-row" style="font-weight:700;color:var(--white)"><span>합계</span><div class="r-vals"><span class="r-emp">약 9.72% + a</span><span class="r-erm">약 10.0% + a</span></div></div>
+    <div class="rate-row" style="font-weight:700;color:var(--white)"><span>합계</span><div class="r-vals"><span class="r-emp">약 9.72% + α</span><span class="r-erm">약 10.0% + α</span></div></div>
   </div>
 
   <div class="ad-banner" style="margin-top:8px">광고 영역 (Google AdSense)</div>
@@ -137,7 +137,7 @@ function calculate() {
   const salaryWon = (parseFloat(document.getElementById('salary').value) || 0) * 10000;
   if (!salaryWon) { document.getElementById('resultBox').style.display = 'none'; return; }
 
-  // 국민연금 (월 상한 6,170,000원)
+  // 국민연금 (월 상한 6,370,000원, 2025.7 기준)
   const pensionBase = Math.min(salaryWon, 6370000);
   const pension = pensionBase * 0.0475;
 

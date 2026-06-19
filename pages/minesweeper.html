@@ -24,10 +24,10 @@
     .board-wrap { text-align:center; overflow-x:auto; padding-bottom:8px; }
     .row { display:flex; }
     .cell { width:32px; height:32px; display:flex; align-items:center; justify-content:center; font-size:0.85rem; font-weight:700; cursor:pointer; flex-shrink:0; border:1px solid rgba(255,255,255,0.04); box-sizing:border-box; transition:background 0.05s; }
-    .cell.hidden { background:#2a2a3e; }
-    .cell.hidden:hover { background:#33334f; }
-    .cell.flagged { background:#2a2a3e; }
-    .cell.open { background:#1a1a2e; cursor:default; }
+    .cell.hidden { background:#2e2e48; }
+    .cell.hidden:hover { background:#3a3a58; }
+    .cell.flagged { background:#2e2e48; }
+    .cell.open { background:#12121f; cursor:default; border-color:rgba(255,255,255,0.02); }
     .cell.mine-boom { background:#FF6B35; }
     .cell.mine-show { background:#1a1a2e; }
     .n1{color:#4ECDC4} .n2{color:#2ecc71} .n3{color:#FF6B35} .n4{color:#9b59b6}
@@ -133,15 +133,37 @@ function startTimer() {
   }, 1000);
 }
 
-function reveal(r, c) {
-  if (r<0||r>=cfg.r||c<0||c>=cfg.c||revealed[r][c]||flagged[r][c]) return;
-  revealed[r][c] = true;
-  if (grid[r][c] === 0)
-    for (let dr=-1;dr<=1;dr++) for (let dc=-1;dc<=1;dc++) reveal(r+dr,c+dc);
+function reveal(startR, startC) {
+  const queue = [[startR, startC]];
+  while (queue.length) {
+    const [r, c] = queue.pop();
+    if (r<0||r>=cfg.r||c<0||c>=cfg.c||revealed[r][c]||flagged[r][c]) continue;
+    revealed[r][c] = true;
+    if (grid[r][c] === 0)
+      for (let dr=-1;dr<=1;dr++) for (let dc=-1;dc<=1;dc++) queue.push([r+dr,c+dc]);
+  }
 }
 
 function click(r, c) {
-  if (over || flagged[r][c] || revealed[r][c]) return;
+  if (over || flagged[r][c]) return;
+  // Chord click: already-revealed number cell with correct flag count → reveal neighbors
+  if (revealed[r][c]) {
+    if (grid[r][c] <= 0) return;
+    let adjFlags = 0;
+    for (let dr=-1;dr<=1;dr++) for (let dc=-1;dc<=1;dc++) {
+      const nr=r+dr, nc=c+dc;
+      if (nr>=0&&nr<cfg.r&&nc>=0&&nc<cfg.c&&flagged[nr][nc]) adjFlags++;
+    }
+    if (adjFlags !== grid[r][c]) return;
+    for (let dr=-1;dr<=1;dr++) for (let dc=-1;dc<=1;dc++) {
+      const nr=r+dr, nc=c+dc;
+      if (nr<0||nr>=cfg.r||nc<0||nc>=cfg.c||revealed[nr][nc]||flagged[nr][nc]) continue;
+      if (grid[nr][nc] === -1) { boom(nr, nc); return; }
+      reveal(nr, nc);
+    }
+    if (checkWin()) { win(); return; }
+    render(); return;
+  }
   if (firstClick) {
     firstClick = false; placeMines(r, c); startTimer(); started = true;
   }

@@ -170,7 +170,7 @@ function renderItems() {
 }
 
 function toggle(key, limit) {
-  checks[key] = checks[key] ? null : limit;
+  checks[key] = (checks[key] !== null && checks[key] !== undefined) ? null : limit;
   renderItems();
   updateSummary();
 }

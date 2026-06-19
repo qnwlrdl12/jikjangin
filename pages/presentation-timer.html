@@ -161,8 +161,8 @@ function startTimer() {
   const lastBuf = parseInt(document.getElementById('lastBuffer').value) || 30;
 
   const totalSec = totalMin * 60;
-  const mainSec = totalSec - lastBuf;
-  secPerSlide = Math.floor(mainSec / slides);
+  const mainSec = Math.max(totalSec - lastBuf, slides * 5);
+  secPerSlide = Math.max(5, Math.floor(mainSec / slides));
 
   current = 0;
   document.getElementById('setupCard').style.display = 'none';

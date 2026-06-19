@@ -57,7 +57,7 @@
       </div>
       <div class="ctrl-row" style="margin-top:12px">
         <button class="ctrl-btn" onpointerdown="startMv('L')" onpointerup="stopMv()" ontouchstart="e=>{e.preventDefault();startMv('L')}" ontouchend="stopMv()">◀</button>
-        <button class="ctrl-btn" onclick="rotate()">↻ 회전</button>
+        <button class="ctrl-btn" onclick="doRotate()">↻ 회전</button>
         <button class="ctrl-btn" onpointerdown="startMv('R')" onpointerup="stopMv()" ontouchstart="e=>{e.preventDefault();startMv('R')}" ontouchend="stopMv()">▶</button>
         <button class="ctrl-btn" onpointerdown="startMv('D')" onpointerup="stopMv()">▼</button>
         <button class="ctrl-btn" onclick="hardDrop()">⏬ Drop</button>
@@ -274,9 +274,9 @@ function doMove() {
   if (mvDir === 'D') { if (valid(board, piece, pieceX, pieceY + 1)) { pieceY++; draw(); } else { lock(); draw(); } }
 }
 
-function rotate() {
+function doRotate() {
   if (!running || paused) return;
-  const rot = window.rotate ? window.rotate(piece) : rotatePiece(piece);
+  const rot = rotatePiece(piece);
   if (valid(board, rot, pieceX, pieceY)) { piece = rot; draw(); }
   else if (valid(board, rot, pieceX + 1, pieceY)) { piece = rot; pieceX++; draw(); }
   else if (valid(board, rot, pieceX - 1, pieceY)) { piece = rot; pieceX--; draw(); }
@@ -288,14 +288,13 @@ function rotatePiece(p) {
   for (let i = 0; i < rows; i++) for (let j = 0; j < cols; j++) r[j][rows-1-i] = p[i][j];
   return r;
 }
-window.rotate = rotatePiece;
 
 document.addEventListener('keydown', e => {
   if (!running) return;
   if (e.key === 'ArrowLeft') { if (valid(board, piece, pieceX-1, pieceY)) { pieceX--; draw(); } }
   else if (e.key === 'ArrowRight') { if (valid(board, piece, pieceX+1, pieceY)) { pieceX++; draw(); } }
   else if (e.key === 'ArrowDown') { if (valid(board, piece, pieceX, pieceY+1)) { pieceY++; draw(); } else { lock(); draw(); } }
-  else if (e.key === 'ArrowUp') { rotate(); }
+  else if (e.key === 'ArrowUp') { doRotate(); }
   else if (e.key === ' ') { e.preventDefault(); hardDrop(); }
   else if (e.key === 'p' || e.key === 'P') { togglePause(); }
 });
