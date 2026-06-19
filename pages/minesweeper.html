@@ -23,11 +23,12 @@
     #board { border-radius:10px; overflow:hidden; display:inline-block; border:1px solid rgba(255,255,255,0.08); user-select:none; }
     .board-wrap { text-align:center; overflow-x:auto; padding-bottom:8px; }
     .row { display:flex; }
-    .cell { width:32px; height:32px; display:flex; align-items:center; justify-content:center; font-size:0.85rem; font-weight:700; cursor:pointer; flex-shrink:0; border:1px solid rgba(255,255,255,0.04); box-sizing:border-box; transition:background 0.05s; }
-    .cell.hidden { background:#424278; }
-    .cell.hidden:hover { background:#5252a0; }
-    .cell.flagged { background:#424278; }
-    .cell.open { background:#0c0c1e; cursor:default; border-color:rgba(255,255,255,0.02); }
+    .cell { width:32px; height:32px; display:flex; align-items:center; justify-content:center; font-size:0.85rem; font-weight:700; cursor:pointer; flex-shrink:0; border:1px solid rgba(0,0,0,0.3); box-sizing:border-box; transition:background 0.06s, box-shadow 0.06s; }
+    .cell.hidden { background:#5858b8; box-shadow:inset 0 2px 0 rgba(255,255,255,0.18), inset -2px -2px 0 rgba(0,0,0,0.35); }
+    .cell.hidden:hover { background:#6868cc; }
+    .cell.hidden:active { background:#3a3a90; box-shadow:inset 0 2px 3px rgba(0,0,0,0.45); }
+    .cell.flagged { background:#5858b8; box-shadow:inset 0 2px 0 rgba(255,255,255,0.18), inset -2px -2px 0 rgba(0,0,0,0.35); }
+    .cell.open { background:#080818; cursor:default; border-color:rgba(255,255,255,0.03); box-shadow:inset 0 1px 3px rgba(0,0,0,0.5); }
     .cell.mine-boom { background:#FF6B35; }
     .cell.mine-show { background:#1a1a2e; }
     .n1{color:#4ECDC4} .n2{color:#2ecc71} .n3{color:#FF6B35} .n4{color:#9b59b6}
