@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://jikjangin.pages.dev/sitemap.xml

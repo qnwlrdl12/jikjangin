@@ -26,9 +26,37 @@
     nav.appendChild(btn);
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', buildButton);
-  } else {
+  // Favicon 자동 주입
+  function injectFavicon() {
+    if (document.querySelector('link[rel*="icon"]')) return;
+    const link = document.createElement('link');
+    link.rel = 'icon';
+    link.href = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💼</text></svg>";
+    document.head.appendChild(link);
+  }
+
+  // 개인정보처리방침 링크 footer에 자동 주입
+  function injectPrivacyLink() {
+    const footer = document.querySelector('footer');
+    if (!footer || footer.querySelector('.privacy-link')) return;
+    const isInPages = window.location.pathname.includes('/pages/');
+    const privacyHref = isInPages ? './privacy.html' : 'pages/privacy.html';
+    const link = document.createElement('p');
+    link.className = 'privacy-link';
+    link.style.cssText = 'margin-top:8px;font-size:0.78rem;opacity:0.55;';
+    link.innerHTML = '<a href="' + privacyHref + '" style="color:inherit;text-decoration:none;">개인정보처리방침</a>';
+    footer.appendChild(link);
+  }
+
+  function init() {
     buildButton();
+    injectFavicon();
+    injectPrivacyLink();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
   }
 })();
