@@ -108,7 +108,7 @@
       <div style="font-size:0.76rem;color:var(--text-muted);margin-top:12px;line-height:1.6;padding:10px 12px;background:rgba(255,255,255,0.02);border-radius:8px">
         ※ 고용보험 사업자 부담: 실업급여 0.9% + 고용안정·직업능력개발 0.25% (150인 미만 기준)<br>
         ※ 장기요양보험료 = 건강보험료 × 13.14%<br>
-        ※ 국민연금 월 상한 소득: 617만원 / 하한: 37만원 (2025년 7월 기준)
+        ※ 국민연금 월 기준소득월액 상한: 637만원 (2025년 7월 기준)
       </div>
     </div>
   </div>
@@ -119,7 +119,7 @@
     <div class="rate-row"><span class="r-name">건강보험</span><div class="r-vals"><span class="r-emp">직원 3.595%</span><span class="r-erm">사업자 3.595%</span></div></div>
     <div class="rate-row"><span class="r-name">장기요양보험</span><div class="r-vals"><span class="r-emp">건강보험료 × 13.14%</span><span class="r-erm">건강보험료 × 13.14%</span></div></div>
     <div class="rate-row"><span class="r-name">고용보험</span><div class="r-vals"><span class="r-emp">직원 0.9%</span><span class="r-erm">사업자 1.15%</span></div></div>
-    <div class="rate-row" style="font-weight:700;color:var(--white)"><span>합계</span><div class="r-vals"><span class="r-emp">약 9.45% + a</span><span class="r-erm">약 9.7% + a</span></div></div>
+    <div class="rate-row" style="font-weight:700;color:var(--white)"><span>합계</span><div class="r-vals"><span class="r-emp">약 9.72% + a</span><span class="r-erm">약 10.0% + a</span></div></div>
   </div>
 
   <div class="ad-banner" style="margin-top:8px">광고 영역 (Google AdSense)</div>
@@ -138,7 +138,7 @@ function calculate() {
   if (!salaryWon) { document.getElementById('resultBox').style.display = 'none'; return; }
 
   // 국민연금 (월 상한 6,170,000원)
-  const pensionBase = Math.min(salaryWon, 6170000);
+  const pensionBase = Math.min(salaryWon, 6370000);
   const pension = pensionBase * 0.0475;
 
   // 건강보험

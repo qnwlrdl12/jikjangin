@@ -183,7 +183,7 @@ function calc() {
 
   const r = rateAnn / 100 / 12;
   const n = yrs * 12;
-  const fv = monthly * ((Math.pow(1 + r, n) - 1) / r) * (1 + r) + init * Math.pow(1 + r, n);
+  const fv = monthly * (Math.pow(1 + r, n) - 1) / r + init * Math.pow(1 + r, n);
   const principal = monthly * n + init;
   const interest = fv - principal;
 
@@ -222,7 +222,7 @@ function calcReverse() {
   const n = yrs * 12;
   const initGrowth = init * Math.pow(1 + r, n);
   const remaining = goal - initGrowth;
-  const pmt = remaining * r / ((Math.pow(1 + r, n) - 1) * (1 + r));
+  const pmt = remaining * r / (Math.pow(1 + r, n) - 1);
 
   document.getElementById('revMonthly').textContent = fw(Math.max(pmt, 0));
   document.getElementById('revDesc').textContent = `${yrs}년 후 ${fw(goal)} 달성 · 연 ${rateAnn}% 복리 적용 (초기금 ${fw(init)} 포함)`;

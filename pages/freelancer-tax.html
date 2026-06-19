@@ -78,7 +78,7 @@
           <select id="category" onchange="calculate()">
             <option value="64.1">IT·개발·번역 (64.1%)</option>
             <option value="63.3">서비스·강의·작가 (63.3%)</option>
-            <option value="61.5">전문직·컨설팅 (61.5%)</option>
+            <option value="61.5">경영컨설팅·자문 (61.5%)</option>
             <option value="78.1">도·소매 (78.1%)</option>
             <option value="custom">직접 입력</option>
           </select>
@@ -131,6 +131,7 @@
 
         <div class="notice">
           ※ 단순경비율 적용: 직전연도 수입 2,400만원 미만 사업자 기준 (초과 시 기준경비율 적용)<br>
+          ※ 의사·변호사·회계사·변리사 등 <strong>전문직 사업자는 단순경비율 적용 불가</strong> — 기준경비율 또는 장부 기준으로 신고해야 합니다.<br>
           ※ 종합소득세 신고 기간: 매년 5월 1일 ~ 31일<br>
           ※ 이 계산기는 단순 참고용입니다. 정확한 세금은 세무사 또는 홈택스에서 확인하세요.
         </div>
@@ -156,7 +157,7 @@ function fw(n) { return Math.round(Math.abs(n)).toLocaleString('ko-KR') + '원';
 
 function calcIncomeTax(taxBase) {
   const brackets = [
-    [14000000, 0.06], [35000000, 0.15], [88000000, 0.24],
+    [14000000, 0.06], [50000000, 0.15], [88000000, 0.24],
     [150000000, 0.35], [300000000, 0.38], [500000000, 0.40],
     [1000000000, 0.42], [Infinity, 0.45],
   ];
