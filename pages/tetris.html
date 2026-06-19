@@ -291,11 +291,12 @@ function rotatePiece(p) {
 
 document.addEventListener('keydown', e => {
   if (!running) return;
+  if (['ArrowLeft','ArrowRight','ArrowDown','ArrowUp',' '].includes(e.key)) e.preventDefault();
   if (e.key === 'ArrowLeft') { if (valid(board, piece, pieceX-1, pieceY)) { pieceX--; draw(); } }
   else if (e.key === 'ArrowRight') { if (valid(board, piece, pieceX+1, pieceY)) { pieceX++; draw(); } }
   else if (e.key === 'ArrowDown') { if (valid(board, piece, pieceX, pieceY+1)) { pieceY++; draw(); } else { lock(); draw(); } }
   else if (e.key === 'ArrowUp') { doRotate(); }
-  else if (e.key === ' ') { e.preventDefault(); hardDrop(); }
+  else if (e.key === ' ') { hardDrop(); }
   else if (e.key === 'p' || e.key === 'P') { togglePause(); }
 });
 
