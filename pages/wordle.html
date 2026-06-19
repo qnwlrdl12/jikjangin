@@ -2,205 +2,218 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <script>if(localStorage.getItem('theme')=='light')document.documentElement.classList.add('light')</script>
+  <script>if(localStorage.getItem('theme')==='light')document.documentElement.classList.add('light')</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>한국어 워들 - 월급루팡 게임 - 직장인닷컴</title>
-  <meta name="description" content="매일 바뀌는 5글자 한국어 단어를 6번 안에 맞춰보세요. 직장인 테마 워들.">
+  <title>한국어 워들 리마스터드 - 직장인닷컴</title>
+  <meta name="description" content="직장인 테마 한국어 워들. 플립 애니메이션·효과음·스트릭·통계.">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../css/style.css">
   <style>
-    .game-wrap { display:flex; flex-direction:column; align-items:center; gap:12px; padding:20px 16px; }
-    .board { display:grid; grid-template-rows:repeat(6,1fr); gap:5px; }
-    .row   { display:grid; grid-template-columns:repeat(5,1fr); gap:5px; }
-    .tile  {
-      width: clamp(50px,12vw,62px);
-      height:clamp(50px,12vw,62px);
-      border:2px solid rgba(255,255,255,0.15);
-      border-radius:8px;
-      display:flex; align-items:center; justify-content:center;
-      font-size:clamp(1.1rem,4vw,1.4rem);
-      font-weight:900; color:var(--white);
-      transition:background 0.35s, border-color 0.35s;
-      background:transparent; user-select:none;
+    .w-wrap{display:flex;flex-direction:column;align-items:center;gap:10px;padding:16px}
+    .w-topbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:center}
+    .w-stat-box{background:var(--card);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:8px 14px;text-align:center;min-width:64px}
+    .w-stat-box .lbl{font-size:.65rem;color:var(--text-muted)}
+    .w-stat-box .val{font-size:1.2rem;font-weight:900;color:#fff}
+    .w-stat-box.streak .val{color:#FFD700;text-shadow:0 0 8px #FFD700}
+    .board{display:grid;grid-template-rows:repeat(6,1fr);gap:5px}
+    .row{display:grid;grid-template-columns:repeat(5,1fr);gap:5px}
+    .tile{
+      width:clamp(48px,11vw,60px);height:clamp(48px,11vw,60px);
+      border:2px solid rgba(255,255,255,.12);border-radius:8px;
+      display:flex;align-items:center;justify-content:center;
+      font-size:clamp(1rem,3.8vw,1.35rem);font-weight:900;color:#fff;
+      background:transparent;user-select:none;
+      perspective:300px;
     }
-    .tile.active   { border-color:rgba(255,255,255,0.5); }
-    .tile.composing{ border-color:var(--primary); background:rgba(255,107,53,0.1); }
-    .tile.correct  { background:#538d4e; border-color:#538d4e; }
-    .tile.present  { background:#b59f3b; border-color:#b59f3b; }
-    .tile.absent   { background:#3a3a3c; border-color:#3a3a3c; }
-    @keyframes pop  { 0%{transform:scale(1)} 50%{transform:scale(1.1)} 100%{transform:scale(1)} }
-    @keyframes shake{ 0%,100%{transform:translateX(0)} 25%{transform:translateX(-5px)} 75%{transform:translateX(5px)} }
-    @keyframes bounce{ 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
-    .pop    { animation:pop    0.12s ease; }
-    .shake  { animation:shake  0.3s ease; }
-    .bounce { animation:bounce 0.4s ease; }
-
-    .msg-bar { height:28px; font-size:0.9rem; font-weight:700; color:var(--secondary); text-align:center; }
-
-    /* Keyboard */
-    .keyboard { display:flex; flex-direction:column; gap:5px; align-items:center; }
-    .kb-row   { display:flex; gap:4px; }
-    .kb-key   {
-      min-width:clamp(28px,7.5vw,38px); height:42px;
-      padding:0 3px;
-      border-radius:6px; background:#818384; border:none;
-      color:var(--white); font-size:clamp(0.7rem,2.5vw,0.85rem);
-      font-weight:700; cursor:pointer;
-      -webkit-tap-highlight-color:transparent;
-      transition:background 0.25s;
-      font-family: 'Noto Sans KR', sans-serif;
+    .tile-inner{
+      width:100%;height:100%;
+      display:flex;align-items:center;justify-content:center;
+      border-radius:6px;
+      transition:background .1s,border-color .1s;
+      transform-style:preserve-3d;
+      font-size:inherit;font-weight:inherit;
     }
-    .kb-key.wide { min-width:clamp(48px,11vw,60px); font-size:0.72rem; }
-    .kb-key.correct { background:#538d4e; }
-    .kb-key.present { background:#b59f3b; }
-    .kb-key.absent  { background:#3a3a3c; }
-
-    .legend { display:flex; gap:14px; font-size:0.78rem; color:var(--text-muted); }
-    .legend span { display:flex; align-items:center; gap:5px; }
-    .leg-box { width:14px; height:14px; border-radius:3px; }
+    .tile.has-letter .tile-inner{border:2px solid rgba(255,255,255,.35);background:rgba(255,255,255,.05);}
+    .tile.composing .tile-inner{border:2px solid var(--primary)!important;background:rgba(255,107,53,.1);}
+    @keyframes tileFlip{
+      0%{transform:rotateX(0)}
+      45%{transform:rotateX(-90deg)}
+      55%{transform:rotateX(-90deg)}
+      100%{transform:rotateX(0)}
+    }
+    @keyframes tilePop{0%{transform:scale(1)}40%{transform:scale(1.1)}100%{transform:scale(1)}}
+    @keyframes rowShake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+    @keyframes winBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+    .tile.correct .tile-inner{background:#538d4e;border-color:#538d4e;box-shadow:0 0 12px rgba(83,141,78,.4)}
+    .tile.present .tile-inner{background:#b59f3b;border-color:#b59f3b;box-shadow:0 0 12px rgba(181,159,59,.4)}
+    .tile.absent  .tile-inner{background:#3a3a3c;border-color:#3a3a3c}
+    .tile.flip-anim .tile-inner{animation:tileFlip .5s ease both}
+    .tile.pop-anim  .tile-inner{animation:tilePop  .12s ease}
+    .tile.win-anim  .tile-inner{animation:winBounce .5s ease}
+    .row.shake{animation:rowShake .35s ease}
+    .msg-bar{height:30px;font-size:.92rem;font-weight:700;color:var(--primary);text-align:center;display:flex;align-items:center;justify-content:center}
+    .keyboard{display:flex;flex-direction:column;gap:5px;align-items:center}
+    .kb-row{display:flex;gap:4px}
+    .kb-key{
+      min-width:clamp(27px,7vw,37px);height:42px;padding:0 3px;
+      border-radius:6px;background:#4a4a5a;border:none;
+      color:#fff;font-size:clamp(.68rem,2.3vw,.85rem);
+      font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;
+      transition:background .25s,transform .08s;font-family:'Noto Sans KR',sans-serif;
+    }
+    .kb-key:active{transform:scale(.92)}
+    .kb-key.wide{min-width:clamp(46px,10vw,58px);font-size:.7rem}
+    .kb-key.correct{background:#538d4e;box-shadow:0 0 8px rgba(83,141,78,.4)}
+    .kb-key.present{background:#b59f3b;box-shadow:0 0 8px rgba(181,159,59,.4)}
+    .kb-key.absent {background:#2a2a3c}
+    .legend{display:flex;gap:12px;font-size:.75rem;color:var(--text-muted)}
+    .legend span{display:flex;align-items:center;gap:5px}
+    .leg-sq{width:13px;height:13px;border-radius:3px}
+    /* Stats modal */
+    .stats-modal{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:100;padding:20px}
+    .stats-modal.show{display:flex}
+    .stats-panel{background:var(--card);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:24px;max-width:340px;width:100%}
+    .stats-panel h3{font-size:1.1rem;font-weight:900;color:#fff;margin-bottom:16px;text-align:center}
+    .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
+    .s-item{text-align:center}
+    .s-num{font-size:1.5rem;font-weight:900;color:#fff}
+    .s-lbl{font-size:.65rem;color:var(--text-muted)}
+    .dist-row{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+    .dist-bar{height:20px;background:var(--primary);border-radius:4px;min-width:4px;transition:width .6s}
+    .dist-num{font-size:.78rem;color:#fff;font-weight:700;min-width:16px;text-align:right}
+    .dist-lbl{font-size:.72rem;color:var(--text-muted);min-width:14px}
+    /* Confetti */
+    .confetti-container{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:1000;overflow:hidden}
+    .c-piece{position:absolute;border-radius:2px;animation:cFall linear forwards}
+    @keyframes cFall{0%{transform:translateY(-10px) rotate(0);opacity:1}100%{transform:translateY(100vh) rotate(540deg);opacity:0}}
+    .w-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+    .w-btn{background:var(--card);border:1px solid rgba(255,255,255,.1);color:var(--text);padding:8px 16px;border-radius:8px;cursor:pointer;font-size:.85rem;font-weight:600;transition:all .2s;font-family:inherit}
+    .w-btn:hover{background:var(--primary);color:#fff;border-color:var(--primary)}
   </style>
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9410871181012126" crossorigin="anonymous"></script>
 </head>
 <body>
 <nav>
   <a href="../index.html" class="logo">💼 <span>직장인</span>닷컴</a>
-  <ul class="nav-links">
-    <li><a href="../index.html#calculators">계산기</a></li>
-    <li><a href="../index.html#tools">업무도구</a></li>
-    <li><a href="../index.html#games" class="active">루팡게임</a></li>
-    <li><a href="../index.html#tests">테스트</a></li>
-    <li><a href="../index.html#info">정보</a></li>
-  </ul>
+  <ul class="nav-links"><li><a href="../index.html#games" class="active">루팡게임</a></li></ul>
 </nav>
 <div class="page-header">
-  <div class="breadcrumb"><a href="../index.html">홈</a> › 월급루팡 게임</div>
-  <h1>🟩 한국어 워들</h1>
-  <p>매일 바뀌는 5글자 단어를 6번 안에 맞춰보세요 — 한글 키보드 입력 지원</p>
+  <div class="breadcrumb"><a href="../index.html">홈</a> › 루팡게임</div>
+  <h1>🟩 워들 리마스터드</h1>
+  <p>직장인 5글자 단어를 6번 안에! — 한글 키보드 · 플립 애니메이션 · 효과음</p>
 </div>
 <main>
   <div class="ad-banner">광고 영역 (Google AdSense)</div>
-  <div class="game-wrap">
+  <div class="w-wrap">
+    <div class="w-topbar">
+      <div class="w-stat-box"><div class="lbl">플레이</div><div class="val" id="stPlayed">0</div></div>
+      <div class="w-stat-box"><div class="lbl">승률</div><div class="val" id="stWinPct">0%</div></div>
+      <div class="w-stat-box streak"><div class="lbl">🔥 연승</div><div class="val" id="stStreak">0</div></div>
+      <div class="w-stat-box"><div class="lbl">최고연승</div><div class="val" id="stMax">0</div></div>
+    </div>
+    <div class="w-actions">
+      <button class="w-btn" onclick="newGame()">🔄 새 게임</button>
+      <button class="w-btn" id="sndB" onclick="toggleSfx()">🔊</button>
+      <button class="w-btn" onclick="openStats()">📊 통계</button>
+    </div>
     <div class="legend">
-      <span><div class="leg-box" style="background:#538d4e"></div>정답 위치</span>
-      <span><div class="leg-box" style="background:#b59f3b"></div>다른 위치</span>
-      <span><div class="leg-box" style="background:#3a3a3c"></div>없음</span>
+      <span><div class="leg-sq" style="background:#538d4e"></div>정답 위치</span>
+      <span><div class="leg-sq" style="background:#b59f3b"></div>다른 위치</span>
+      <span><div class="leg-sq" style="background:#3a3a3c"></div>없음</span>
     </div>
     <div class="msg-bar" id="msg"></div>
-    <div class="board"  id="board"></div>
+    <div class="board" id="board"></div>
     <div class="keyboard" id="keyboard"></div>
-    <button style="background:none;border:1px solid rgba(255,255,255,0.1);color:var(--text-muted);padding:8px 20px;border-radius:8px;cursor:pointer;font-size:0.85rem;margin-top:4px" onclick="newGame()">🔄 새 게임</button>
   </div>
-  <div class="ad-banner">광고 영역 (Google AdSense)</div>
+  <div class="ad-banner" style="margin-top:16px">광고 영역 (Google AdSense)</div>
 </main>
 <footer><p><strong>직장인닷컴</strong></p></footer>
-
+<div class="confetti-container" id="confetti"></div>
+<div class="stats-modal" id="statsModal" onclick="if(event.target===this)closeStats()">
+  <div class="stats-panel">
+    <h3>📊 통계</h3>
+    <div class="stats-grid">
+      <div class="s-item"><div class="s-num" id="sm-played">0</div><div class="s-lbl">플레이</div></div>
+      <div class="s-item"><div class="s-num" id="sm-win">0%</div><div class="s-lbl">승률</div></div>
+      <div class="s-item"><div class="s-num" id="sm-streak">0</div><div class="s-lbl">🔥연승</div></div>
+      <div class="s-item"><div class="s-num" id="sm-max">0</div><div class="s-lbl">최고</div></div>
+    </div>
+    <div style="margin-bottom:10px;font-size:.78rem;color:var(--text-muted);font-weight:700">추측 분포</div>
+    <div id="sm-dist"></div>
+    <button class="w-btn" style="width:100%;margin-top:14px;text-align:center" onclick="closeStats()">닫기</button>
+  </div>
+</div>
+<script src="../js/theme.js"></script>
 <script>
-/* ── 한글 조합 엔진 ───────────────────────────────────────── */
-const CHO  = ['ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ','ㅅ','ㅆ','ㅇ','ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
-const JUNG = ['ㅏ','ㅐ','ㅑ','ㅒ','ㅓ','ㅔ','ㅕ','ㅖ','ㅗ','ㅘ','ㅙ','ㅚ','ㅛ','ㅜ','ㅝ','ㅞ','ㅟ','ㅠ','ㅡ','ㅢ','ㅣ'];
-const JONG = ['','ㄱ','ㄲ','ㄳ','ㄴ','ㄵ','ㄶ','ㄷ','ㄹ','ㄺ','ㄻ','ㄼ','ㄽ','ㄾ','ㄿ','ㅀ','ㅁ','ㅂ','ㅄ','ㅅ','ㅆ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
-
-// 단독 종성 → 초성 인덱스
-const JONG2CHO = {1:0,2:1,4:2,7:3,8:5,16:6,17:7,19:9,20:10,21:11,22:12,23:14,24:15,25:16,26:17,27:18};
-// 자음 → 종성 인덱스 (단독만)
-const CONS2JONG = {'ㄱ':1,'ㄲ':2,'ㄴ':4,'ㄷ':7,'ㄹ':8,'ㅁ':16,'ㅂ':17,'ㅅ':19,'ㅆ':20,'ㅇ':21,'ㅈ':22,'ㅊ':23,'ㅋ':24,'ㅌ':25,'ㅍ':26,'ㅎ':27};
-
-function makeSyl(ci, ji, jj=0) {
-  return String.fromCharCode(0xAC00 + ci*21*28 + ji*28 + jj);
+// ── AUDIO ──
+let AC=null,sfxOn=true;
+function iAC(){if(!AC)AC=new(window.AudioContext||window.webkitAudioContext)();}
+function tone(f,tp,d,v=.2,delay=0){
+  if(!sfxOn||!AC)return;
+  const o=AC.createOscillator(),g=AC.createGain();
+  o.connect(g);g.connect(AC.destination);
+  o.type=tp;o.frequency.value=f;
+  const t=AC.currentTime+delay;
+  g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.001,t+d);
+  o.start(t);o.stop(t+d+.02);
 }
-function isVowel(j){ return JUNG.includes(j); }
+const SFX={
+  key:()=>tone(380,'sine',.04,.06),
+  correct:()=>{tone(523,'sine',.12,.25);tone(659,'sine',.1,.2,.1);},
+  present:()=>tone(440,'triangle',.1,.2),
+  absent:()=>tone(200,'sawtooth',.08,.1),
+  win:()=>[523,659,784,1047,1319,1568].forEach((f,i)=>tone(f,'sine',.25,.35,i*.08)),
+  lose:()=>[300,250,200,150].forEach((f,i)=>tone(f,'sawtooth',.2,.28,i*.1)),
+  shake:()=>tone(150,'sawtooth',.12,.2),
+};
+function toggleSfx(){sfxOn=!sfxOn;document.getElementById('sndB').textContent=sfxOn?'🔊':'🔇';}
 
-// 한 음절씩 조합하는 상태 머신
-// state: { ci(초성 idx), ji(중성 idx), jj(종성 idx) }  -1 = 없음
-class HangulIME {
-  constructor() { this.reset(); }
-  reset(){ this._ci=-1; this._ji=-1; this._jj=-1; }
-
-  // 현재 조합 중인 글자 반환
-  current() {
-    if (this._ci < 0) return '';
-    if (this._ji < 0) return CHO[this._ci];
-    return makeSyl(this._ci, this._ji, this._jj < 0 ? 0 : this._jj);
-  }
-
-  // jamo 입력 → { commit: '확정된 글자 or null', current: '조합중 글자' }
-  push(jamo) {
-    if (isVowel(jamo)) {
-      const ji = JUNG.indexOf(jamo);
-      if (this._ci >= 0 && this._ji < 0) {
-        // 초성만 있을 때 모음 → 음절 시작
-        this._ji = ji; return { commit:null, current:this.current() };
+// ── HANGUL IME (unchanged from original) ──
+const CHO=['ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ','ㅅ','ㅆ','ㅇ','ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
+const JUNG=['ㅏ','ㅐ','ㅑ','ㅒ','ㅓ','ㅔ','ㅕ','ㅖ','ㅗ','ㅘ','ㅙ','ㅚ','ㅛ','ㅜ','ㅝ','ㅞ','ㅟ','ㅠ','ㅡ','ㅢ','ㅣ'];
+const JONG=['','ㄱ','ㄲ','ㄳ','ㄴ','ㄵ','ㄶ','ㄷ','ㄹ','ㄺ','ㄻ','ㄼ','ㄽ','ㄾ','ㄿ','ㅀ','ㅁ','ㅂ','ㅄ','ㅅ','ㅆ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
+const JONG2CHO={1:0,2:1,4:2,7:3,8:5,16:6,17:7,19:9,20:10,21:11,22:12,23:14,24:15,25:16,26:17,27:18};
+const CONS2JONG={'ㄱ':1,'ㄲ':2,'ㄴ':4,'ㄷ':7,'ㄹ':8,'ㅁ':16,'ㅂ':17,'ㅅ':19,'ㅆ':20,'ㅇ':21,'ㅈ':22,'ㅊ':23,'ㅋ':24,'ㅌ':25,'ㅍ':26,'ㅎ':27};
+function makeSyl(ci,ji,jj=0){return String.fromCharCode(0xAC00+ci*21*28+ji*28+jj);}
+function isVowel(j){return JUNG.includes(j);}
+class HangulIME{
+  constructor(){this.reset();}
+  reset(){this._ci=-1;this._ji=-1;this._jj=-1;}
+  current(){if(this._ci<0)return'';if(this._ji<0)return CHO[this._ci];return makeSyl(this._ci,this._ji,this._jj<0?0:this._jj);}
+  push(jamo){
+    if(isVowel(jamo)){
+      const ji=JUNG.indexOf(jamo);
+      if(this._ci>=0&&this._ji<0){this._ji=ji;return{commit:null,current:this.current()};}
+      if(this._ci>=0&&this._ji>=0&&this._jj>=0){
+        const committed=makeSyl(this._ci,this._ji);
+        const newCi=JONG2CHO[this._jj];
+        if(newCi===undefined){const c=this.current();this.reset();this._ci=-1;this._ji=ji;return{commit:c,current:this.current()};}
+        this._ci=newCi;this._ji=ji;this._jj=-1;return{commit:committed,current:this.current()};
       }
-      if (this._ci >= 0 && this._ji >= 0 && this._jj >= 0) {
-        // 종성이 있는데 모음이 오면 → 종성이 다음 음절의 초성
-        const committed = makeSyl(this._ci, this._ji); // 종성 없이 확정
-        const newCi = JONG2CHO[this._jj];
-        if (newCi === undefined) {
-          // 종성을 초성으로 쓸 수 없는 경우 (거의 없음)
-          const c = this.current(); this.reset();
-          this._ci = -1; this._ji = ji;
-          return { commit:c, current:this.current() };
-        }
-        this._ci = newCi; this._ji = ji; this._jj = -1;
-        return { commit:committed, current:this.current() };
+      if(this._ci<0){this._ci=11;this._ji=ji;return{commit:null,current:this.current()};}
+      const c=this.current();this.reset();this._ci=11;this._ji=ji;return{commit:c,current:this.current()};
+    }else{
+      if(this._ci<0){this._ci=CHO.indexOf(jamo);return{commit:null,current:this.current()};}
+      if(this._ji>=0&&this._jj<0){
+        const jj=CONS2JONG[jamo];
+        if(jj!==undefined){this._jj=jj;return{commit:null,current:this.current()};}
+        const c=this.current();this.reset();this._ci=CHO.indexOf(jamo);return{commit:c,current:this.current()};
       }
-      if (this._ci < 0) {
-        // 아무것도 없을 때 모음 → ㅇ 초성
-        this._ci = 11; this._ji = ji; // ㅇ = 11
-        return { commit:null, current:this.current() };
-      }
-      // 이미 모음만 있는 상태 → 확정 후 새 모음
-      const c = this.current(); this.reset();
-      this._ci = 11; this._ji = ji;
-      return { commit:c, current:this.current() };
-    } else {
-      // 자음
-      if (this._ci < 0) {
-        this._ci = CHO.indexOf(jamo);
-        return { commit:null, current:this.current() };
-      }
-      if (this._ji >= 0 && this._jj < 0) {
-        // 모음 있고 종성 없음 → 이 자음이 종성?
-        const jj = CONS2JONG[jamo];
-        if (jj !== undefined) {
-          this._jj = jj;
-          return { commit:null, current:this.current() };
-        }
-        // 종성 불가 → 현재 확정, 새 초성
-        const c = this.current(); this.reset();
-        this._ci = CHO.indexOf(jamo);
-        return { commit:c, current:this.current() };
-      }
-      if (this._ji >= 0 && this._jj >= 0) {
-        // 이미 종성 있음 → 현재 확정, 새 초성
-        const c = this.current(); this.reset();
-        this._ci = CHO.indexOf(jamo);
-        return { commit:c, current:this.current() };
-      }
-      // 초성만 있는데 또 자음 → 확정, 새 초성
-      const c = this.current(); this.reset();
-      this._ci = CHO.indexOf(jamo);
-      return { commit:c, current:this.current() };
+      if(this._ji>=0&&this._jj>=0){const c=this.current();this.reset();this._ci=CHO.indexOf(jamo);return{commit:c,current:this.current()};}
+      const c=this.current();this.reset();this._ci=CHO.indexOf(jamo);return{commit:c,current:this.current()};
     }
   }
-
-  // 백스페이스: 현재 조합에서 한 획 삭제
-  // 반환: { deleted: 조합 내 삭제됐으면 true, current: 새 조합 글자 }
-  backspace() {
-    if (this._jj >= 0) { this._jj = -1; return { deleted:true, current:this.current() }; }
-    if (this._ji >= 0) { this._ji = -1; return { deleted:true, current:this.current() }; }
-    if (this._ci >= 0) { this.reset();  return { deleted:true, current:'' }; }
-    return { deleted:false, current:'' };
+  backspace(){
+    if(this._jj>=0){this._jj=-1;return{deleted:true,current:this.current()};}
+    if(this._ji>=0){this._ji=-1;return{deleted:true,current:this.current()};}
+    if(this._ci>=0){this.reset();return{deleted:true,current:''};}
+    return{deleted:false,current:''};
   }
-
-  // 현재 글자를 확정하고 IME 초기화
-  flush() {
-    const c = this.current(); this.reset(); return c;
-  }
+  flush(){const c=this.current();this.reset();return c;}
 }
 
-/* ── 단어 목록 ──────────────────────────────────────────────── */
-const WORDS = [
+// ── WORDS ──
+const WORDS=[
   '안녕하세요','감사합니다','알겠습니다','죄송합니다','수고하셨어',
   '잘부탁해요','이해합니다','확인해볼게','보고드릴게','완료했어요',
   '퇴사하고파','야근하지마','월급올려줘','연차쓸거야','출근하기싫',
@@ -208,223 +221,253 @@ const WORDS = [
   '열심히했어','화이팅해요','스트레스야','번아웃왔어','마감지켰어',
   '연봉올랐어','보너스받았','승진했어요','팀장됐어요','이직해볼까',
   '야근수당줘','연차다썼어','워라밸중요','점심메뉴뭐','퇴근하고파',
+  '회식하기싫','임원이무서','보고서제출','회의록써줘','프레젠테이',
+  '업무보고해','기획안작성','계약완료요','목표달성해','신입사원이',
 ];
 
-/* ── 게임 상태 ───────────────────────────────────────────────── */
-const ROWS = 6, COLS = 5;
-let answer, guesses, currentRow, currentTiles, gameOver, ime;
-
-// 두벌식 키보드 매핑 (소문자)
-const KEYMAP = {
-  q:'ㅂ',w:'ㅈ',e:'ㄷ',r:'ㄱ',t:'ㅅ',y:'ㅛ',u:'ㅕ',i:'ㅑ',o:'ㅐ',p:'ㅔ',
-  a:'ㅁ',s:'ㄴ',d:'ㅇ',f:'ㄹ',g:'ㅎ',h:'ㅗ',j:'ㅓ',k:'ㅏ',l:'ㅣ',
-  z:'ㅋ',x:'ㅌ',c:'ㅊ',v:'ㅍ',b:'ㅠ',n:'ㅜ',m:'ㅡ',
-  Q:'ㅃ',W:'ㅉ',E:'ㄸ',R:'ㄲ',T:'ㅆ',O:'ㅒ',P:'ㅖ',
-};
-
-const KB_ROWS = [
-  ['ㅂ','ㅈ','ㄷ','ㄱ','ㅅ','ㅛ','ㅕ','ㅑ','ㅐ','ㅔ'],
-  ['ㅁ','ㄴ','ㅇ','ㄹ','ㅎ','ㅗ','ㅓ','ㅏ','ㅣ'],
-  ['⌫','ㅋ','ㅌ','ㅊ','ㅍ','ㅠ','ㅜ','ㅡ','입력'],
-];
-
-function newGame() {
-  const d = new Date();
-  const idx = ((d.getFullYear()-2026)*366 + d.getMonth()*31 + d.getDate()) % WORDS.length;
-  answer    = WORDS[Math.abs(idx)].split('');
-  guesses   = Array.from({length:ROWS}, () => Array(COLS).fill(''));
-  currentRow= 0;
-  currentTiles = Array(COLS).fill('');
-  gameOver  = false;
-  ime       = new HangulIME();
-  renderBoard();
-  renderKeyboard();
-  msg('');
+// ── STATS ──
+function loadStats(){
+  return JSON.parse(localStorage.getItem('wordle2-stats')||'{"played":0,"wins":0,"streak":0,"maxStreak":0,"dist":[0,0,0,0,0,0]}');
+}
+function saveStats(st){localStorage.setItem('wordle2-stats',JSON.stringify(st));}
+function updateStatUI(){
+  const st=loadStats();
+  const pct=st.played?Math.round(st.wins/st.played*100):0;
+  document.getElementById('stPlayed').textContent=st.played;
+  document.getElementById('stWinPct').textContent=pct+'%';
+  document.getElementById('stStreak').textContent=st.streak;
+  document.getElementById('stMax').textContent=st.maxStreak;
 }
 
-function renderBoard() {
-  document.getElementById('board').innerHTML = Array.from({length:ROWS},(_,r)=>`
-    <div class="row" id="row${r}">
-      ${Array.from({length:COLS},(_,c)=>`<div class="tile" id="t${r}_${c}"></div>`).join('')}
-    </div>`).join('');
+// ── GAME STATE ──
+const ROWS_N=6,COLS_N=5;
+let answer,guesses,currentRow,currentTiles,gameOver,ime;
+const KB_STATE={};
+const KEYMAP={q:'ㅂ',w:'ㅈ',e:'ㄷ',r:'ㄱ',t:'ㅅ',y:'ㅛ',u:'ㅕ',i:'ㅑ',o:'ㅐ',p:'ㅔ',a:'ㅁ',s:'ㄴ',d:'ㅇ',f:'ㄹ',g:'ㅎ',h:'ㅗ',j:'ㅓ',k:'ㅏ',l:'ㅣ',z:'ㅋ',x:'ㅌ',c:'ㅊ',v:'ㅍ',b:'ㅠ',n:'ㅜ',m:'ㅡ',Q:'ㅃ',W:'ㅉ',E:'ㄸ',R:'ㄲ',T:'ㅆ',O:'ㅒ',P:'ㅖ'};
+const KB_ROWS=[['ㅂ','ㅈ','ㄷ','ㄱ','ㅅ','ㅛ','ㅕ','ㅑ','ㅐ','ㅔ'],['ㅁ','ㄴ','ㅇ','ㄹ','ㅎ','ㅗ','ㅓ','ㅏ','ㅣ'],['⌫','ㅋ','ㅌ','ㅊ','ㅍ','ㅠ','ㅜ','ㅡ','입력']];
+
+function newGame(){
+  iAC();
+  const d=new Date();
+  const idx=((d.getFullYear()-2026)*366+d.getMonth()*31+d.getDate())%WORDS.length;
+  answer=WORDS[Math.abs(idx)].split('');
+  guesses=Array.from({length:ROWS_N},()=>Array(COLS_N).fill(''));
+  currentRow=0;currentTiles=Array(COLS_N).fill('');
+  gameOver=false;ime=new HangulIME();
+  Object.keys(KB_STATE).forEach(k=>delete KB_STATE[k]);
+  renderBoard();renderKeyboard();setMsg('');updateStatUI();
 }
 
-const KB_STATE = {};
-function renderKeyboard() {
-  document.getElementById('keyboard').innerHTML = KB_ROWS.map(row=>`
-    <div class="kb-row">${row.map(k=>`
-      <button class="kb-key ${['입력','⌫'].includes(k)?'wide':''}" id="kb_${k}" onclick="pressKey('${k}')">${k}</button>`
-    ).join('')}</div>`).join('');
+function renderBoard(){
+  document.getElementById('board').innerHTML=Array.from({length:ROWS_N},(_,r)=>`
+    <div class="row" id="row${r}">${Array.from({length:COLS_N},(_,c)=>`<div class="tile" id="t${r}_${c}"><div class="tile-inner" id="ti${r}_${c}"></div></div>`).join('')}</div>`).join('');
+}
+function renderKeyboard(){
+  document.getElementById('keyboard').innerHTML=KB_ROWS.map(row=>`<div class="kb-row">${row.map(k=>`<button class="kb-key ${['입력','⌫'].includes(k)?'wide':''}" id="kb_${k}" onclick="pressKey('${k}')">${k}</button>`).join('')}</div>`).join('');
 }
 
-function setTile(r, c, text, cls='') {
-  const t = document.getElementById(`t${r}_${c}`);
-  if (!t) return;
-  t.textContent = text;
-  t.className   = 'tile' + (cls ? ' '+cls : '');
+function getTile(r,c){return document.getElementById('t'+r+'_'+c);}
+function getTileInner(r,c){return document.getElementById('ti'+r+'_'+c);}
+
+function setTileDisplay(r,c,text,cls=''){
+  const t=getTile(r,c),ti=getTileInner(r,c);
+  if(!t||!ti)return;
+  ti.textContent=text;
+  t.className='tile'+(cls?' '+cls:'');
+  if(text)t.classList.add('has-letter');
 }
 
-function pressKey(k) {
-  if (gameOver) return;
-  if (k === '⌫') { doBackspace(); return; }
-  if (k === '입력') { doEnter();     return; }
-
-  // jamo 입력
-  const { commit, current } = ime.push(k);
-  if (commit) {
-    commitChar(commit);
+function pressKey(k){
+  if(gameOver)return;
+  iAC();
+  if(k==='⌫'){doBackspace();return;}
+  if(k==='입력'){doEnter();return;}
+  SFX.key();
+  const{commit,current}=ime.push(k);
+  if(commit)commitChar(commit);
+  const filled=currentTiles.filter(x=>x&&x!=='​').length;
+  if(filled<COLS_N){
+    currentTiles[filled]='​';
+    const ti=getTileInner(currentRow,filled);if(ti)ti.textContent=current;
+    getTile(currentRow,filled)?.classList.add('has-letter','composing');
   }
-  // 조합 중 타일 위치: 확정된 글자 수 (placeholder '​' 제외)
-  const filled = currentTiles.filter(x => x && x !== '​').length;
-  if (filled < COLS) {
-    currentTiles[filled] = '​'; // zero-width space placeholder
-    setTile(currentRow, filled, current, 'composing active');
-  }
-  syncCurrentRow();
+  syncRow();
 }
 
-function syncCurrentRow() {
-  const filled = currentTiles.filter(x=>x && x!=='​').length;
-  for (let c=0; c<COLS; c++) {
-    if (currentTiles[c] && currentTiles[c] !== '​') {
-      setTile(currentRow, c, currentTiles[c], '');
+function syncRow(){
+  const filled=currentTiles.filter(x=>x&&x!=='​').length;
+  for(let c=0;c<COLS_N;c++){
+    if(currentTiles[c]&&currentTiles[c]!=='​'){
+      const t=getTile(currentRow,c);
+      const ti=getTileInner(currentRow,c);
+      if(t&&ti){ti.textContent=currentTiles[c];t.className='tile has-letter';}
     }
   }
-  const composingChar = ime.current();
-  if (composingChar && filled < COLS) {
-    setTile(currentRow, filled, composingChar, 'composing active');
+  const composing=ime.current();
+  if(composing&&filled<COLS_N){
+    const ti=getTileInner(currentRow,filled);
+    const t=getTile(currentRow,filled);
+    if(ti&&t){ti.textContent=composing;t.className='tile has-letter composing';}
   }
 }
 
-function commitChar(ch) {
-  // 확정된 글자를 currentTiles에 넣기
-  const idx = currentTiles.findIndex(x => !x || x==='​');
-  if (idx >= 0 && idx < COLS) {
-    currentTiles[idx] = ch;
-    setTile(currentRow, idx, ch, 'pop');
+function commitChar(ch){
+  const idx=currentTiles.findIndex(x=>!x||x==='​');
+  if(idx>=0&&idx<COLS_N){
+    currentTiles[idx]=ch;
+    const t=getTile(currentRow,idx);
+    const ti=getTileInner(currentRow,idx);
+    if(t&&ti){ti.textContent=ch;t.className='tile has-letter pop-anim';setTimeout(()=>t.classList.remove('pop-anim'),150);}
   }
 }
 
-function doBackspace() {
-  const { deleted, current } = ime.backspace();
-  if (deleted) {
-    // 조합 중인 타일만 수정
-    const filled = currentTiles.filter(x=>x && x!=='​').length;
-    setTile(currentRow, filled, current, current?'composing active':'active');
+function doBackspace(){
+  iAC();
+  const{deleted,current}=ime.backspace();
+  if(deleted){
+    const filled=currentTiles.filter(x=>x&&x!=='​').length;
+    const ti=getTileInner(currentRow,filled);
+    const t=getTile(currentRow,filled);
+    if(ti&&t){ti.textContent=current;t.className='tile'+(current?' has-letter composing':'');}
     return;
   }
-  // IME가 비었으면 확정된 타일 삭제
-  const lastIdx = currentTiles.map((x,i)=>[x,i]).filter(([x])=>x&&x!=='​').pop();
-  if (lastIdx) {
-    const [,i] = lastIdx;
-    currentTiles[i] = '';
-    setTile(currentRow, i, '', '');
-    // 삭제된 글자를 IME에 다시 넣어 분해
-    rebuildIMEFromChar(currentTiles);
+  const lastIdx=currentTiles.map((x,i)=>[x,i]).filter(([x])=>x&&x!=='​').pop();
+  if(lastIdx){
+    const[,i]=lastIdx;currentTiles[i]='';
+    const t=getTile(currentRow,i);const ti=getTileInner(currentRow,i);
+    if(t&&ti){ti.textContent='';t.className='tile';}
+    ime.reset();
   }
 }
 
-function rebuildIMEFromChar(tiles) {
-  // 마지막 확정 글자를 다시 IME로 분해 (backspace 지원)
-  // 간단히: 마지막 글자를 그냥 비움 (복잡한 재조합 생략)
-  ime.reset();
-}
-
-function doEnter() {
-  // IME 조합 중인 글자 확정
-  const composing = ime.flush();
-  if (composing) {
-    const idx = currentTiles.findIndex(x=>!x||x==='​');
-    if (idx >= 0 && idx < COLS) currentTiles[idx] = composing;
+function doEnter(){
+  iAC();
+  const composing=ime.flush();
+  if(composing){
+    const idx=currentTiles.findIndex(x=>!x||x==='​');
+    if(idx>=0&&idx<COLS_N)currentTiles[idx]=composing;
   }
-
-  const word = currentTiles.filter(x=>x&&x!=='​');
-  if (word.length < COLS) { msg('5글자를 입력하세요'); shakeRow(); return; }
-
-  guesses[currentRow] = [...word];
-  revealRow(currentRow, [...word]);
+  const word=currentTiles.filter(x=>x&&x!=='​');
+  if(word.length<COLS_N){SFX.shake();setMsg('5글자를 입력하세요');shakeRow();return;}
+  guesses[currentRow]=[...word];
+  revealRow(currentRow,[...word]);
 }
 
-function revealRow(row, word) {
-  const result = Array(COLS).fill('absent');
-  const answerCopy = [...answer];
+function revealRow(row,word){
+  const result=Array(COLS_N).fill('absent');
+  const ac=[...answer];
+  word.forEach((ch,i)=>{if(ch===ac[i]){result[i]='correct';ac[i]=null;}});
+  word.forEach((ch,i)=>{if(result[i]==='correct')return;const ai=ac.indexOf(ch);if(ai>=0){result[i]='present';ac[ai]=null;}});
 
-  word.forEach((ch,i) => { if(ch===answerCopy[i]){ result[i]='correct'; answerCopy[i]=null; } });
-  word.forEach((ch,i) => {
-    if(result[i]==='correct') return;
-    const ai = answerCopy.indexOf(ch);
-    if(ai >= 0){ result[i]='present'; answerCopy[ai]=null; }
+  word.forEach((ch,i)=>{
+    setTimeout(()=>{
+      const t=getTile(row,i);const ti=getTileInner(row,i);
+      if(!t||!ti)return;
+      t.classList.add('flip-anim');
+      setTimeout(()=>{
+        t.className='tile '+result[i]+' flip-anim';
+        ti.textContent=ch;
+        // Sound on each reveal
+        if(result[i]==='correct')SFX.correct();
+        else if(result[i]==='present')SFX.present();
+        else SFX.absent();
+      },250);
+      setTimeout(()=>t.classList.remove('flip-anim'),500);
+      updateKbKey(ch,result[i]);
+    },i*120);
   });
 
-  word.forEach((ch, i) => {
-    setTimeout(() => {
-      setTile(row, i, ch, result[i]);
-      updateKbKey(ch, result[i]);
-    }, i * 100);
-  });
-
-  const won = result.every(r=>r==='correct');
-  setTimeout(() => {
-    if (won) {
-      gameOver = true;
-      msg('🎉 정답! 수고하셨습니다!');
-      word.forEach((_,i) => setTimeout(()=>{ const t=document.getElementById(`t${row}_${i}`); t.classList.add('bounce'); },i*80));
-    } else if (row === ROWS-1) {
-      gameOver = true;
-      msg('정답: ' + answer.join(''));
-    } else {
-      currentRow++;
-      currentTiles = Array(COLS).fill('');
-      ime.reset();
+  const won=result.every(r=>r==='correct');
+  setTimeout(()=>{
+    if(won){
+      gameOver=true;
+      word.forEach((_,i)=>setTimeout(()=>{const t=getTile(row,i);if(t)t.classList.add('win-anim');},i*80));
+      setTimeout(()=>{SFX.win();setMsg('🎉 정답! 수고하셨습니다!');spawnConfetti();},400);
+      recordResult(true,row+1);
+    }else if(row===ROWS_N-1){
+      gameOver=true;
+      setTimeout(()=>{SFX.lose();setMsg('정답: '+answer.join(''));},200);
+      recordResult(false,0);
+    }else{
+      currentRow++;currentTiles=Array(COLS_N).fill('');ime.reset();
     }
-  }, COLS * 100 + 200);
+    updateStatUI();
+  },COLS_N*120+300);
 }
 
-function updateKbKey(jamo, result) {
-  // 음절 → 개별 자모 분해해서 키보드 업데이트
-  const decomposed = decomposeHangul(jamo);
-  const pri = {correct:3, present:2, absent:1};
-  decomposed.forEach(j => {
-    const kb = document.getElementById(`kb_${j}`);
-    if (!kb) return;
-    const cur = pri[KB_STATE[j]||''] || 0;
-    if ((pri[result]||0) > cur) { KB_STATE[j]=result; kb.className=`kb-key ${result}`; }
+function recordResult(win,guessNum){
+  const st=loadStats();
+  st.played++;
+  if(win){st.wins++;st.streak++;if(st.streak>st.maxStreak)st.maxStreak=st.streak;if(guessNum>=1&&guessNum<=6)st.dist[guessNum-1]++;}
+  else{st.streak=0;}
+  saveStats(st);
+}
+
+function updateKbKey(ch,result){
+  const decomposed=decomposeHangul(ch);
+  const pri={correct:3,present:2,absent:1};
+  decomposed.forEach(j=>{
+    const kb=document.getElementById('kb_'+j);if(!kb)return;
+    const cur=pri[KB_STATE[j]||'']||0;
+    if((pri[result]||0)>cur){KB_STATE[j]=result;kb.className='kb-key '+(pri[result]===3?'wide ':pri[result]===2||pri[result]===1?'wide ':'')+result;}
+    else if(kb.className.includes('wide'))kb.className='kb-key wide '+result;
   });
 }
 
-function decomposeHangul(ch) {
-  const code = ch.charCodeAt(0) - 0xAC00;
-  if (code < 0 || code > 11171) return [ch];
-  const ci  = Math.floor(code / (21*28));
-  const ji  = Math.floor((code % (21*28)) / 28);
-  const jji = code % 28;
-  const result = [CHO[ci], JUNG[ji]];
-  if (jji > 0) result.push(JONG[jji]);
-  return result;
+function decomposeHangul(ch){
+  const code=ch.charCodeAt(0)-0xAC00;
+  if(code<0||code>11171)return[ch];
+  const ci=Math.floor(code/(21*28)),ji=Math.floor((code%(21*28))/28),jji=code%28;
+  const r=[CHO[ci],JUNG[ji]];if(jji>0)r.push(JONG[jji]);return r;
 }
 
-function shakeRow() {
-  const row = document.getElementById(`row${currentRow}`);
-  row.classList.add('shake');
-  setTimeout(() => row.classList.remove('shake'), 300);
+function shakeRow(){const row=document.getElementById('row'+currentRow);if(row){row.classList.add('shake');setTimeout(()=>row.classList.remove('shake'),350);}}
+function setMsg(text){
+  const el=document.getElementById('msg');el.textContent=text;
+  if(text&&!gameOver)setTimeout(()=>{if(el.textContent===text)el.textContent='';},2500);
 }
 
-function msg(text) {
-  document.getElementById('msg').textContent = text;
-  if (text && !gameOver) setTimeout(()=>{ if(document.getElementById('msg').textContent===text) document.getElementById('msg').textContent=''; },2500);
+// ── CONFETTI ──
+function spawnConfetti(){
+  const c=document.getElementById('confetti');c.innerHTML='';
+  const cols=['#FFD700','#538d4e','#4ECDC4','#a855f7','#FF6B35','#ff4444'];
+  for(let i=0;i<70;i++){
+    const p=document.createElement('div');p.className='c-piece';
+    p.style.left=Math.random()*100+'%';p.style.background=cols[i%cols.length];
+    p.style.width=(5+Math.random()*7)+'px';p.style.height=(5+Math.random()*7)+'px';
+    p.style.animationDuration=(2+Math.random()*2)+'s';p.style.animationDelay=Math.random()*1.2+'s';
+    c.appendChild(p);setTimeout(()=>p.remove(),(4000+i*60));
+  }
 }
 
-/* 물리 키보드 */
-document.addEventListener('keydown', e => {
-  if (e.ctrlKey || e.altKey || e.metaKey) return;
-  if (e.key === 'Backspace') { e.preventDefault(); pressKey('⌫'); return; }
-  if (e.key === 'Enter')     { e.preventDefault(); pressKey('입력'); return; }
-  const jamo = KEYMAP[e.key];
-  if (jamo) { e.preventDefault(); pressKey(jamo); }
+// ── STATS MODAL ──
+function openStats(){
+  const st=loadStats();
+  document.getElementById('sm-played').textContent=st.played;
+  document.getElementById('sm-win').textContent=(st.played?Math.round(st.wins/st.played*100):0)+'%';
+  document.getElementById('sm-streak').textContent=st.streak;
+  document.getElementById('sm-max').textContent=st.maxStreak;
+  const maxD=Math.max(1,...st.dist);
+  document.getElementById('sm-dist').innerHTML=st.dist.map((v,i)=>`
+    <div class="dist-row">
+      <div class="dist-lbl">${i+1}</div>
+      <div class="dist-bar" style="width:${Math.max(8,v/maxD*120)}px"></div>
+      <div class="dist-num">${v}</div>
+    </div>`).join('');
+  document.getElementById('statsModal').classList.add('show');
+}
+function closeStats(){document.getElementById('statsModal').classList.remove('show');}
+
+// ── KEYBOARD INPUT ──
+document.addEventListener('keydown',e=>{
+  if(e.ctrlKey||e.altKey||e.metaKey)return;
+  if(e.key==='Backspace'){e.preventDefault();pressKey('⌫');return;}
+  if(e.key==='Enter'){e.preventDefault();pressKey('입력');return;}
+  const jamo=KEYMAP[e.key];if(jamo){e.preventDefault();pressKey(jamo);}
 });
 
+updateStatUI();
 newGame();
 </script>
-<script src="../js/theme.js"></script>
 </body>
 </html>

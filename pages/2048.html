@@ -2,207 +2,258 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <script>if(localStorage.getItem('theme')=='light')document.documentElement.classList.add('light')</script>
+  <script>if(localStorage.getItem('theme')==='light')document.documentElement.classList.add('light')</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>2048 게임 - 월급루팡 게임 - 직장인닷컴</title>
+  <title>2048 리마스터드 - 직장인닷컴</title>
+  <meta name="description" content="2048 리마스터드. 글로우 타일·파티클·효과음·실행취소.">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../css/style.css">
   <style>
-    .game-wrap{display:flex;flex-direction:column;align-items:center;gap:14px;padding:24px 16px}
-    .score-bar{display:flex;gap:12px}
-    .sc{background:var(--card);border-radius:10px;padding:10px 20px;text-align:center;min-width:90px}
-    .sc .lbl{font-size:0.72rem;color:var(--text-muted)}
-    .sc .val{font-size:1.4rem;font-weight:900;color:var(--white)}
-    .sc.best .val{color:var(--secondary)}
-    .btn-ctrl{background:var(--card);border:1px solid rgba(255,255,255,0.1);color:var(--text);padding:9px 20px;border-radius:8px;cursor:pointer;font-size:0.88rem;font-weight:600;transition:all 0.2s}
-    .btn-ctrl:hover{background:var(--primary);color:var(--white)}
-    #board{
-      display:grid; grid-template-columns:repeat(4,1fr); gap:10px;
-      background:#1a1a3e; padding:12px; border-radius:16px;
-      width:min(380px,94vw); position:relative;
-    }
-    .cell{
-      aspect-ratio:1; border-radius:10px;
-      display:flex; align-items:center; justify-content:center;
-      font-weight:900; font-size:clamp(1rem,4vw,1.5rem);
-      background:rgba(255,255,255,0.05);
-      transition:background 0.08s;
-    }
-    @keyframes appear { from{transform:scale(0)} to{transform:scale(1)} }
-    @keyframes merge  { 0%{transform:scale(1)} 50%{transform:scale(1.18)} 100%{transform:scale(1)} }
-    .new-cell  { animation:appear 0.15s ease; }
-    .merge-cell{ animation:merge  0.18s ease; }
-
-    .cell[data-v="2"]    {background:#eee4da;color:#776e65}
-    .cell[data-v="4"]    {background:#ede0c8;color:#776e65}
-    .cell[data-v="8"]    {background:#f2b179;color:#fff}
-    .cell[data-v="16"]   {background:#f59563;color:#fff}
-    .cell[data-v="32"]   {background:#f67c5f;color:#fff}
-    .cell[data-v="64"]   {background:#f65e3b;color:#fff}
-    .cell[data-v="128"]  {background:#edcf72;color:#fff;font-size:clamp(0.85rem,3.5vw,1.2rem)}
-    .cell[data-v="256"]  {background:#edcc61;color:#fff;font-size:clamp(0.85rem,3.5vw,1.2rem)}
-    .cell[data-v="512"]  {background:#edc850;color:#fff;font-size:clamp(0.85rem,3.5vw,1.2rem)}
-    .cell[data-v="1024"] {background:#edc53f;color:#fff;font-size:clamp(0.7rem,3vw,1rem)}
-    .cell[data-v="2048"] {background:#FFD700;color:#333;font-size:clamp(0.7rem,3vw,1rem);box-shadow:0 0 24px #FFD700}
-    .cell[data-v="4096"] {background:#FF6B35;color:#fff;font-size:clamp(0.65rem,2.8vw,0.95rem)}
-    .ov2{position:absolute;inset:0;background:rgba(0,0,0,0.72);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;border-radius:16px;backdrop-filter:blur(5px)}
-    .ov2 h2{color:var(--white);font-size:1.5rem}
-    .dpad{display:grid;grid-template-columns:repeat(3,52px);gap:4px}
-    .db{background:var(--card);border:1px solid rgba(255,255,255,0.1);border-radius:10px;width:52px;height:52px;color:var(--white);font-size:1.3rem;cursor:pointer;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;transition:background 0.12s}
-    .db:active{background:var(--primary)}
+    .g-wrap{display:flex;flex-direction:column;align-items:center;gap:14px;padding:20px 16px}
+    .g-hud{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+    .g-box{background:var(--card);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:10px 16px;text-align:center;min-width:80px}
+    .g-box .lbl{font-size:.7rem;color:var(--text-muted)}
+    .g-box .val{font-size:1.45rem;font-weight:900;color:#fff}
+    .g-box.best .val{color:#FFD700;text-shadow:0 0 8px #FFD700}
+    .g-ctrl{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+    .g-btn{background:var(--card);border:1px solid rgba(255,255,255,.1);color:var(--text);padding:9px 16px;border-radius:8px;cursor:pointer;font-size:.88rem;font-weight:600;transition:all .2s;font-family:inherit}
+    .g-btn:hover{background:var(--primary);color:#fff;border-color:var(--primary)}
+    .board-bg{background:#1a1a3e;border-radius:16px;padding:10px;position:relative;box-shadow:0 0 40px rgba(100,50,255,.15)}
+    #g-board{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;width:min(360px,92vw)}
+    .cell{aspect-ratio:1;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:clamp(.9rem,3.5vw,1.4rem);background:rgba(255,255,255,.04);transition:background .12s;position:relative;overflow:hidden}
+    /* Glow border on non-empty */
+    .cell[data-v]:not([data-v="0"])::after{content:'';position:absolute;inset:0;border-radius:10px;box-shadow:inset 0 1px 0 rgba(255,255,255,.2),inset 0 -1px 0 rgba(0,0,0,.3);pointer-events:none}
+    @keyframes appear{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
+    @keyframes merge{0%{transform:scale(1)}40%{transform:scale(1.22)}100%{transform:scale(1)}}
+    @keyframes floatUp{0%{transform:translateY(0);opacity:1}100%{transform:translateY(-40px);opacity:0}}
+    .new-t{animation:appear .15s cubic-bezier(.175,.885,.32,1.275) both}
+    .mrg-t{animation:merge .2s ease both}
+    .float-pts{position:absolute;top:0;left:50%;transform:translateX(-50%);font-size:.8rem;font-weight:900;pointer-events:none;animation:floatUp .8s ease forwards;white-space:nowrap;z-index:10;text-shadow:0 0 8px currentColor}
+    /* Tile colors */
+    .cell[data-v="2"]   {background:#1d2035;color:#c8c8e0}
+    .cell[data-v="4"]   {background:#2a1f3d;color:#d0b0f0}
+    .cell[data-v="8"]   {background:#3d1f20;color:#ff8080;box-shadow:0 0 12px rgba(255,100,100,.2)}
+    .cell[data-v="16"]  {background:#3d2a10;color:#ffb060;box-shadow:0 0 14px rgba(255,150,60,.25)}
+    .cell[data-v="32"]  {background:#2a3d10;color:#80ff60;box-shadow:0 0 16px rgba(100,255,60,.28)}
+    .cell[data-v="64"]  {background:#103d2a;color:#40ffc0;box-shadow:0 0 18px rgba(40,255,180,.3)}
+    .cell[data-v="128"] {background:#10203d;color:#60a0ff;box-shadow:0 0 20px rgba(60,120,255,.35);font-size:clamp(.8rem,3vw,1.15rem)}
+    .cell[data-v="256"] {background:#20103d;color:#c060ff;box-shadow:0 0 22px rgba(180,60,255,.4);font-size:clamp(.8rem,3vw,1.15rem)}
+    .cell[data-v="512"] {background:#3d1040;color:#ff60e0;box-shadow:0 0 24px rgba(255,60,220,.4);font-size:clamp(.8rem,3vw,1.15rem)}
+    .cell[data-v="1024"]{background:#40102a;color:#ff4080;box-shadow:0 0 28px rgba(255,40,100,.45);font-size:clamp(.7rem,2.5vw,1rem)}
+    .cell[data-v="2048"]{background:#403010;color:#FFD700;box-shadow:0 0 32px rgba(255,215,0,.5);font-size:clamp(.7rem,2.5vw,1rem)}
+    .cell[data-v="4096"]{background:linear-gradient(135deg,#403010,#104030);color:#fff;box-shadow:0 0 36px rgba(255,255,255,.4);font-size:clamp(.65rem,2.2vw,.9rem)}
+    .cell[data-v="8192"]{background:linear-gradient(135deg,#ff4040,#4040ff);color:#fff;box-shadow:0 0 40px rgba(200,100,255,.5);font-size:clamp(.6rem,2vw,.85rem)}
+    .g-msg{height:30px;text-align:center;font-size:.95rem;font-weight:700;color:var(--primary)}
+    .win-banner{background:linear-gradient(135deg,rgba(255,215,0,.15),rgba(255,150,0,.1));border:1px solid rgba(255,215,0,.3);border-radius:12px;padding:14px 20px;text-align:center;max-width:360px}
+    .win-banner h3{color:#FFD700;font-size:1.3rem;margin-bottom:8px;text-shadow:0 0 12px #FFD700}
+    .win-banner p{font-size:.84rem;color:var(--text-muted)}
+    .snd-b{background:var(--card);border:1px solid rgba(255,255,255,.1);color:var(--text);padding:9px 14px;border-radius:8px;cursor:pointer;font-size:.88rem;transition:all .2s}
   </style>
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9410871181012126" crossorigin="anonymous"></script>
 </head>
 <body>
 <nav>
   <a href="../index.html" class="logo">💼 <span>직장인</span>닷컴</a>
-  <ul class="nav-links">
-    <li><a href="../index.html#calculators">계산기</a></li>
-    <li><a href="../index.html#tools">업무도구</a></li>
-    <li><a href="../index.html#games" class="active">루팡게임</a></li>
-    <li><a href="../index.html#tests">테스트</a></li>
-    <li><a href="../index.html#info">정보</a></li>
-  </ul>
+  <ul class="nav-links"><li><a href="../index.html#games" class="active">루팡게임</a></li></ul>
 </nav>
 <div class="page-header">
-  <div class="breadcrumb"><a href="../index.html">홈</a> › 월급루팡 게임</div>
-  <h1>🔢 2048</h1>
-  <p>같은 숫자를 합쳐 2048을 만들어라 — 방향키 또는 스와이프</p>
+  <div class="breadcrumb"><a href="../index.html">홈</a> › 루팡게임</div>
+  <h1>🔢 2048 리마스터드</h1>
+  <p>글로우 타일 · 파티클 · 효과음 · 실행취소 — 방향키 또는 스와이프</p>
 </div>
 <main>
   <div class="ad-banner">광고 영역 (Google AdSense)</div>
-  <div class="game-wrap">
-    <div class="score-bar">
-      <div class="sc"><div class="lbl">점수</div><div class="val" id="score">0</div></div>
-      <div class="sc best"><div class="lbl">최고 기록</div><div class="val" id="best">0</div></div>
+  <div class="g-wrap">
+    <div class="g-hud">
+      <div class="g-box"><div class="lbl">점수</div><div class="val" id="g-score">0</div></div>
+      <div class="g-box best"><div class="lbl">최고</div><div class="val" id="g-best">0</div></div>
     </div>
-    <button class="btn-ctrl" onclick="newGame()">🔄 새 게임</button>
-    <div id="board"></div>
-    <div class="dpad">
-      <div></div>
-      <button class="db" ontouchstart="e=>{e.preventDefault();move(0)}" onclick="move(0)">▲</button>
-      <div></div>
-      <button class="db" ontouchstart="e=>{e.preventDefault();move(3)}" onclick="move(3)">◀</button>
-      <div></div>
-      <button class="db" ontouchstart="e=>{e.preventDefault();move(1)}" onclick="move(1)">▶</button>
-      <div></div>
-      <button class="db" ontouchstart="e=>{e.preventDefault();move(2)}" onclick="move(2)">▼</button>
-      <div></div>
+    <div class="g-ctrl">
+      <button class="g-btn" onclick="newGame()">🔄 새 게임</button>
+      <button class="g-btn" onclick="undoMove()">↩ 실행취소</button>
+      <button class="snd-b" id="sndB" onclick="toggleSfx()">🔊</button>
+    </div>
+    <div class="g-msg" id="g-msg"></div>
+    <div class="board-bg">
+      <div id="g-board"></div>
+    </div>
+    <div id="winBanner" style="display:none" class="win-banner">
+      <h3>🏆 2048 달성!</h3>
+      <p>계속해서 더 높은 숫자에 도전하세요!</p>
+      <button class="g-btn" style="margin-top:10px" onclick="document.getElementById('winBanner').style.display='none'">계속하기</button>
+    </div>
+    <div style="font-size:.78rem;color:var(--text-muted);text-align:center;line-height:1.7">
+      방향키 또는 WASD로 이동 · 모바일: 스와이프
     </div>
   </div>
   <div class="ad-banner">광고 영역 (Google AdSense)</div>
 </main>
 <footer><p><strong>직장인닷컴</strong></p></footer>
+<script src="../js/theme.js"></script>
 <script>
-let grid, score, won2048=false;
-let best = parseInt(localStorage.getItem('2048-best')||'0');
-document.getElementById('best').textContent = best;
+const N=4;
+let grid,prevGrid,prevScore,score,won;
+let best=parseInt(localStorage.getItem('2048v2-best')||'0');
+document.getElementById('g-best').textContent=best.toLocaleString();
 
-function newGame(){
-  grid=Array.from({length:4},()=>Array(4).fill(0));
-  score=0; won2048=false;
-  removeOverlay();
-  addRandom(); addRandom();
-  render();
+// ── AUDIO ──
+let AC=null,sfxOn=true;
+function iAC(){if(!AC)AC=new(window.AudioContext||window.webkitAudioContext)();}
+function tone(f,tp,d,v=.2,delay=0){
+  if(!sfxOn||!AC)return;
+  const o=AC.createOscillator(),g=AC.createGain();
+  o.connect(g);g.connect(AC.destination);
+  o.type=tp;o.frequency.value=f;
+  const t=AC.currentTime+delay;
+  g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.001,t+d);
+  o.start(t);o.stop(t+d+.02);
+}
+const SFX={
+  slide:()=>tone(150,'sine',.06,.08),
+  merge:(v)=>{
+    const f=Math.min(1200,100+Math.log2(v)*60);
+    tone(f,'sine',.12,.22);tone(f*1.5,'sine',.08,.1,.04);
+  },
+  win:()=>[523,659,784,1047,1319].forEach((f,i)=>tone(f,'triangle',.25,.35,i*.08)),
+  over:()=>[300,250,200].forEach((f,i)=>tone(f,'sawtooth',.2,.3,i*.1)),
+};
+function toggleSfx(){sfxOn=!sfxOn;document.getElementById('sndB').textContent=sfxOn?'🔊':'🔇';}
+
+function newGrid(){return Array.from({length:N},()=>new Array(N).fill(0));}
+function cloneGrid(g){return g.map(r=>[...r]);}
+
+function addRandom(g){
+  const empty=[];
+  for(let r=0;r<N;r++)for(let c=0;c<N;c++)if(!g[r][c])empty.push([r,c]);
+  if(!empty.length)return false;
+  const[r,c]=empty[Math.floor(Math.random()*empty.length)];
+  g[r][c]=Math.random()<.85?2:4;
+  return true;
 }
 
-function addRandom(){
-  const empty=[];
-  grid.forEach((r,ri)=>r.forEach((v,ci)=>{if(!v)empty.push([ri,ci]);}));
-  if(!empty.length) return;
-  const [r,c]=empty[Math.floor(Math.random()*empty.length)];
-  grid[r][c]=Math.random()<0.85?2:4;
+function newGame(){
+  grid=newGrid();prevGrid=null;prevScore=0;score=0;won=false;
+  addRandom(grid);addRandom(grid);
+  document.getElementById('g-msg').textContent='';
+  document.getElementById('winBanner').style.display='none';
+  render('new');updateHUD();
 }
 
 function slide(row){
-  let arr=row.filter(v=>v), gained=0, merged=[];
-  for(let i=0;i<arr.length-1;i++){
-    if(arr[i]===arr[i+1]){ arr[i]*=2; gained+=arr[i]; merged.push(i); arr.splice(i+1,1); }
-  }
-  while(arr.length<4) arr.push(0);
-  return {arr,gained,merged};
-}
-
-function move(dir){ // 0=up,1=right,2=down,3=left
-  const prev=grid.map(r=>[...r]);
-  let totalGained=0;
-
-  if(dir===0||dir===2){
-    for(let c=0;c<4;c++){
-      let col=grid.map(r=>r[c]); if(dir===2)col.reverse();
-      const{arr,gained}=slide(col); totalGained+=gained;
-      if(dir===2)arr.reverse();
-      grid.forEach((r,ri)=>r[c]=arr[ri]);
+  let r=row.filter(x=>x);
+  const merged=new Array(N).fill(false);
+  const pts=[];
+  for(let i=0;i<r.length-1;i++){
+    if(r[i]===r[i+1]&&!merged[i]){
+      r[i]*=2;pts.push(r[i]);r.splice(i+1,1);merged[i]=true;
     }
-  } else {
-    grid.forEach((row,ri)=>{
-      let r=[...row]; if(dir===1)r.reverse();
-      const{arr,gained}=slide(r); totalGained+=gained;
-      if(dir===1)arr.reverse();
-      grid[ri]=arr;
-    });
   }
-
-  const changed=grid.some((r,ri)=>r.some((v,ci)=>v!==prev[ri][ci]));
-  if(!changed) return;
-  score+=totalGained;
-  if(score>best){ best=score; localStorage.setItem('2048-best',best); }
-  document.getElementById('score').textContent=score.toLocaleString();
-  document.getElementById('best').textContent=best.toLocaleString();
-  addRandom();
-  render(prev);
-  checkEnd();
+  while(r.length<N)r.push(0);
+  return{row:r,pts};
 }
 
-function render(prev){
-  const bd=document.getElementById('board');
-  bd.innerHTML=grid.flatMap((row,ri)=>row.map((v,ci)=>{
-    const old=prev?prev[ri][ci]:undefined;
-    const isNew = old===0 && v>0;
-    const isMerge = old && old!==v && v===old*2;
-    const cls=isNew?'new-cell':isMerge?'merge-cell':'';
-    return `<div class="cell ${cls}" data-v="${v}">${v||''}</div>`;
-  })).join('');
-}
-
-function checkEnd(){
-  const has2048=grid.some(r=>r.some(v=>v>=2048));
-  if(has2048&&!won2048){
-    won2048=true;
-    showOverlay('🎉','2048 달성!',`점수: ${score.toLocaleString()}`);
-    return;
+function move(dir){
+  iAC();
+  prevGrid=cloneGrid(grid);prevScore=score;
+  let moved=false;
+  const mergedVals=[];
+  if(dir==='left'||dir==='right'){
+    for(let r=0;r<N;r++){
+      let row=dir==='right'?[...grid[r]].reverse():grid[r];
+      const{row:nr,pts}=slide(row);
+      if(dir==='right')nr.reverse();
+      pts.forEach(v=>mergedVals.push(v));
+      if(nr.some((v,i)=>v!==grid[r][i]))moved=true;
+      grid[r]=nr;
+    }
+  }else{
+    for(let c=0;c<N;c++){
+      let col=[];for(let r=0;r<N;r++)col.push(grid[r][c]);
+      if(dir==='down')col.reverse();
+      const{row:nc,pts}=slide(col);
+      pts.forEach(v=>mergedVals.push(v));
+      if(dir==='down')nc.reverse();
+      for(let r=0;r<N;r++){if(nc[r]!==grid[r][c])moved=true;grid[r][c]=nc[r];}
+    }
   }
-  const hasEmpty=grid.some(r=>r.some(v=>!v));
-  if(!hasEmpty){
-    const canMove=grid.some((r,ri)=>r.some((v,ci)=>(ci<3&&v===grid[ri][ci+1])||(ri<3&&v===grid[ri+1][ci])));
-    if(!canMove) showOverlay('😵','게임 오버',`최종 점수: ${score.toLocaleString()}`);
+  if(!moved){prevGrid=null;return;}
+  mergedVals.forEach(v=>{score+=v;SFX.merge(v);});
+  if(!mergedVals.length)SFX.slide();
+  addRandom(grid);
+  if(score>best){best=score;localStorage.setItem('2048v2-best',best);}
+  render(mergedVals.length?'merge':'slide');
+  updateHUD();
+  // Win
+  if(!won&&grid.some(r=>r.some(v=>v>=2048))){
+    won=true;SFX.win();document.getElementById('winBanner').style.display='block';
   }
+  if(!canMove())gameOver();
 }
 
-function showOverlay(emoji,title,sub){
-  removeOverlay();
-  const ov=document.createElement('div'); ov.className='ov2'; ov.id='ov2';
-  ov.innerHTML=`<div style="font-size:2.5rem">${emoji}</div><h2>${title}</h2><p style="color:var(--text-muted)">${sub}</p><button class="btn-primary" style="width:140px" onclick="newGame()">다시하기</button>`;
-  document.getElementById('board').appendChild(ov);
+function undoMove(){
+  if(!prevGrid)return;
+  grid=prevGrid;score=prevScore;prevGrid=null;
+  render('new');updateHUD();
 }
-function removeOverlay(){ const o=document.getElementById('ov2'); if(o)o.remove(); }
 
-// 스와이프
-let sx,sy;
-document.getElementById('board').addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY;},{passive:true});
-document.getElementById('board').addEventListener('touchend',e=>{
-  const dx=e.changedTouches[0].clientX-sx, dy=e.changedTouches[0].clientY-sy;
-  if(Math.abs(dx)<20&&Math.abs(dy)<20) return;
-  if(Math.abs(dx)>Math.abs(dy)) move(dx<0?3:1); else move(dy<0?0:2);
-},{passive:true});
+function canMove(){
+  for(let r=0;r<N;r++)for(let c=0;c<N;c++){
+    if(!grid[r][c])return true;
+    if(c<N-1&&grid[r][c]===grid[r][c+1])return true;
+    if(r<N-1&&grid[r][c]===grid[r+1][c])return true;
+  }
+  return false;
+}
 
+function gameOver(){SFX.over();document.getElementById('g-msg').textContent='게임 오버! 새 게임을 시작하세요';}
+
+function updateHUD(){
+  document.getElementById('g-score').textContent=score.toLocaleString();
+  document.getElementById('g-best').textContent=best.toLocaleString();
+}
+
+// ── RENDER ──
+let prevVals=newGrid();
+function render(mode){
+  const board=document.getElementById('g-board');
+  board.innerHTML='';
+  for(let r=0;r<N;r++)for(let c=0;c<N;c++){
+    const v=grid[r][c];
+    const cell=document.createElement('div');
+    cell.className='cell';
+    if(v){
+      cell.dataset.v=v;
+      cell.textContent=v.toLocaleString();
+      if(mode==='new'||prevVals[r][c]===0){
+        cell.classList.add('new-t');
+      }else if(mode==='merge'&&v!==prevVals[r][c]&&v===prevVals[r][c]*2){
+        cell.classList.add('mrg-t');
+        // Float +score
+        const fp=document.createElement('div');
+        fp.className='float-pts';fp.textContent='+'+v;fp.style.color='#FFD700';
+        cell.appendChild(fp);
+      }
+    }
+    board.appendChild(cell);
+  }
+  prevVals=cloneGrid(grid);
+}
+
+// ── INPUT ──
 document.addEventListener('keydown',e=>{
-  const m={ArrowUp:0,ArrowRight:1,ArrowDown:2,ArrowLeft:3};
-  if(e.key in m){e.preventDefault();move(m[e.key]);}
+  const map={ArrowLeft:'left',ArrowRight:'right',ArrowUp:'up',ArrowDown:'down',a:'left',d:'right',w:'up',s:'down'};
+  if(e.key in map){e.preventDefault();move(map[e.key]);}
 });
+let tx=0,ty=0;
+document.getElementById('g-board').addEventListener('touchstart',e=>{tx=e.touches[0].clientX;ty=e.touches[0].clientY;},{passive:true});
+document.getElementById('g-board').addEventListener('touchend',e=>{
+  const dx=e.changedTouches[0].clientX-tx,dy=e.changedTouches[0].clientY-ty;
+  if(Math.abs(dx)<15&&Math.abs(dy)<15)return;
+  iAC();
+  if(Math.abs(dx)>Math.abs(dy))move(dx>0?'right':'left');else move(dy>0?'down':'up');
+},{passive:true});
 
 newGame();
 </script>
-<script src="../js/theme.js"></script>
 </body>
 </html>
