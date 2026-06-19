@@ -512,14 +512,19 @@ function showExplanation(isCorrect, timedOut) {
   text.textContent = q.ex;
   box.classList.add('show');
   document.getElementById('btnNext').classList.add('show');
+  scheduleNext();
 }
 
+let nextTimer = null;
+
 function scheduleNext() {
-  // Auto-advance after 4 seconds if user doesn't click next
-  // (user can also click "다음 문제" button)
+  clearTimeout(nextTimer);
+  nextTimer = setTimeout(() => nextQuestion(), 4000);
 }
 
 function nextQuestion() {
+  clearTimeout(nextTimer);
+  nextTimer = null;
   currentQ++;
   if (currentQ >= shuffledQs.length) {
     endQuiz();
@@ -535,6 +540,7 @@ function updateStatBar() {
 
 function endQuiz() {
   clearInterval(timerInterval);
+  clearTimeout(nextTimer);
   document.getElementById('quizUI').style.display = 'none';
   finalScore = score;
 

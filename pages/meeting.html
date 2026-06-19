@@ -217,7 +217,7 @@
       <button class="btn-reset" onclick="resetTimer()">↺ 리셋</button>
     </div>
 
-    <p class="notice">※ 연봉 기준 시급 산정: 연봉 ÷ 2,080시간 (52주 × 40h)<br>회의 비용 = 시간당 비용 × 경과 시간</p>
+    <p class="notice">※ 연봉 기준 시급 산정: 연봉 ÷ 2,508시간 (월 209h × 12)<br>회의 비용 = 시간당 비용 × 경과 시간</p>
   </div>
 
   <div class="comparison-card" id="compCard">
@@ -255,7 +255,7 @@ const PRICES = {
 function getHourlyCost() {
   const hc  = parseFloat(document.getElementById('headcount').value) || 0;
   const sal = parseFloat(document.getElementById('avgSalary').value)  || 0;
-  const perPersonHourly = (sal * 10000) / 2080;
+  const perPersonHourly = (sal * 10000) / (209 * 12);
   return perPersonHourly * hc;
 }
 

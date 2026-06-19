@@ -311,7 +311,14 @@
           <button class="pill" data-val="2" onclick="setPill('dep',this)">2명</button>
           <button class="pill" data-val="3" onclick="setPill('dep',this)">3명</button>
           <button class="pill" data-val="4" onclick="setPill('dep',this)">4명</button>
-          <button class="pill" data-val="5" onclick="setPill('dep',this)">5명+</button>
+          <button class="pill" data-val="5" onclick="setPill('dep',this)">5명</button>
+          <button class="pill" data-val="custom" onclick="setPill('dep',this)">직접 입력</button>
+        </div>
+        <div id="depCustomWrap" style="display:none;margin-top:8px">
+          <input type="number" id="depCustom" min="1" max="20" value="6"
+            style="width:72px;background:var(--card);border:1px solid rgba(255,255,255,0.15);color:var(--text);padding:6px 10px;border-radius:8px;font-size:0.9rem;text-align:center"
+            oninput="depVal=Math.max(1,parseInt(this.value)||1);liveCalc()">
+          <span style="font-size:0.85rem;color:var(--text-muted);margin-left:6px">명</span>
         </div>
       </div>
 
@@ -421,7 +428,16 @@ function setPill(group, btn) {
   const container = group === 'dep' ? document.getElementById('depPills') : document.getElementById('mealPills');
   container.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
   btn.classList.add('active');
-  if (group === 'dep')  depVal  = parseInt(btn.dataset.val);
+  if (group === 'dep') {
+    const wrap = document.getElementById('depCustomWrap');
+    if (btn.dataset.val === 'custom') {
+      wrap.style.display = 'block';
+      depVal = Math.max(1, parseInt(document.getElementById('depCustom').value) || 6);
+    } else {
+      wrap.style.display = 'none';
+      depVal = parseInt(btn.dataset.val);
+    }
+  }
   if (group === 'meal') mealVal = parseInt(btn.dataset.val);
   liveCalc();
 }

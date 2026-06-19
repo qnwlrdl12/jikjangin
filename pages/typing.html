@@ -378,7 +378,7 @@ function updateWpm() {
   if (!startTime) return;
   const elapsed = (Date.now() - startTime) / 1000 / 60;
   if (elapsed <= 0) return;
-  const wpm = Math.round((correctChars / 5) / elapsed);
+  const wpm = Math.round(correctChars / elapsed);
   lastWpm = wpm;
   wpmEl.textContent = wpm;
 }
