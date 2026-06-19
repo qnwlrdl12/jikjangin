@@ -110,7 +110,7 @@
         <div class="timeline" id="timeline"></div>
 
         <div class="notice">
-          ※ 소득대체율 40% (2026년 기준) 적용. 실제 수령액은 A값(전체 가입자 평균소득) 변화에 따라 달라집니다.<br>
+          ※ 소득대체율 43% (2026년 연금개혁 기준), A값 3,193,511원 적용. 실제 수령액은 매년 달라지므로 내연금(csa.nps.or.kr)에서 확인하세요.<br>
           ※ 국민연금 수령 개시 나이: 1969년생 이후 출생자는 만 65세부터 수령<br>
           ※ 연기 연금: 수령 연기 시 연 7.2% 증액 (최대 5년, 36% 증가)<br>
           ※ 정확한 예상액은 내연금(csa.nps.or.kr)에서 확인하세요.
@@ -143,16 +143,16 @@ function calculate() {
   const remainYears = retireAge - currentAge;
   const totalYears = paidYears + remainYears;
 
-  // A값 (2025년 기준 전체 가입자 평균소득)
-  const A = 2690000;
+  // A값 (2026년 국민연금공단 고시)
+  const A = 3193511;
   const B = avgIncomeWon;
 
   // 기본연금액 = (A + B) / 2 × 소득대체율 × (총납입년수 / 40)
-  const replacementRate = 0.40;
+  const replacementRate = 0.43; // 2026년 연금개혁 반영
   const monthlyBenefit = (A + B) / 2 * replacementRate * (totalYears / 40);
 
   document.getElementById('monthly').textContent = fw(monthlyBenefit);
-  document.getElementById('monthlyDesc').textContent = `총 납입 ${totalYears}년 기준 · 소득대체율 40%`;
+  document.getElementById('monthlyDesc').textContent = `총 납입 ${totalYears}년 기준 · 소득대체율 43%`;
   document.getElementById('totalYears').textContent = totalYears + '년';
   document.getElementById('annual').textContent = fmw(monthlyBenefit * 12);
   document.getElementById('ten').textContent = fmw(monthlyBenefit * 12 * 10);

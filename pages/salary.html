@@ -485,8 +485,9 @@ function taxFromBase(base) {
   else if (base <= 88_000_000)  return 6_240_000 + (base - 50_000_000)  * 0.24;
   else if (base <= 150_000_000) return 15_360_000 + (base - 88_000_000) * 0.35;
   else if (base <= 300_000_000) return 37_060_000 + (base - 150_000_000)* 0.38;
-  else if (base <= 500_000_000) return 94_060_000 + (base - 300_000_000)* 0.40;
-  else                          return 174_060_000+ (base - 500_000_000) * 0.42;
+  else if (base <= 500_000_000)   return  94_060_000 + (base - 300_000_000) * 0.40;
+  else if (base <= 1_000_000_000) return 174_060_000 + (base - 500_000_000) * 0.42;
+  else                            return 384_060_000 + (base - 1_000_000_000) * 0.45;
 }
 
 function earnedIncomeTaxCredit(tax, annualGross) {
