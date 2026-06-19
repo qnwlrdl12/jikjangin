@@ -147,8 +147,14 @@
 </footer>
 
 <script>
-// 2026년 근로소득세 간이세액표 (간이 계산)
-function calcTax(annual, dep, child) {
+function earnedIncomeTaxCredit(tax, annualGross) {
+  let credit = tax <= 1300000 ? tax * 0.55 : 715000 + (tax - 1300000) * 0.30;
+  const limit = annualGross <= 33000000 ? 740000 : annualGross <= 70000000 ? 660000 : 500000;
+  return Math.min(credit, limit);
+}
+
+// 2026년 근로소득세 간이세액표
+function calcTax(annual, dep, child, annualIns) {
   // 근로소득공제
   let ded = 0;
   if (annual <= 5000000) ded = annual * 0.7;
@@ -158,9 +164,9 @@ function calcTax(annual, dep, child) {
   else ded = 14750000 + (annual - 100000000) * 0.02;
   ded = Math.min(ded, 20000000);
 
-  // 인적공제 (본인+부양 150만원, 자녀 150만원)
+  // 인적공제 (본인+부양 150만원, 자녀 150만원) + 4대보험 소득공제
   const personal = dep * 1500000 + child * 1500000;
-  const taxBase = Math.max(annual - ded - personal, 0);
+  const taxBase = Math.max(annual - ded - personal - (annualIns || 0), 0);
 
   // 누진세율
   let tax = 0;
@@ -189,11 +195,15 @@ function calcInsurance(annual) {
 }
 
 function netMonthly(annual, dep, child) {
-  const annualIncomeTax = calcTax(annual * 10000, dep, child);
-  const localTax = annualIncomeTax * 0.1;
-  const monthlyTax = (annualIncomeTax + localTax) / 12;
-  const ins = calcInsurance(annual * 10000);
-  const grossMonthly = annual * 10000 / 12;
+  const annualWon = annual * 10000;
+  const ins = calcInsurance(annualWon);
+  const annualIns = ins.total * 12;
+  const grossTax = calcTax(annualWon, dep, child, annualIns);
+  const earnedCredit = earnedIncomeTaxCredit(grossTax, annualWon);
+  const incomeTax = Math.max(grossTax - earnedCredit - 130000, 0); // 표준세액공제 13만원
+  const localTax = incomeTax * 0.1;
+  const monthlyTax = (incomeTax + localTax) / 12;
+  const grossMonthly = annualWon / 12;
   return grossMonthly - monthlyTax - ins.total;
 }
 

@@ -188,7 +188,7 @@ function calculate() {
 
   if (!salaryWon) { alert('평균 월급을 입력해주세요.'); return; }
 
-  // 1일 평균임금 = 월급 / 30일 (간이 계산)
+  // 1일 평균임금 = 월급 / 30일 (간이 계산; 정확한 산정은 3개월 임금÷역일수)
   const avgDailyWage = salaryWon / 30;
 
   // 구직급여 1일액 = 1일 평균임금 × 60%

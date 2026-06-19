@@ -293,7 +293,7 @@ function toggleCmp() {
 function calcT2M() {
   const j = parseFloat(document.getElementById('jeonse1').value);
   const d = parseFloat(document.getElementById('dep1').value) || 0;
-  const r = parseFloat(document.getElementById('rate1').value) || 5.5;
+  const r = parseFloat(document.getElementById('rate1').value) || 4.75;
   if (!j) {
     document.getElementById('res-t2m-empty').style.display  = '';
     document.getElementById('res-t2m-filled').style.display = 'none';
@@ -318,7 +318,7 @@ function calcT2M() {
 function calcM2T() {
   const d = parseFloat(document.getElementById('dep2').value) || 0;
   const m = parseFloat(document.getElementById('rent2').value);
-  const r = parseFloat(document.getElementById('rate2').value) || 5.5;
+  const r = parseFloat(document.getElementById('rate2').value) || 4.75;
   if (!m) {
     document.getElementById('res-m2t-empty').style.display  = '';
     document.getElementById('res-m2t-filled').style.display = 'none';

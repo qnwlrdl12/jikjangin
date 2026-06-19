@@ -145,7 +145,7 @@ function calculate() {
 
   // A값 (2026년 국민연금공단 고시)
   const A = 3193511;
-  const B = avgIncomeWon;
+  const B = Math.min(Math.max(avgIncomeWon, 370000), 6370000);
 
   // 기본연금액 = (A + B) / 2 × 소득대체율 × (총납입년수 / 40)
   const replacementRate = 0.43; // 2026년 연금개혁 반영
