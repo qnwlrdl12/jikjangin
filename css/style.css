@@ -709,6 +709,34 @@ html.light .preview-card { background: #fff !important; color: #222 !important; 
 html.light .preview-card .doc-title { color: #111 !important; }
 html.light .preview-card .doc-body { color: #222 !important; }
 
+/* ── Game page HUD boxes: rgba(255,255,255,...) borders/backgrounds ── */
+/* (covers tetris, snake, 2048, minesweeper, bubble, dodge, stack, wordle) */
+html.light .sk-btn,
+html.light .g-btn,
+html.light .snd-b { border-color: rgba(0,0,0,.1) !important; }
+
+/* Loan / 2048 table header subtle bg */
+html.light .schedule-table th,
+html.light .loan-table th { background: rgba(0,0,0,.04) !important; }
+
+/* Boss-clicker stat box */
+html.light .stat-box { background: rgba(0,0,0,.04) !important; border-color: rgba(0,0,0,.1) !important; }
+html.light .stat-box .val,
+html.light .stat-val { color: #1a1a2e !important; }
+
+/* Mindmap toolbar — always dark by design, skip; node text on colored bg — fine */
+
+/* Gold/accent accent values: #FFD700 on white has poor contrast, darken */
+html.light .val.gold,
+html.light .t-val.gold,
+html.light .sk-box.best .val,
+html.light .g-box.best .val { color: #b8860b !important; text-shadow: none !important; }
+
+/* Neon/cyan values on light bg */
+html.light .t-val.cyan,
+html.light .sk-box.lvl .val { color: #1a8a80 !important; text-shadow: none !important; }
+html.light .sk-box.mul .val { color: #1a7a10 !important; text-shadow: none !important; }
+
 /* RESPONSIVE */
 @media (max-width: 768px) {
   .nav-links { display: none; }
