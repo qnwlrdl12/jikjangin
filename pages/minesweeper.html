@@ -9,7 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../css/style.css">
   <style>
-    .ms-wrap{max-width:700px;margin:0 auto}
+    .ms-wrap{max-width:980px;margin:0 auto}
     .ms-top{background:var(--card);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:10px;flex-wrap:wrap}
     .diff-row{display:flex;gap:6px}
     .diff-btn{padding:8px 14px;border:1px solid rgba(255,255,255,.1);border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer;background:transparent;color:var(--text-muted);font-family:inherit;transition:all .2s}
@@ -25,7 +25,7 @@
     #board{border-radius:10px;overflow:hidden;display:inline-block;border:1px solid rgba(255,255,255,.06);user-select:none}
     .bw{text-align:center;overflow-x:auto;padding-bottom:8px;position:relative}
     .row{display:flex}
-    .cell{display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:700;cursor:pointer;flex-shrink:0;border:1px solid rgba(0,0,0,.25);box-sizing:border-box;transition:background .06s,transform .06s;width:32px;height:32px}
+    .cell{display:flex;align-items:center;justify-content:center;font-size:var(--cell-fs,.85rem);font-weight:700;cursor:pointer;flex-shrink:0;border:1px solid rgba(0,0,0,.25);box-sizing:border-box;transition:background .06s,transform .06s;width:var(--cell-sz,32px);height:var(--cell-sz,32px)}
     .cell.hidden{background:linear-gradient(145deg,#5858c8,#4040a0);box-shadow:inset 0 2px 0 rgba(255,255,255,.2),inset -2px -2px 0 rgba(0,0,0,.35)}
     .cell.hidden:hover{background:linear-gradient(145deg,#7070e0,#5050b8);transform:scale(1.05);z-index:2}
     .cell.flagged{background:linear-gradient(145deg,#5858c8,#4040a0);box-shadow:inset 0 2px 0 rgba(255,255,255,.2),inset -2px -2px 0 rgba(0,0,0,.35)}
@@ -35,8 +35,8 @@
     @keyframes boom{0%{transform:scale(1)}50%{transform:scale(1.4)}100%{transform:scale(1)}}
     @keyframes cellReveal{0%{transform:scale(1.15);filter:brightness(2.8)}60%{transform:scale(.95)}100%{transform:scale(1);filter:brightness(1)}}
     .cell-reveal{animation:cellReveal .18s ease-out forwards}
-    @keyframes cellPulse{0%{transform:scale(1)}30%{transform:scale(.86)}65%{transform:scale(1.08)}100%{transform:scale(1)}}
-    .cell-pulse{animation:cellPulse .22s ease-out forwards!important}
+    @keyframes cellPulse{0%{transform:scale(1)}40%{transform:scale(.93)}100%{transform:scale(1)}}
+    .cell-pulse{animation:cellPulse .18s ease-out forwards!important}
     .n1{color:#4ECDC4}.n2{color:#2ecc71}.n3{color:#FF6B35}.n4{color:#9b59b6}
     .n5{color:#e74c3c}.n6{color:#1abc9c}.n7{color:#f39c12}.n8{color:#ecf0f1}
     .res-msg{text-align:center;margin-top:12px;font-size:1.1rem;font-weight:700;padding:16px 12px;border-radius:10px;display:none}
@@ -50,7 +50,6 @@
     .confetti-container{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:1000;overflow:hidden}
     .confetti-piece{position:absolute;width:8px;height:8px;border-radius:2px;animation:confettiFall linear forwards}
     @keyframes confettiFall{0%{transform:translateY(-10px) rotate(0deg);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
-    @media(max-width:480px){.cell{width:26px;height:26px;font-size:.72rem}}
   </style>
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9410871181012126" crossorigin="anonymous"></script>
 </head>
@@ -188,13 +187,11 @@ function revealWave(startR,startC){
 }
 
 function pulseCell(r,c){
-  [r*cols+c,...getNeighbors(r,c)].forEach(ni=>{
-    const el=cellEls[ni];
-    el.classList.remove('cell-pulse');
-    void el.offsetWidth;
-    el.classList.add('cell-pulse');
-    setTimeout(()=>el.classList.remove('cell-pulse'),280);
-  });
+  const el=cellEls[r*cols+c];
+  el.classList.remove('cell-pulse');
+  void el.offsetWidth;
+  el.classList.add('cell-pulse');
+  setTimeout(()=>el.classList.remove('cell-pulse'),200);
 }
 
 function openCell(r,c){
@@ -288,6 +285,12 @@ const NCOLS=['','n1','n2','n3','n4','n5','n6','n7','n8'];
 function buildBoard(){
   const board=document.getElementById('board');
   board.innerHTML='';cellEls=[];
+  const wrap=document.querySelector('.ms-wrap');
+  const availW=(wrap?wrap.clientWidth:window.innerWidth)-4;
+  const sz=Math.max(14,Math.min(32,Math.floor(availW/cols)));
+  const fs=sz>=28?'.85rem':sz>=22?'.72rem':sz>=17?'.62rem':'.55rem';
+  document.documentElement.style.setProperty('--cell-sz',sz+'px');
+  document.documentElement.style.setProperty('--cell-fs',fs);
   for(let r=0;r<rows;r++){
     const row=document.createElement('div');row.className='row';
     for(let c=0;c<cols;c++){
