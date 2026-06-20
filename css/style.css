@@ -606,8 +606,8 @@ html.light .date-wrap:focus-within { border-color: var(--primary); background: r
 html.light .num-wrap input,
 html.light .sm-wrap input,
 html.light .date-wrap input[type="date"] { color: var(--white); }
-html.light .num-wrap input::placeholder,
-html.light .sm-wrap input::placeholder { color: rgba(0,0,0,0.22); }
+html.light input::placeholder,
+html.light textarea::placeholder { color: rgba(0,0,0,0.28) !important; }
 html.light .date-wrap input[type="date"]::-webkit-calendar-picker-indicator { filter: none; opacity: 0.5; }
 
 /* Pills */
