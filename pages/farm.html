@@ -42,7 +42,7 @@ body{background:#fde8f0;display:flex;align-items:center;justify-content:center;w
   <div id="t-saveinfo" style="color:#5a7a4a;font-size:13px;margin-top:10px;display:none"></div>
   <div class="t-ctrl" style="margin-top:20px">
     <span>방향키</span> 이동 &nbsp;|&nbsp; <span>E</span> 도구 사용 &nbsp;|&nbsp; <span>Space</span> 상호작용<br>
-    <span>1~7</span> 도구 선택 &nbsp;|&nbsp; <span>I</span> 인벤토리 &nbsp;|&nbsp; <span>Z</span> 수면 (하루 넘기기) &nbsp;|&nbsp; <span>Esc</span> 닫기
+    <span>1~7</span> 도구 선택 &nbsp;|&nbsp; <span>I</span> 인벤토리 &nbsp;|&nbsp; <span>Z</span> 수면 &nbsp;|&nbsp; <span>B</span> 방어 건설 &nbsp;|&nbsp; <span>Esc</span> 닫기
   </div>
 </div>
 <script>
@@ -81,6 +81,27 @@ const SPAL=[
   // 겨울 — lavender & ice
   {sky:'#e8e0f8',sky2:'#f0f4ff',grass:'#d0e8f0',grass2:'#b8d4e4',tree:'#b0c0e0',tree2:'#9aacd0',path:'#e8e0d8',path2:'#d8d0c8',water:'#a8d0f0',water2:'#88b8e0',flower:'#d0d8ff',ui:'#8090c0',dirt:'#d8ccc0',tilled:'#c8bcb0'},
 ];
+
+// ── MONSTER TYPES ──────────────────────────
+const MONSTER_TYPES={
+  slime:   {name:'슬라임', hp:30, spd:48, dmg:2, reward:20, col:'#50d850',size:14},
+  bat:     {name:'박쥐',   hp:20, spd:90, dmg:1, reward:15, col:'#9070b0',size:10},
+  goblin:  {name:'고블린', hp:90, spd:60, dmg:8, reward:40, col:'#40a840',size:16},
+  skeleton:{name:'해골',   hp:140,spd:40, dmg:12,reward:60, col:'#c0d0e0',size:16},
+  boss:    {name:'대보스', hp:600,spd:28, dmg:25,reward:300,col:'#e03050',size:26},
+};
+
+// ── DEFENSE TYPES ──────────────────────────
+const DEFENSE_DEFS={
+  scarecrow:{name:'허수아비',icon:'🎃',cost:80,  maxHp:80, atk:0, range:TILE*2.5,delay:0,  desc:'범위 내 몬스터 속도 절반'},
+  archer:   {name:'궁수 토끼',icon:'🐰',cost:200, maxHp:80, atk:18,range:TILE*5,  delay:1.5,desc:'원거리 단일 화살 공격'},
+  cannon:   {name:'대포탑', icon:'💣',cost:400, maxHp:150,atk:55,range:TILE*4,  delay:3,  desc:'광역 폭발 공격'},
+  wall:     {name:'목책',   icon:'🪵',cost:60,  maxHp:350,atk:0, range:0,       delay:0,  desc:'몬스터 이동 차단'},
+  magetower:{name:'마법탑', icon:'🗼',cost:800, maxHp:120,atk:32,range:TILE*7,  delay:2,  desc:'광역 마법 공격'},
+};
+
+// House target (player house center)
+const HOUSE_X=31*TILE+24,HOUSE_Y=7*TILE+24;
 
 // ── CROPS ──────────────────────────────────────
 const CROPS={
@@ -313,6 +334,14 @@ function initGS(){
     ],
     // Day flag
     wakedUp:true,
+    // ── DEFENSE WAVE STATE ─────────────────────
+    farmHP:100,farmMaxHP:100,
+    monsters:[],defenses:[],projectiles:[],
+    waveNum:0,waveActive:false,waveQueue:[],waveSpawnAcc:0,waveAnnounce:0,
+    waveTriggeredToday:false,
+    gameOver:false,
+    buildMenuOpen:false,buildSelected:null,
+    _buildBtns:[],_closeBuildBtn:null,_gameOverRestartBtn:null,
   };
 }
 
@@ -984,6 +1013,194 @@ function drawAnimal(a,frame){
   ctx.restore();
 }
 
+// ── DEFENSE RENDERING ──────────────────────────
+function drawDefense(d){
+  const x=Math.round(d.x-camX()),y=Math.round(d.y-camY());
+  if(x<-80||x>W+80||y<-80||y>H+80)return;
+  const def=DEFENSE_DEFS[d.type];
+  ctx.save();ctx.translate(x,y);
+  ctx.fillStyle='rgba(0,0,0,0.18)';ctx.beginPath();ctx.ellipse(0,14,14,4,0,0,Math.PI*2);ctx.fill();
+  switch(d.type){
+    case 'wall':
+      ctx.fillStyle='#b08050';ctx.beginPath();ctx.roundRect(-14,-22,28,34,4);ctx.fill();
+      ctx.fillStyle='#c89060';
+      for(let i=0;i<4;i++){const off=(i%2)*8;
+        ctx.beginPath();ctx.roundRect(-12,-20+i*9+off*0.3,24,7,2);ctx.fill()}
+      ctx.fillStyle='rgba(255,255,255,0.15)';ctx.beginPath();ctx.roundRect(-12,-20,24,4,2);ctx.fill();
+      break;
+    case 'scarecrow':
+      ctx.fillStyle='#a07840';ctx.fillRect(-3,-2,6,22);ctx.fillRect(-15,4,30,5);
+      ctx.fillStyle='#384018';ctx.beginPath();ctx.roundRect(-11,-26,22,11,3);ctx.fill();
+      ctx.fillStyle='#506020';ctx.beginPath();ctx.roundRect(-15,-18,30,5,2);ctx.fill();
+      ctx.fillStyle='#e07828';ctx.beginPath();ctx.arc(0,-34,13,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#903010';
+      ctx.beginPath();ctx.moveTo(-7,-38);ctx.lineTo(-3,-31);ctx.lineTo(1,-38);ctx.fill();
+      ctx.beginPath();ctx.moveTo(3,-38);ctx.lineTo(7,-31);ctx.lineTo(11,-38);ctx.fill();
+      ctx.fillStyle='#201000';ctx.beginPath();ctx.arc(-4,-33,3,0,Math.PI*2);ctx.fill();
+      ctx.beginPath();ctx.arc(5,-33,3,0,Math.PI*2);ctx.fill();
+      ctx.beginPath();ctx.moveTo(-4,-28);ctx.lineTo(-2,-24);ctx.lineTo(0,-28);ctx.lineTo(2,-24);ctx.lineTo(4,-28);ctx.fill();
+      break;
+    case 'archer':
+      ctx.fillStyle='#f0f0f0';ctx.beginPath();ctx.ellipse(0,2,10,13,0,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#508040';ctx.beginPath();ctx.roundRect(-8,-4,16,12,3);ctx.fill();
+      circ(0,-18,12,'#f0f0f0');
+      ctx.fillStyle='#f0f0f0';
+      ctx.beginPath();ctx.ellipse(-6,-33,4,10,-.2,0,Math.PI*2);ctx.fill();
+      ctx.beginPath();ctx.ellipse(6,-33,4,10,.2,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#f0c0d0';
+      ctx.beginPath();ctx.ellipse(-6,-33,2,7,-.2,0,Math.PI*2);ctx.fill();
+      ctx.beginPath();ctx.ellipse(6,-33,2,7,.2,0,Math.PI*2);ctx.fill();
+      circ(-4,-20,2.5,'#222');circ(4,-20,2.5,'#222');
+      circ(-4.8,-20.8,1,'white');circ(3.2,-20.8,1,'white');
+      circ(-8,-17,3,'rgba(255,160,180,0.55)');circ(8,-17,3,'rgba(255,160,180,0.55)');
+      ctx.strokeStyle='#804020';ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(15,0,10,-1.2,1.2);ctx.stroke();
+      ctx.strokeStyle='#c0a080';ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(15,-10);ctx.lineTo(15,10);ctx.stroke();
+      break;
+    case 'cannon':
+      circ(-10,12,8,'#806040');circ(10,12,8,'#806040');
+      ctx.strokeStyle='#504030';ctx.lineWidth=2;
+      ctx.beginPath();ctx.arc(-10,12,8,0,Math.PI*2);ctx.stroke();
+      ctx.beginPath();ctx.arc(10,12,8,0,Math.PI*2);ctx.stroke();
+      ctx.fillStyle='#404050';ctx.beginPath();ctx.roundRect(-15,0,30,14,4);ctx.fill();
+      ctx.fillStyle='#505060';ctx.beginPath();ctx.ellipse(0,6,17,8,0,0,Math.PI*2);ctx.fill();
+      ctx.save();ctx.rotate(-0.55);
+      ctx.fillStyle='#303040';ctx.beginPath();ctx.roundRect(0,-7,30,14,7);ctx.fill();
+      ctx.fillStyle='rgba(255,255,255,0.1)';ctx.beginPath();ctx.roundRect(4,-5,22,5,3);ctx.fill();
+      ctx.restore();
+      break;
+    case 'magetower':
+      ctx.fillStyle='#7060a0';ctx.beginPath();ctx.roundRect(-13,2,26,20,4);ctx.fill();
+      ctx.fillStyle='#8070b8';ctx.beginPath();ctx.roundRect(-11,-32,22,36,6);ctx.fill();
+      ctx.fillStyle='#604880';ctx.beginPath();ctx.moveTo(0,-54);ctx.lineTo(-11,-32);ctx.lineTo(11,-32);ctx.closePath();ctx.fill();
+      const glow=ctx.createRadialGradient(0,-24,0,0,-24,9);
+      glow.addColorStop(0,'rgba(200,140,255,0.9)');glow.addColorStop(1,'rgba(120,60,220,0)');
+      ctx.fillStyle=glow;ctx.beginPath();ctx.arc(0,-24,9,0,Math.PI*2);ctx.fill();
+      circ(0,-24,5,'rgba(230,200,255,0.92)');
+      ctx.fillStyle='rgba(220,200,255,0.7)';
+      ctx.beginPath();ctx.ellipse(-4,-18,3,4,0,0,Math.PI*2);ctx.fill();
+      ctx.beginPath();ctx.ellipse(4,-18,3,4,0,0,Math.PI*2);ctx.fill();
+      // Sparkles animated
+      ctx.fillStyle='rgba(255,255,255,0.7)';
+      for(let i=0;i<4;i++){const a=animFrame*0.06+i*Math.PI/2;circ(Math.cos(a)*8,-24+Math.sin(a)*8,1.5,'rgba(255,255,255,0.7)')}
+      break;
+  }
+  // HP bar when damaged
+  if(d.hp<def.maxHp){
+    const bw=34,bh=4,by2=18;
+    ctx.fillStyle='rgba(0,0,0,0.45)';ctx.beginPath();ctx.roundRect(-bw/2,by2,bw,bh,2);ctx.fill();
+    ctx.fillStyle='#60e060';ctx.beginPath();ctx.roundRect(-bw/2,by2,bw*(d.hp/def.maxHp),bh,2);ctx.fill();
+  }
+  ctx.restore();
+}
+
+// ── MONSTER RENDERING ──────────────────────────
+function drawMonster(m){
+  const x=Math.round(m.x-camX()),y=Math.round(m.y-camY());
+  if(x<-80||x>W+80||y<-80||y>H+80)return;
+  ctx.save();ctx.translate(x,y);
+  const bob=Math.sin(animFrame*0.15+m.id*0.5)*2;
+  ctx.translate(0,bob);
+  const sl=m.slowed>0;
+  ctx.fillStyle='rgba(0,0,0,0.2)';ctx.beginPath();ctx.ellipse(0,m.size+2,m.size*0.8,m.size*0.28,0,0,Math.PI*2);ctx.fill();
+  switch(m.type){
+    case 'slime':{
+      const sc=0.92+Math.sin(animFrame*0.1)*0.07;
+      ctx.save();ctx.scale(sc,1/sc);
+      ctx.fillStyle=sl?'#98c898':'#58d858';
+      ctx.beginPath();ctx.ellipse(0,-2,14,12,0,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='rgba(255,255,255,0.28)';ctx.beginPath();ctx.ellipse(-4,-6,5,4,0.3,0,Math.PI*2);ctx.fill();
+      ctx.restore();
+      circ(-5,-5,3,'white');circ(5,-5,3,'white');
+      circ(-5,-5,2,'#1a2a1a');circ(5,-5,2,'#1a2a1a');
+      circ(-5.9,-5.8,0.9,'white');circ(4.1,-5.8,0.9,'white');
+      ctx.strokeStyle='#1a3a1a';ctx.lineWidth=1.2;
+      ctx.beginPath();ctx.arc(0,-2,3.5,0.2,Math.PI-0.2);ctx.stroke();
+      break;}
+    case 'bat':{
+      const wf=Math.sin(animFrame*0.28)*0.65;
+      ctx.fillStyle=sl?'#b0a0c0':'#705888';
+      ctx.save();ctx.rotate(wf);ctx.beginPath();ctx.ellipse(-11,0,13,6,-0.3,0,Math.PI*2);ctx.fill();ctx.restore();
+      ctx.save();ctx.rotate(-wf);ctx.beginPath();ctx.ellipse(11,0,13,6,0.3,0,Math.PI*2);ctx.fill();ctx.restore();
+      circ(0,0,9,'#806898');
+      circ(-3,-2,3,'#ff3030');circ(3,-2,3,'#ff3030');
+      circ(-3,-2,1.2,'white');circ(3,-2,1.2,'white');
+      ctx.fillStyle='#705888';
+      ctx.beginPath();ctx.moveTo(-4,-9);ctx.lineTo(-8,-18);ctx.lineTo(-1,-11);ctx.fill();
+      ctx.beginPath();ctx.moveTo(4,-9);ctx.lineTo(8,-18);ctx.lineTo(1,-11);ctx.fill();
+      break;}
+    case 'goblin':{
+      ctx.fillStyle=sl?'#90c090':'#58a848';
+      ctx.beginPath();ctx.ellipse(0,4,12,14,0,0,Math.PI*2);ctx.fill();
+      circ(0,-14,13,'#68b858');
+      ctx.beginPath();ctx.ellipse(-13,-14,6,9,0.3,0,Math.PI*2);ctx.fill();
+      ctx.beginPath();ctx.ellipse(13,-14,6,9,-0.3,0,Math.PI*2);ctx.fill();
+      circ(-4,-16,3.5,'#ff3030');circ(4,-16,3.5,'#ff3030');
+      circ(-4,-16,1.8,'#100000');circ(4,-16,1.8,'#100000');
+      ctx.strokeStyle='#203010';ctx.lineWidth=2.5;
+      ctx.beginPath();ctx.moveTo(-6,-22);ctx.lineTo(6,-22);ctx.stroke();
+      ctx.fillStyle='white';ctx.beginPath();ctx.moveTo(-2,-10);ctx.lineTo(0,-5);ctx.lineTo(2,-10);ctx.fill();
+      break;}
+    case 'skeleton':{
+      ctx.fillStyle=sl?'#d0d8c8':'#ccd8dc';
+      ctx.beginPath();ctx.ellipse(0,2,10,13,0,0,Math.PI*2);ctx.fill();
+      ctx.strokeStyle='rgba(0,0,0,0.2)';ctx.lineWidth=1.5;
+      for(let i=0;i<3;i++){ctx.beginPath();ctx.moveTo(-9,-4+i*6);ctx.lineTo(9,-4+i*6);ctx.stroke()}
+      circ(0,-18,13,'#dce8ec');
+      circ(-5,-21,4,'#2a2a3a');circ(5,-21,4,'#2a2a3a');
+      circ(-5,-21,2,'rgba(180,210,255,0.7)');circ(5,-21,2,'rgba(180,210,255,0.7)');
+      ctx.fillStyle='white';
+      ctx.beginPath();ctx.roundRect(-7,-10,4,6,1);ctx.fill();
+      ctx.beginPath();ctx.roundRect(-2,-10,4,6,1);ctx.fill();
+      ctx.beginPath();ctx.roundRect(3,-10,4,6,1);ctx.fill();
+      break;}
+    case 'boss':{
+      ctx.fillStyle=sl?'#c86060':'#c02848';
+      ctx.beginPath();ctx.ellipse(0,6,24,20,0,0,Math.PI*2);ctx.fill();
+      circ(0,-22,22,'#d03858');
+      ctx.fillStyle='#181010';
+      ctx.beginPath();ctx.moveTo(-10,-40);ctx.lineTo(-17,-60);ctx.lineTo(-3,-42);ctx.fill();
+      ctx.beginPath();ctx.moveTo(10,-40);ctx.lineTo(17,-60);ctx.lineTo(3,-42);ctx.fill();
+      circ(-8,-24,6,'#ffee00');circ(8,-24,6,'#ffee00');
+      circ(-8,-24,4,'#ff8800');circ(8,-24,4,'#ff8800');
+      circ(-8,-24,2,'#180000');circ(8,-24,2,'#180000');
+      ctx.strokeStyle='#600010';ctx.lineWidth=2.5;
+      ctx.beginPath();ctx.moveTo(-5,-34);ctx.lineTo(2,-12);ctx.stroke();
+      ctx.fillStyle='white';
+      ctx.beginPath();ctx.moveTo(-7,-10);ctx.lineTo(-5,-3);ctx.lineTo(-3,-10);ctx.fill();
+      ctx.beginPath();ctx.moveTo(1,-10);ctx.lineTo(3,-3);ctx.lineTo(5,-10);ctx.fill();
+      break;}
+  }
+  // HP bar
+  const bw=m.size*2.8,bh=4;
+  ctx.fillStyle='rgba(0,0,0,0.5)';ctx.beginPath();ctx.roundRect(-bw/2,-m.size-12,bw,bh,2);ctx.fill();
+  const hr=m.hp/m.maxHp;
+  ctx.fillStyle=hr>0.6?'#60e060':hr>0.3?'#e0c030':'#e03030';
+  ctx.beginPath();ctx.roundRect(-bw/2,-m.size-12,bw*hr,bh,2);ctx.fill();
+  ctx.restore();
+}
+
+// ── PROJECTILE RENDERING ───────────────────────
+function drawProjectile(p){
+  const x=p.x-camX(),y=p.y-camY();
+  ctx.save();ctx.translate(x,y);ctx.globalAlpha=p.life;
+  if(p.type==='archer'){
+    const ang=Math.atan2(p.ty-p.y,p.tx-p.x);
+    ctx.rotate(ang);
+    ctx.fillStyle='#804020';ctx.beginPath();ctx.moveTo(9,0);ctx.lineTo(-4,-3);ctx.lineTo(-4,3);ctx.fill();
+    ctx.strokeStyle='#a06030';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(-4,0);ctx.lineTo(-14,0);ctx.stroke();
+  } else if(p.type==='cannon'){
+    circ(0,0,7,'#303040');circ(-2,-2,2.5,'rgba(255,255,255,0.22)');
+    const ang=Math.atan2(p.ty-p.y,p.tx-p.x);
+    for(let i=1;i<=3;i++)circ(-Math.cos(ang)*i*8,-Math.sin(ang)*i*8,3+i,'rgba(140,140,150,0.2)');
+  } else if(p.type==='magetower'){
+    const mg=ctx.createRadialGradient(0,0,0,0,0,9);
+    mg.addColorStop(0,'rgba(225,180,255,0.95)');mg.addColorStop(1,'rgba(140,70,255,0)');
+    ctx.fillStyle=mg;ctx.beginPath();ctx.arc(0,0,9,0,Math.PI*2);ctx.fill();
+    for(let i=0;i<4;i++){const a=animFrame*0.18+i*Math.PI/2;circ(Math.cos(a)*7,Math.sin(a)*7,2,'rgba(255,255,255,0.85)')}
+  }
+  ctx.globalAlpha=1;ctx.restore();
+}
+
 // ── PARTICLE SYSTEM ────────────────────────────
 function spawnParticles(wx,wy,col,n=8){
   for(let i=0;i<n;i++){
@@ -1003,6 +1220,143 @@ function drawParticles(){
     circ(p.x-camX(),p.y-camY(),p.size,p.col);
     ctx.globalAlpha=1;
   });
+}
+
+// ── WAVE SYSTEM ────────────────────────────────
+function buildWave(n){
+  const q=[];let t=0;
+  const slimes=Math.min(3+n*2,18);
+  for(let i=0;i<slimes;i++){q.push({type:'slime',delay:t});t+=2.5}
+  if(n>=2){const c=Math.min(n,6);for(let i=0;i<c;i++){q.push({type:'bat',delay:t});t+=1.8}}
+  if(n>=4){const c=Math.min(Math.floor(n/2),5);for(let i=0;i<c;i++){q.push({type:'goblin',delay:t});t+=3}}
+  if(n>=7){const c=Math.min(Math.floor(n/3),4);for(let i=0;i<c;i++){q.push({type:'skeleton',delay:t});t+=4}}
+  if(n%5===0){q.push({type:'boss',delay:t+5})}
+  return q;
+}
+
+function startWave(){
+  if(GS.waveActive||GS.waveTriggeredToday)return;
+  GS.waveNum++;
+  GS.waveActive=true;GS.waveTriggeredToday=true;
+  GS.waveQueue=buildWave(GS.waveNum);
+  GS.waveSpawnAcc=0;GS.waveAnnounce=3;
+  notify(`⚔️ ${GS.waveNum}웨이브! 몬스터가 침략합니다!`,'#FF4060');
+}
+
+function spawnMonster(type){
+  const def=MONSTER_TYPES[type];
+  const side=Math.floor(Math.random()*3);
+  let sx,sy;
+  if(side===0){sx=(38+Math.random()*6)*TILE;sy=(4+Math.random()*24)*TILE}
+  else if(side===1){sx=(4+Math.random()*30)*TILE;sy=1*TILE}
+  else{sx=(4+Math.random()*30)*TILE;sy=29*TILE}
+  const hp=Math.round(def.hp*(1+GS.waveNum*0.15));
+  GS.monsters.push({
+    type,x:sx,y:sy,hp,maxHp:hp,
+    spd:def.spd*(1+GS.waveNum*0.04),
+    dmg:def.dmg*(1+GS.waveNum*0.08),
+    reward:def.reward,col:def.col,size:def.size,
+    id:Math.random()*9999|0,slowed:0,atkCd:0
+  });
+}
+
+function updateWave(dt){
+  if(GS.gameOver||GS.sleeping)return;
+  // Wave trigger
+  if(GS.day>=2&&GS.hour>=20&&!GS.waveActive&&!GS.waveTriggeredToday)startWave();
+  if(!GS.waveActive)return;
+  // Announce pause
+  if(GS.waveAnnounce>0){GS.waveAnnounce-=dt;return}
+  // Spawn queue
+  GS.waveSpawnAcc+=dt;
+  while(GS.waveQueue.length>0&&GS.waveSpawnAcc>=GS.waveQueue[0].delay){
+    spawnMonster(GS.waveQueue.shift().type);
+  }
+  // Update monsters
+  for(let i=GS.monsters.length-1;i>=0;i--){
+    const m=GS.monsters[i];
+    if(m.hp<=0){
+      GS.money+=m.reward;
+      spawnParticles(m.x,m.y,m.col,8);
+      notify(`+${m.reward}G 👾`,'#FFD700');
+      GS.monsters.splice(i,1);continue;
+    }
+    const dx=HOUSE_X-m.x,dy=HOUSE_Y-m.y,dist=Math.hypot(dx,dy);
+    // Wall check
+    let blockedByWall=false;
+    for(let wi=GS.defenses.length-1;wi>=0;wi--){
+      const d=GS.defenses[wi];
+      if(d.type!=='wall')continue;
+      const wd=Math.hypot(d.x-m.x,d.y-m.y);
+      if(wd<TILE*1.1){
+        blockedByWall=true;
+        m.atkCd-=dt;
+        if(m.atkCd<=0){d.hp-=m.dmg;m.atkCd=1}
+        if(d.hp<=0){GS.defenses.splice(wi,1);notify('목책이 파괴되었습니다!','#FF8040')}
+        break;
+      }
+    }
+    if(!blockedByWall&&dist>2){
+      const spd=m.spd*(m.slowed>0?0.45:1)*dt;
+      m.x+=dx/dist*spd;m.y+=dy/dist*spd;
+    }
+    if(m.slowed>0)m.slowed-=dt;
+    // Reach house
+    if(dist<TILE*1.6){
+      GS.farmHP=Math.max(0,GS.farmHP-m.dmg*dt);
+      if(GS.farmHP<=0&&!GS.gameOver){
+        GS.gameOver=true;
+        notify('🏚️ 농장이 무너졌습니다!','#FF0000');
+      }
+    }
+  }
+  // Update defenses — auto attack
+  for(let di=GS.defenses.length-1;di>=0;di--){
+    const d=GS.defenses[di];
+    if(d.hp<=0){GS.defenses.splice(di,1);continue}
+    const def=DEFENSE_DEFS[d.type];
+    if(!d.atkCd)d.atkCd=0;
+    d.atkCd-=dt;
+    if(d.type==='scarecrow'){
+      for(const m of GS.monsters){if(Math.hypot(d.x-m.x,d.y-m.y)<def.range)m.slowed=0.6}
+    } else if(def.atk>0&&d.atkCd<=0){
+      let nearest=null,nearDist=Infinity;
+      for(const m of GS.monsters){const md=Math.hypot(d.x-m.x,d.y-m.y);if(md<def.range&&md<nearDist){nearest=m;nearDist=md}}
+      if(nearest){
+        d.atkCd=def.delay;
+        const isAoE=(d.type==='cannon'||d.type==='magetower');
+        if(isAoE){
+          const aoeR=TILE*(d.type==='cannon'?1.8:2.5);
+          GS.monsters.forEach(m=>{if(Math.hypot(nearest.x-m.x,nearest.y-m.y)<aoeR)m.hp-=def.atk*(1+GS.waveNum*0.05)});
+        } else {
+          nearest.hp-=def.atk*(1+GS.waveNum*0.05);
+        }
+        GS.projectiles.push({x:d.x,y:d.y,tx:nearest.x,ty:nearest.y,type:d.type,life:1,spd:d.type==='archer'?9:6});
+      }
+    }
+  }
+  // Projectile movement
+  for(let i=GS.projectiles.length-1;i>=0;i--){
+    const p=GS.projectiles[i];
+    const dx=p.tx-p.x,dy=p.ty-p.y,dist=Math.hypot(dx,dy);
+    if(dist<p.spd||p.life<=0){GS.projectiles.splice(i,1);continue}
+    p.x+=dx/dist*p.spd;p.y+=dy/dist*p.spd;p.life-=0.018;
+  }
+  // Wave complete
+  if(GS.waveQueue.length===0&&GS.monsters.length===0){
+    GS.waveActive=false;
+    const bonus=GS.waveNum*60;
+    GS.money+=bonus;
+    notify(`✨ ${GS.waveNum}웨이브 클리어! 보너스 +${bonus}G`,'#FFD700');
+    spawnParticles(GS.px,GS.py,'#FFD700',20);
+  }
+}
+
+function canPlaceDefense(wx,wy){
+  const c=Math.floor(wx/TILE),r=Math.floor(wy/TILE);
+  if(r<1||r>=WH-1||c<1||c>=WW-1)return false;
+  const t=world.tiles[r][c];
+  return [T.GRASS,T.DIRT,T.PATH,T.TILLED,T.WET,T.FLOOR,T.SAND].includes(t);
 }
 
 // ── RAIN PARTICLES ─────────────────────────────
@@ -1304,6 +1658,9 @@ function doSleep(){
   }
   // Weather
   GS.weather=Math.random()<0.3?'rain':'sunny';
+  // Reset wave trigger for new day
+  GS.waveTriggeredToday=false;
+  GS.monsters=[];GS.projectiles=[];
   // Restore
   GS.energy=MAX_E;GS.waterCan=GS.maxWater;
   GS.hour=6;GS.minute=0;GS.days++;
@@ -1610,6 +1967,114 @@ function renderSleep(){
   }
 }
 
+// ── BUILD MENU UI ──────────────────────────────
+function renderBuildMenu(){
+  GS._buildBtns=[];
+  const mw=380,mh=420;
+  const mx=(W-mw)/2,my=(H-mh)/2;
+  ctx.fillStyle='rgba(0,0,0,0.52)';ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='rgba(238,234,255,0.97)';ctx.beginPath();ctx.roundRect(mx,my,mw,mh,16);ctx.fill();
+  ctx.strokeStyle='rgba(120,80,200,0.5)';ctx.lineWidth=2;ctx.beginPath();ctx.roundRect(mx,my,mw,mh,16);ctx.stroke();
+  rr(mx,my,mw,46,12,'#6050a0');
+  txtShadow('🏰 방어 구조물 건설',mx+mw/2,my+30,18,'#fff','rgba(0,0,0,0.3)','center');
+
+  let row=0;
+  Object.entries(DEFENSE_DEFS).forEach(([key,def])=>{
+    const bx=mx+14,by=my+56+row*66;
+    const sel=GS.buildSelected===key;
+    ctx.fillStyle=sel?'rgba(170,150,255,0.55)':'rgba(215,205,255,0.5)';
+    ctx.beginPath();ctx.roundRect(bx,by,mw-28,58,10);ctx.fill();
+    if(sel){ctx.strokeStyle='#7050d0';ctx.lineWidth=2;ctx.beginPath();ctx.roundRect(bx,by,mw-28,58,10);ctx.stroke()}
+    ctx.font='26px serif';ctx.textAlign='left';ctx.textBaseline='middle';
+    ctx.fillText(def.icon,bx+10,by+29);ctx.textBaseline='alphabetic';
+    txt(def.name,bx+50,by+22,14,'#3020a0');
+    txt(def.desc,bx+50,by+41,11,'#6050a0');
+    const afford=GS.money>=def.cost;
+    rr(bx+mw-116,by+12,88,34,17,afford?(sel?'#7050d0':'#9070d0'):'#a09ab8');
+    txtShadow(`${def.cost}G`,bx+mw-72,by+33,14,afford?'#fff':'#ccc','rgba(0,0,0,0.2)','center');
+    GS._buildBtns.push({x:bx+mw-116,y:by+12,w:88,h:34,key});
+    row++;
+  });
+
+  // Close btn
+  rr(mx+mw-38,my+8,28,28,14,'#9070c0');
+  txtShadow('✕',mx+mw-24,my+26,15,'#fff','rgba(0,0,0,0.2)','center');
+  GS._closeBuildBtn={x:mx+mw-38,y:my+8,w:28,h:28};
+
+  if(GS.buildSelected){
+    ctx.fillStyle='rgba(170,150,240,0.9)';ctx.beginPath();ctx.roundRect(mx,my+mh-40,mw,40,12);ctx.fill();
+    txt(`${DEFENSE_DEFS[GS.buildSelected].name} 선택됨 — 지도에서 배치 위치 클릭`,mx+mw/2,my+mh-14,12,'#fff','center');
+  }
+  ctx.fillStyle='rgba(140,120,200,0.7)';ctx.font='11px "Malgun Gothic"';ctx.textAlign='center';
+  ctx.fillText(`현재 보유 금액: ${GS.money.toLocaleString()}G`,mx+mw/2,my+mh-(GS.buildSelected?58:22));
+}
+
+// ── WAVE HUD ───────────────────────────────────
+function renderWaveHUD(){
+  // Farm HP bar
+  const bw=160,bh=14,bx=10,by=58;
+  ctx.fillStyle='rgba(255,210,210,0.88)';ctx.beginPath();ctx.roundRect(bx-2,by-2,bw+4+62,bh+6,8);ctx.fill();
+  rr(bx,by,bw,bh,6,'rgba(255,150,150,0.35)');
+  const hr=GS.farmHP/GS.farmMaxHP;
+  const hc=hr>0.6?'#e03060':hr>0.3?'#e06020':'#ff2020';
+  rr(bx,by,Math.max(0,bw*hr),bh,6,hc);
+  ctx.fillStyle='rgba(255,255,255,0.4)';ctx.beginPath();ctx.roundRect(bx,by,Math.max(0,bw*hr)*0.5,bh*0.4,4);ctx.fill();
+  ctx.font='11px "Malgun Gothic"';ctx.textAlign='left';ctx.fillStyle='#980030';
+  ctx.fillText(`🏠 ${Math.ceil(GS.farmHP)}/${GS.farmMaxHP}`,bx+bw+6,by+11);
+
+  // Wave status
+  if(GS.waveNum>0||GS.waveActive){
+    const ws=GS.waveActive?`⚔️ 웨이브 ${GS.waveNum} (👾×${GS.monsters.length})`:
+                           GS.waveTriggeredToday?`✅ ${GS.waveNum}웨이브 클리어`:``;
+    if(ws){
+      ctx.font='11px "Malgun Gothic"';
+      const sw=ctx.measureText(ws).width+16;
+      ctx.fillStyle='rgba(50,20,70,0.82)';ctx.beginPath();ctx.roundRect(bx,by+20,sw,20,10);ctx.fill();
+      ctx.fillStyle='#ffe090';ctx.textAlign='left';ctx.fillText(ws,bx+8,by+34);
+    }
+  }
+
+  // B key hint (before wave / after sunset)
+  if(GS.hour%24>=18&&!GS.waveActive&&!GS.buildMenuOpen&&GS.day>=2){
+    const hw=218;
+    ctx.fillStyle='rgba(50,20,80,0.88)';ctx.beginPath();ctx.roundRect(14,H-114,hw,40,20);ctx.fill();
+    ctx.strokeStyle='rgba(140,90,220,0.6)';ctx.lineWidth=1.5;ctx.beginPath();ctx.roundRect(14,H-114,hw,40,20);ctx.stroke();
+    ctx.fillStyle='#e0c0ff';ctx.font='13px "Malgun Gothic"';ctx.textAlign='center';
+    ctx.fillText('B — 방어 건설 메뉴 🏰',14+hw/2,H-88);
+  }
+
+  // Placement cursor hint
+  if(GS.buildSelected&&!GS.buildMenuOpen){
+    const hs='클릭: 배치 | Esc: 취소';
+    ctx.font='bold 13px "Malgun Gothic"';
+    const hw=ctx.measureText(hs).width+24;
+    ctx.fillStyle='rgba(100,70,200,0.88)';ctx.beginPath();ctx.roundRect(W/2-hw/2,H-70,hw,32,16);ctx.fill();
+    ctx.fillStyle='#fff';ctx.textAlign='center';ctx.fillText(hs,W/2,H-49);
+  }
+
+  // Wave announce banner
+  if(GS.waveAnnounce>0){
+    const alpha=Math.min(1,GS.waveAnnounce);
+    ctx.globalAlpha=alpha;
+    ctx.fillStyle='rgba(70,0,10,0.75)';ctx.fillRect(0,H/2-64,W,128);
+    txtShadow(`⚔️ 웨이브 ${GS.waveNum}`,W/2,H/2-12,38,'#FF8080','rgba(0,0,0,0.5)','center');
+    txtShadow('몬스터들이 농장을 습격합니다!',W/2,H/2+32,22,'#FFCCCC','rgba(0,0,0,0.5)','center');
+    ctx.globalAlpha=1;
+  }
+}
+
+// ── GAME OVER SCREEN ───────────────────────────
+function renderGameOver(){
+  ctx.fillStyle='rgba(0,0,0,0.84)';ctx.fillRect(0,0,W,H);
+  txtShadow('💀 게임 오버',W/2,H/2-70,52,'#FF5050','rgba(0,0,0,0.5)','center');
+  txtShadow('농장이 몬스터에게 점령되었습니다.',W/2,H/2-4,22,'#FF9090','rgba(0,0,0,0.5)','center');
+  txtShadow(`⚔️ ${GS.waveNum}웨이브까지 방어 성공`,W/2,H/2+34,18,'#FFD080','rgba(0,0,0,0.5)','center');
+  rr(W/2-90,H/2+80,180,48,24,'#d04040');
+  ctx.strokeStyle='rgba(255,100,100,0.5)';ctx.lineWidth=2;ctx.beginPath();ctx.roundRect(W/2-90,H/2+80,180,48,24);ctx.stroke();
+  txtShadow('다시 도전 🌱',W/2,H/2+110,18,'#fff','rgba(0,0,0,0.3)','center');
+  GS._gameOverRestartBtn={x:W/2-90,y:H/2+80,w:180,h:48};
+}
+
 // ── WORLD RENDERER ─────────────────────────────
 function renderWorld(){
   const cx=camX(),cy=camY();
@@ -1747,32 +2212,47 @@ function render(){
   renderSky();
   renderWorld();
 
+  // Draw defenses (behind animals/NPCs)
+  GS.defenses.forEach(d=>drawDefense(d));
+
   // Draw animals
   GS.animals.forEach(a=>drawAnimal(a,animFrame));
 
   // Draw NPCs
   GS.npcs.forEach((n,i)=>drawNPC(n,NPC_STYLES[i],animFrame));
 
+  // Draw monsters
+  GS.monsters.forEach(m=>drawMonster(m));
+
+  // Draw projectiles
+  GS.projectiles.forEach(p=>drawProjectile(p));
+
   // Draw player
   drawPlayer(GS.px-camX(),GS.py-camY(),GS.dir,GS.moving,animFrame);
 
   // Draw particles
   drawParticles();
-  // Rain is drawn inside renderSky() already
+
+  // Placement preview
+  if(GS.buildSelected&&!GS.buildMenuOpen){
+    // highlight cursor tile
+  }
 
   // Facing tile highlight
-  if(!GS.dialog&&!GS.shopOpen&&!GS.invOpen){
+  if(!GS.dialog&&!GS.shopOpen&&!GS.invOpen&&!GS.buildMenuOpen){
     const {r,c}=facingTile();
     const fx=c*TILE-camX(),fy=r*TILE-camY();
     ctx.strokeStyle='rgba(255,255,255,0.5)';ctx.lineWidth=2;
     ctx.beginPath();ctx.roundRect(fx+2,fy+2,TILE-4,TILE-4,4);ctx.stroke();
   }
 
-  // UI
-  if(GS.shopOpen){renderShop()}
+  // UI layers
+  if(GS.gameOver){renderGameOver()}
+  else if(GS.buildMenuOpen){renderBuildMenu()}
+  else if(GS.shopOpen){renderShop()}
   else if(GS.invOpen){renderInventory()}
   else if(GS.dialog){renderDialog()}
-  else{renderHUD()}
+  else{renderHUD();renderWaveHUD()}
 
   if(GS.sleeping)renderSleep();
 }
@@ -1787,6 +2267,13 @@ function clearJust(){
 
 function update(dt){
   animFrame++;
+
+  // Game over — only restart button works
+  if(GS.gameOver){
+    GS.notes=GS.notes.filter(n=>{n.timer-=dt;return n.timer>0});
+    clearJust();return;
+  }
+
   if(GS.sleeping){
     GS.sleepT+=dt;
     if(GS.sleepT>=1.5){doSleep();GS.sleeping=false;GS.sleepT=0}
@@ -1810,6 +2297,13 @@ function update(dt){
   updateParticles(dt);
   updateRain();
   updateCam();
+  updateWave(dt);
+
+  // Build menu: only key handling
+  if(GS.buildMenuOpen){
+    if(justPressed('Escape')||justPressed('KeyB')){GS.buildMenuOpen=false;GS.buildSelected=null}
+    clearJust();return;
+  }
 
   // Dialog: handle keyboard here before early return
   if(GS.dialog){
@@ -1856,7 +2350,8 @@ function update(dt){
   if(justPressed('Space')||justPressed('Enter'))interact();
   if(justPressed('KeyZ')&&GS.hour>=20)advanceDay();
   if(justPressed('KeyI'))GS.invOpen=!GS.invOpen;
-  if(justPressed('Escape')){GS.shopOpen=false;GS.invOpen=false;GS.dialog=null;}
+  if(justPressed('KeyB')&&!GS.waveActive){GS.buildMenuOpen=true;GS.buildSelected=null;}
+  if(justPressed('Escape')){GS.shopOpen=false;GS.invOpen=false;GS.dialog=null;GS.buildMenuOpen=false;GS.buildSelected=null;}
 
   // Hotbar 1~7
   for(let i=0;i<GS.bar.length;i++){
@@ -1888,6 +2383,50 @@ function canWalk(px,py,m){
 CV.addEventListener('click',e=>{
   if(!gameRunning||!GS)return;
   const x=e.clientX,y=e.clientY;
+
+  // Game over restart
+  if(GS.gameOver){
+    if(GS._gameOverRestartBtn&&inRect(x,y,GS._gameOverRestartBtn)){
+      GS.farmHP=GS.farmMaxHP;GS.monsters=[];GS.defenses=[];GS.projectiles=[];
+      GS.gameOver=false;GS.waveNum=0;GS.waveActive=false;GS.waveQueue=[];
+      GS.waveTriggeredToday=false;GS.money=500;GS.day=1;
+    }
+    return;
+  }
+
+  // Build menu clicks
+  if(GS.buildMenuOpen){
+    if(GS._closeBuildBtn&&inRect(x,y,GS._closeBuildBtn)){GS.buildMenuOpen=false;GS.buildSelected=null;return}
+    if(GS._buildBtns){
+      for(const b of GS._buildBtns){
+        if(inRect(x,y,b)){
+          const def=DEFENSE_DEFS[b.key];
+          if(GS.money>=def.cost){
+            GS.buildSelected=b.key;
+            GS.buildMenuOpen=false; // close menu, enter placement mode
+          } else {notify('돈이 부족합니다!','#E53935')}
+          return;
+        }
+      }
+    }
+    return;
+  }
+
+  // Defense placement (build selected, menu closed)
+  if(GS.buildSelected){
+    const wx=x+camX(),wy=y+camY();
+    const def=DEFENSE_DEFS[GS.buildSelected];
+    if(canPlaceDefense(wx,wy)){
+      GS.money-=def.cost;
+      GS.defenses.push({type:GS.buildSelected,x:wx,y:wy,hp:def.maxHp,atkCd:0});
+      notify(`${def.name} 건설! (-${def.cost}G)`,'#80c0ff');
+      spawnParticles(wx,wy,'#80c0ff',8);
+      GS.buildSelected=null;
+    } else {
+      notify('이곳에는 건설할 수 없습니다.','#FF8040');
+    }
+    return;
+  }
 
   // Dialog advance
   if(GS.dialog){
@@ -1954,12 +2493,12 @@ function loop(ts){
 }
 
 // ── SAVE / LOAD ────────────────────────────────
-const SAVE_KEY='farmstory_v1';
+const SAVE_KEY='farmstory_v2';
 
 function saveGame(silent=false){
   try{
     const save={
-      v:1,ts:Date.now(),
+      v:2,ts:Date.now(),
       g:{
         hour:GS.hour,minute:GS.minute,day:GS.day,season:GS.season,year:GS.year,
         px:GS.px,py:GS.py,dir:GS.dir,
@@ -1970,6 +2509,8 @@ function saveGame(silent=false){
         animals:JSON.parse(JSON.stringify(GS.animals)),
         quests:GS.quests.map(q=>({id:q.id,prog:q.prog,done:q.done})),
         npcs:GS.npcs.map(n=>({id:n.id,lineIdx:n.lineIdx,quest:n.quest?{...n.quest}:null})),
+        farmHP:GS.farmHP,farmMaxHP:GS.farmMaxHP,waveNum:GS.waveNum,
+        defenses:JSON.parse(JSON.stringify(GS.defenses)),
       },
       tiles:Array.from({length:WH},(_,r)=>Array.from(world.tiles[r])),
       cd:world.cd.map(row=>row.map(c=>c?{...c}:null)),
@@ -1984,7 +2525,7 @@ function loadSave(){
     const raw=localStorage.getItem(SAVE_KEY);
     if(!raw)return false;
     const save=JSON.parse(raw);
-    if(!save||save.v!==1)return false;
+    if(!save||save.v!==2)return false;
     // Restore world
     for(let r=0;r<WH;r++)for(let c=0;c<WW;c++){
       if(save.tiles[r])world.tiles[r][c]=save.tiles[r][c];
@@ -2000,6 +2541,8 @@ function loadSave(){
       harvested:g.harvested,watered:g.watered,earned:g.earned,days:g.days,
       weather:g.weather||'sunny',chestLooted:!!g.chestLooted,
       animals:g.animals||GS.animals,
+      farmHP:g.farmHP||100,farmMaxHP:g.farmMaxHP||100,waveNum:g.waveNum||0,
+      defenses:g.defenses||[],
     });
     g.quests.forEach(sq=>{const q=GS.quests.find(q=>q.id===sq.id);if(q){q.prog=sq.prog;q.done=sq.done}});
     g.npcs.forEach(sn=>{const n=GS.npcs.find(n=>n.id===sn.id);if(n){n.lineIdx=sn.lineIdx;if(sn.quest)n.quest={...sn.quest}}});
