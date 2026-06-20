@@ -89,13 +89,41 @@
     .w-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
     .w-btn{background:var(--card);border:1px solid rgba(255,255,255,.1);color:var(--text);padding:8px 16px;border-radius:8px;cursor:pointer;font-size:.85rem;font-weight:600;transition:all .2s;font-family:inherit}
     .w-btn:hover{background:var(--primary);color:#fff;border-color:var(--primary)}
+
+    /* ── Light mode overrides ── */
+    html.light .tile{color:#1a1a2e}
+    html.light .tile.correct,
+    html.light .tile.present,
+    html.light .tile.absent{color:#fff}
+    html.light .tile{border-color:rgba(0,0,0,.15)}
+    html.light .tile.has-letter .tile-inner{border-color:rgba(0,0,0,.35);background:rgba(0,0,0,.06)}
+    html.light .tile.composing .tile-inner{background:rgba(255,107,53,.1)}
+    html.light .tile.absent .tile-inner{background:#787c7e;border-color:#787c7e}
+    html.light .kb-key{background:#d3d6da;color:#1a1a2e}
+    html.light .kb-key.absent{background:#787c7e;color:#fff}
+    html.light .kb-key.present{color:#fff}
+    html.light .kb-key.correct{color:#fff}
+    html.light .w-stat-box{border-color:rgba(0,0,0,.1)}
+    html.light .w-stat-box .val{color:#1a1a2e}
+    html.light .w-stat-box.streak .val{color:#b8860b;text-shadow:none}
+    html.light .stats-panel{border-color:rgba(0,0,0,.1)}
+    html.light .stats-panel h3{color:#1a1a2e}
+    html.light .s-num{color:#1a1a2e}
+    html.light .dist-num{color:#1a1a2e}
+    html.light .legend{color:var(--text)}
   </style>
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9410871181012126" crossorigin="anonymous"></script>
 </head>
 <body>
 <nav>
-  <a href="../index.html" class="logo">💼 <span>직장인</span>닷컴</a>
-  <ul class="nav-links"><li><a href="../index.html#games" class="active">루팡게임</a></li></ul>
+  <a href="../index.html" class="logo">🚪 퇴근<span>각</span></a>
+  <ul class="nav-links">
+    <li><a href="../index.html#calculators">계산기</a></li>
+    <li><a href="../index.html#tools">업무도구</a></li>
+    <li><a href="../index.html#games" class="active">루팡게임</a></li>
+    <li><a href="../index.html#tests">테스트</a></li>
+    <li><a href="../index.html#info">정보</a></li>
+  </ul>
 </nav>
 <div class="page-header">
   <div class="breadcrumb"><a href="../index.html">홈</a> › 루팡게임</div>
