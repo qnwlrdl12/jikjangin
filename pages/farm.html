@@ -663,7 +663,7 @@ function drawPlayer(px,py,dir,moving,frame){
   // Skirt frill
   ctx.fillStyle='#fff0f8';ctx.beginPath();
   for(let i=0;i<7;i++){const fx=-13+i*4.2;ctx.moveTo(fx,14);ctx.quadraticCurveTo(fx+2,12,fx+4.2,14)}
-  ctx.stroke=false;ctx.fillRect(-14,13,28,4);
+  ctx.fill();ctx.fillRect(-14,13,28,4);
 
   // Legs
   ctx.fillStyle='#ffe8f0';
