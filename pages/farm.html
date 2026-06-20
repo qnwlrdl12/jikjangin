@@ -1452,9 +1452,9 @@ function update(dt){
 
   // Time — hours go 6→26 (26=2AM next day), display as %24
   timeAcc+=dt;
-  if(timeAcc>=1/10){
-    timeAcc-=1/10;
-    GS.minute+=6;
+  if(timeAcc>=0.5){
+    timeAcc-=0.5;
+    GS.minute+=1;
     if(GS.minute>=60){GS.minute=0;GS.hour++}
     if(GS.hour>=26){GS.hour=26} // cap at 2 AM next day
     if(GS.hour===22&&GS.minute===0&&!GS.sleeping){
