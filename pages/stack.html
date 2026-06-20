@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <script>if(localStorage.getItem('theme')==='light')document.documentElement.classList.add('light')</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>스택 블록 쌓기 - 퇴근각</title>
+  <meta name="description" content="클릭 또는 스페이스로 블록을 정확히 쌓아라! 퇴근각 스택 블록 쌓기 게임.">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .stack-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
+      padding: 0 16px 32px;
+    }
+    .canvas-container {
+      position: relative;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 0 40px rgba(78,205,196,0.2), 0 8px 32px rgba(0,0,0,0.6);
+    }
+    #gameCanvas {
+      display: block;
+      border-radius: 16px;
+    }
+    .info-panel {
+      width: 100%;
+      max-width: 400px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .stat-box {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 12px 18px;
+      text-align: center;
+      flex: 1;
+    }
+    .stat-box h5 {
+      font-size: .6rem;
+      color: var(--text-muted);
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .stat-val {
+      font-size: 1.4rem;
+      font-weight: 900;
+      color: #fff;
+      line-height: 1;
+    }
+    .stat-val.gold { color: #FFD700; text-shadow: 0 0 10px #FFD700; }
+    .stat-val.cyan { color: #4ECDC4; text-shadow: 0 0 10px #4ECDC4; }
+    .stat-val.org  { color: #FF6B35; text-shadow: 0 0 10px #FF6B35; }
+    .retry-btn {
+      background: linear-gradient(135deg, #FF6B35, #ff9060);
+      border: none;
+      border-radius: 12px;
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 800;
+      padding: 12px 28px;
+      cursor: pointer;
+      font-family: inherit;
+      box-shadow: 0 4px 18px rgba(255,107,53,.45);
+      transition: all .2s;
+      white-space: nowrap;
+    }
+    .retry-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(255,107,53,.6); }
+    .hint-text {
+      font-size: .8rem;
+      color: var(--text-muted);
+      text-align: center;
+    }
+    @media (max-width: 480px) {
+      .info-panel { flex-wrap: wrap; }
+      .retry-btn { width: 100%; }
+    }
+  </style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9410871181012126" crossorigin="anonymous"></script>
+</head>
+<body>
+<nav>
+  <a href="../index.html" class="logo">🚪 퇴근<span>각</span></a>
+  <ul class="nav-links">
+    <li><a href="../index.html#calculators">계산기</a></li>
+    <li><a href="../index.html#tools">업무도구</a></li>
+    <li><a href="../index.html#games" class="active">루팡게임</a></li>
+    <li><a href="../index.html#tests">테스트</a></li>
+    <li><a href="../index.html#info">정보</a></li>
+  </ul>
+</nav>
+
+<div class="page-header">
+  <div class="breadcrumb"><a href="../index.html">홈</a> › 루팡게임</div>
+  <h1>🏗️ 스택</h1>
+  <p>클릭 또는 Space로 블록을 쌓아라 · 정확히 맞추면 보너스</p>
+</div>
+
+<main>
+  <div class="stack-wrap">
+    <div class="canvas-container">
+      <canvas id="gameCanvas"></canvas>
+    </div>
+
+    <div class="info-panel">
+      <div class="stat-box">
+        <h5>점수</h5>
+        <div class="stat-val org" id="scoreDisp">0</div>
+      </div>
+      <div class="stat-box">
+        <h5>최고</h5>
+        <div class="stat-val gold" id="bestDisp">0</div>
+      </div>
+      <div class="stat-box">
+        <h5>높이</h5>
+        <div class="stat-val cyan" id="heightDisp">0</div>
+      </div>
+      <button class="retry-btn" id="retryBtn">다시하기</button>
+    </div>
+
+    <div class="hint-text">클릭 · Space · 화면 터치로 블록 드롭</div>
+  </div>
+</main>
+
+<script src="../js/theme.js"></script>
+
+<script>
+(function() {
+  'use strict';
+
+  /* ── Constants ──────────────────────────────────────────── */
+  const BEST_KEY = 'tg-stack-best';
+  const BLOCK_HEIGHT = 26;
+  const PERFECT_THRESHOLD = 4;
+  const COLORS = [
+    '#FF6B35','#FF8C42','#FFD700','#4ECDC4',
+    '#45B7D1','#a855f7','#ec4899','#22c55e',
+    '#3b82f6','#f97316'
+  ];
+  const CANVAS_H = 550;
+
+  /* ── State ──────────────────────────────────────────────── */
+  let canvas, ctx;
+  let W, DPR;
+  let raf = null;
+
+  let state = 'idle'; // 'idle' | 'playing' | 'over'
+  let score = 0;
+  let best = 0;
+  let stackHeight = 0; // number of blocks placed
+
+  // Stack: array of { x, w, colorIdx }
+  let stack = [];
+  // Current moving block
+  let cur = { x: 0, w: 0, dir: 1, speed: 1.5, colorIdx: 0 };
+  // Camera offset (in px, how much we've scrolled up)
+  let camY = 0;
+  let camYTarget = 0;
+
+  // Particles
+  let particles = [];
+  // Score pops
+  let scorePops = [];
+  // Flash overlay
+  let flash = 0; // 0..1 opacity
+  // Perfect text
+  let perfectPop = 0; // 0..1
+  // Stars (static)
+  let stars = [];
+
+  /* ── Init canvas ─────────────────────────────────────────── */
+  function initCanvas() {
+    canvas = document.getElementById('gameCanvas');
+    DPR = window.devicePixelRatio || 1;
+    W = Math.min(400, window.innerWidth - 32);
+    canvas.style.width  = W + 'px';
+    canvas.style.height = CANVAS_H + 'px';
+    canvas.width  = Math.round(W * DPR);
+    canvas.height = Math.round(CANVAS_H * DPR);
+    ctx = canvas.getContext('2d');
+    ctx.scale(DPR, DPR);
+    generateStars();
+  }
+
+  function generateStars() {
+    stars = [];
+    for (let i = 0; i < 40; i++) {
+      stars.push({
+        x: Math.random() * W,
+        y: Math.random() * CANVAS_H,
+        r: Math.random() * 1.5 + 0.3,
+        a: Math.random() * 0.6 + 0.2
+      });
+    }
+  }
+
+  /* ── HUD elements ───────────────────────────────────────── */
+  const scoreDisp  = document.getElementById('scoreDisp');
+  const bestDisp   = document.getElementById('bestDisp');
+  const heightDisp = document.getElementById('heightDisp');
+
+  function updateHUD() {
+    scoreDisp.textContent  = score;
+    bestDisp.textContent   = best;
+    heightDisp.textContent = stackHeight;
+  }
+
+  /* ── Game lifecycle ─────────────────────────────────────── */
+  function init() {
+    best = parseInt(localStorage.getItem(BEST_KEY) || '0', 10);
+    score = 0;
+    stackHeight = 0;
+    stack = [];
+    particles = [];
+    scorePops = [];
+    flash = 0;
+    perfectPop = 0;
+    camY = 0;
+    camYTarget = 0;
+    updateHUD();
+    state = 'idle';
+    if (raf) cancelAnimationFrame(raf);
+    loop();
+  }
+
+  function startGame() {
+    score = 0;
+    stackHeight = 0;
+    stack = [];
+    particles = [];
+    scorePops = [];
+    flash = 0;
+    perfectPop = 0;
+    camY = 0;
+    camYTarget = 0;
+
+    // Place first base block
+    const baseW = Math.round(W * 0.55);
+    const baseX = Math.round((W - baseW) / 2);
+    stack.push({ x: baseX, w: baseW, colorIdx: 0 });
+    stackHeight = 1;
+
+    spawnBlock();
+    state = 'playing';
+    updateHUD();
+  }
+
+  function spawnBlock() {
+    const prev = stack[stack.length - 1];
+    // New block same width as prev, starts from left edge
+    cur.w       = prev.w;
+    cur.x       = 0;
+    cur.dir     = (Math.random() < 0.5 ? 1 : -1);
+    cur.colorIdx = stackHeight % COLORS.length;
+    // Speed: increase every 5 layers, cap at 8
+    cur.speed   = Math.min(1.5 + Math.floor(stackHeight / 5) * 0.12, 8);
+  }
+
+  function dropBlock() {
+    if (state !== 'playing') return;
+
+    const prev = stack[stack.length - 1];
+    // Calculate overlap
+    const overlapLeft  = Math.max(cur.x, prev.x);
+    const overlapRight = Math.min(cur.x + cur.w, prev.x + prev.w);
+    const overlapW = overlapRight - overlapLeft;
+
+    if (overlapW <= 0) {
+      // No overlap – game over
+      emitParticles(cur.x, getBlockY(stackHeight), cur.w, COLORS[cur.colorIdx], 35);
+      gameOver();
+      return;
+    }
+
+    const diff = Math.abs(cur.x - prev.x);
+
+    if (diff <= PERFECT_THRESHOLD) {
+      // Perfect!
+      cur.x = prev.x;
+      cur.w = prev.w;
+      score += 15;
+      flash = 0.85;
+      perfectPop = 1;
+      emitPerfectSparkle(cur.x + cur.w / 2, getBlockY(stackHeight));
+      addScorePop('+15 PERFECT!', cur.x + cur.w / 2, getBlockY(stackHeight), '#FFD700');
+    } else {
+      // Trim block
+      const cutW = cur.w - overlapW;
+      // Emit particles for the cut portion
+      const cutX = (cur.x < prev.x) ? cur.x : cur.x + overlapW;
+      emitParticles(cutX, getBlockY(stackHeight), cutW, COLORS[cur.colorIdx], 22);
+      cur.x = overlapLeft;
+      cur.w = overlapW;
+      score += 10;
+      addScorePop('+10', cur.x + cur.w / 2, getBlockY(stackHeight), '#fff');
+    }
+
+    stack.push({ x: cur.x, w: cur.w, colorIdx: cur.colorIdx });
+    stackHeight++;
+    updateCameraTarget();
+    spawnBlock();
+    updateHUD();
+    saveBest();
+  }
+
+  function gameOver() {
+    state = 'over';
+    saveBest();
+    // Crumble all blocks with particles
+    for (let i = 0; i < stack.length; i++) {
+      const by = getBlockY(i + 1); // +1 because stack[0] is base (idx 1)
+      setTimeout(() => {
+        emitParticles(stack[i].x, by, stack[i].w, COLORS[stack[i].colorIdx % COLORS.length], 8);
+      }, i * 15);
+    }
+  }
+
+  function saveBest() {
+    if (score > best) {
+      best = score;
+      localStorage.setItem(BEST_KEY, best);
+    }
+    updateHUD();
+  }
+
+  /* ── Block Y position ───────────────────────────────────── */
+  // idx=1 is the base block at the bottom, idx=stackHeight is the topmost placed
+  // The moving block sits on top of stack[stackHeight-1]
+  // World Y grows upward; we draw from bottom
+  function getBlockY(layerIndex) {
+    // layerIndex 1 = bottom, drawn at CANVAS_H - BLOCK_HEIGHT
+    const yFromBottom = (layerIndex - 1) * BLOCK_HEIGHT;
+    return CANVAS_H - BLOCK_HEIGHT - yFromBottom;
+  }
+
+  function updateCameraTarget() {
+    // When stack grows past 60% of canvas height, start panning up
+    const topBlockY = getBlockY(stackHeight);
+    const threshold = CANVAS_H * 0.38;
+    if (topBlockY < threshold) {
+      camYTarget = threshold - topBlockY;
+    }
+  }
+
+  /* ── Particles ──────────────────────────────────────────── */
+  function emitParticles(bx, by, bw, color, count) {
+    for (let i = 0; i < count; i++) {
+      particles.push({
+        x: bx + Math.random() * bw,
+        y: by + Math.random() * BLOCK_HEIGHT,
+        vx: (Math.random() - 0.5) * 6,
+        vy: (Math.random() - 0.8) * 7,
+        r: Math.random() * 4 + 2,
+        color,
+        life: 1,
+        decay: Math.random() * 0.025 + 0.018
+      });
+    }
+  }
+
+  function emitPerfectSparkle(cx, by) {
+    const sparkColors = ['#FFD700','#FFF','#FF6B35','#4ECDC4','#a855f7'];
+    for (let i = 0; i < 40; i++) {
+      const angle = (Math.PI * 2 * i) / 40;
+      const speed = Math.random() * 5 + 2;
+      particles.push({
+        x: cx + (Math.random() - 0.5) * 20,
+        y: by + BLOCK_HEIGHT / 2,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed - 1,
+        r: Math.random() * 3 + 1,
+        color: sparkColors[i % sparkColors.length],
+        life: 1,
+        decay: Math.random() * 0.02 + 0.012
+      });
+    }
+  }
+
+  function addScorePop(text, x, y, color) {
+    scorePops.push({ text, x, y, color, life: 1, vy: -1.2 });
+  }
+
+  /* ── Update ─────────────────────────────────────────────── */
+  function update() {
+    // Move current block
+    if (state === 'playing') {
+      cur.x += cur.dir * cur.speed;
+      if (cur.x + cur.w >= W) {
+        cur.x = W - cur.w;
+        cur.dir = -1;
+      }
+      if (cur.x <= 0) {
+        cur.x = 0;
+        cur.dir = 1;
+      }
+    }
+
+    // Smooth camera
+    camY += (camYTarget - camY) * 0.08;
+
+    // Particles
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const p = particles[i];
+      p.x    += p.vx;
+      p.y    += p.vy;
+      p.vy   += 0.25; // gravity
+      p.life -= p.decay;
+      if (p.life <= 0) particles.splice(i, 1);
+    }
+
+    // Score pops
+    for (let i = scorePops.length - 1; i >= 0; i--) {
+      const s = scorePops[i];
+      s.y    += s.vy;
+      s.life -= 0.02;
+      if (s.life <= 0) scorePops.splice(i, 1);
+    }
+
+    // Flash fade
+    if (flash > 0) flash = Math.max(0, flash - 0.04);
+    // Perfect pop fade
+    if (perfectPop > 0) perfectPop = Math.max(0, perfectPop - 0.018);
+  }
+
+  /* ── Draw ───────────────────────────────────────────────── */
+  function draw() {
+    ctx.clearRect(0, 0, W, CANVAS_H);
+
+    // Background gradient
+    const bg = ctx.createLinearGradient(0, 0, 0, CANVAS_H);
+    bg.addColorStop(0, '#080818');
+    bg.addColorStop(1, '#0f0f2e');
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, W, CANVAS_H);
+
+    // Stars
+    for (const s of stars) {
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255,255,255,${s.a})`;
+      ctx.fill();
+    }
+
+    ctx.save();
+    ctx.translate(0, camY);
+
+    // Placed blocks
+    for (let i = 0; i < stack.length; i++) {
+      const b = stack[i];
+      const by = getBlockY(i + 1);
+      drawBlock(b.x, by, b.w, BLOCK_HEIGHT, COLORS[b.colorIdx % COLORS.length], i / Math.max(stack.length, 1));
+    }
+
+    // Moving block (only during playing)
+    if (state === 'playing') {
+      const cy = getBlockY(stackHeight + 1);
+      const col = COLORS[cur.colorIdx % COLORS.length];
+      // Drop guide lines
+      ctx.save();
+      ctx.globalAlpha = 0.12;
+      ctx.fillStyle = col;
+      ctx.fillRect(cur.x, cy + BLOCK_HEIGHT, cur.w, CANVAS_H);
+      ctx.restore();
+      drawBlock(cur.x, cy, cur.w, BLOCK_HEIGHT, col, 1);
+    }
+
+    ctx.restore();
+
+    // Particles (screen space after cam transform)
+    ctx.save();
+    ctx.translate(0, camY);
+    for (const p of particles) {
+      ctx.globalAlpha = p.life;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = p.color;
+      ctx.shadowColor = p.color;
+      ctx.shadowBlur = 6;
+      ctx.fill();
+    }
+    ctx.restore();
+
+    ctx.shadowBlur = 0;
+    ctx.globalAlpha = 1;
+
+    // Score pops (world space)
+    ctx.save();
+    ctx.translate(0, camY);
+    for (const sp of scorePops) {
+      ctx.globalAlpha = sp.life;
+      ctx.font = 'bold 16px "Noto Sans KR", sans-serif';
+      ctx.fillStyle = sp.color;
+      ctx.textAlign = 'center';
+      ctx.shadowColor = sp.color;
+      ctx.shadowBlur = 10;
+      ctx.fillText(sp.text, sp.x, sp.y);
+    }
+    ctx.restore();
+    ctx.shadowBlur = 0;
+    ctx.globalAlpha = 1;
+
+    // Flash overlay
+    if (flash > 0) {
+      ctx.fillStyle = `rgba(255,255,200,${flash * 0.35})`;
+      ctx.fillRect(0, 0, W, CANVAS_H);
+    }
+
+    // Perfect pop text
+    if (perfectPop > 0) {
+      const scale = 0.5 + perfectPop * 0.5;
+      ctx.save();
+      ctx.globalAlpha = perfectPop;
+      ctx.translate(W / 2, CANVAS_H / 2);
+      ctx.scale(scale, scale);
+      ctx.font = 'bold 30px "Noto Sans KR", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = '#FFD700';
+      ctx.shadowColor = '#FFD700';
+      ctx.shadowBlur = 24;
+      ctx.fillText('PERFECT! 🎯', 0, 0);
+      ctx.restore();
+      ctx.shadowBlur = 0;
+    }
+
+    // Canvas HUD
+    drawHUD();
+
+    // Overlays
+    if (state === 'idle') drawIdleScreen();
+    if (state === 'over') drawGameOverScreen();
+  }
+
+  function drawBlock(x, y, w, h, color, depthRatio) {
+    const r = 4;
+    ctx.save();
+
+    // Depth tint: bottom blocks slightly warmer
+    ctx.shadowColor = color;
+    ctx.shadowBlur  = 12 + depthRatio * 8;
+
+    // Main fill
+    const grad = ctx.createLinearGradient(x, y, x, y + h);
+    grad.addColorStop(0, lighten(color, 0.25));
+    grad.addColorStop(1, color);
+    ctx.fillStyle = grad;
+    roundRect(ctx, x, y, w, h, r);
+    ctx.fill();
+
+    // Inner glow highlight
+    ctx.shadowBlur = 0;
+    const shine = ctx.createLinearGradient(x, y, x, y + h * 0.5);
+    shine.addColorStop(0, 'rgba(255,255,255,0.28)');
+    shine.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = shine;
+    roundRect(ctx, x + 2, y + 2, w - 4, h * 0.55, r - 1);
+    ctx.fill();
+
+    // Border
+    ctx.strokeStyle = lighten(color, 0.4);
+    ctx.lineWidth = 1;
+    roundRect(ctx, x, y, w, h, r);
+    ctx.stroke();
+
+    ctx.restore();
+  }
+
+  function drawHUD() {
+    // Score
+    ctx.save();
+    ctx.font = 'bold 14px "Noto Sans KR", sans-serif';
+    ctx.textBaseline = 'top';
+    ctx.textAlign = 'left';
+    ctx.fillStyle = 'rgba(0,0,0,0.4)';
+    ctx.fillRect(8, 8, 110, 40);
+    ctx.fillStyle = 'rgba(255,255,255,0.6)';
+    ctx.font = '11px "Noto Sans KR", sans-serif';
+    ctx.fillText('SCORE', 14, 13);
+    ctx.font = 'bold 20px "Noto Sans KR", sans-serif';
+    ctx.fillStyle = '#FF6B35';
+    ctx.shadowColor = '#FF6B35';
+    ctx.shadowBlur = 8;
+    ctx.fillText(score, 14, 27);
+
+    ctx.shadowBlur = 0;
+    ctx.textAlign = 'right';
+    ctx.fillStyle = 'rgba(0,0,0,0.4)';
+    ctx.fillRect(W - 118, 8, 110, 40);
+    ctx.fillStyle = 'rgba(255,255,255,0.6)';
+    ctx.font = '11px "Noto Sans KR", sans-serif';
+    ctx.fillText('BEST', W - 14, 13);
+    ctx.font = 'bold 20px "Noto Sans KR", sans-serif';
+    ctx.fillStyle = '#FFD700';
+    ctx.shadowColor = '#FFD700';
+    ctx.shadowBlur = 8;
+    ctx.fillText(best, W - 14, 27);
+    ctx.shadowBlur = 0;
+
+    // Height indicator
+    if (state === 'playing') {
+      ctx.textAlign = 'center';
+      ctx.font = '11px "Noto Sans KR", sans-serif';
+      ctx.fillStyle = 'rgba(255,255,255,0.4)';
+      ctx.fillText(`🏗 ${stackHeight - 1}층`, W / 2, 14);
+    }
+    ctx.restore();
+  }
+
+  function drawIdleScreen() {
+    // Frosted overlay
+    ctx.fillStyle = 'rgba(8,8,24,0.88)';
+    ctx.fillRect(0, 0, W, CANVAS_H);
+
+    ctx.save();
+    ctx.textAlign = 'center';
+
+    // Icon
+    ctx.font = '56px serif';
+    ctx.fillText('🏗️', W / 2, CANVAS_H / 2 - 90);
+
+    // Title
+    ctx.font = 'bold 34px "Noto Sans KR", sans-serif';
+    const tg = ctx.createLinearGradient(0, 0, W, 0);
+    tg.addColorStop(0, '#FF6B35');
+    tg.addColorStop(0.5, '#FFD700');
+    tg.addColorStop(1, '#4ECDC4');
+    ctx.fillStyle = tg;
+    ctx.shadowColor = '#FF6B35';
+    ctx.shadowBlur = 20;
+    ctx.fillText('스택', W / 2, CANVAS_H / 2 - 30);
+    ctx.shadowBlur = 0;
+
+    // Subtitle
+    ctx.font = '14px "Noto Sans KR", sans-serif';
+    ctx.fillStyle = 'rgba(255,255,255,0.55)';
+    ctx.fillText('블록을 정확히 쌓을수록 더 유리해요', W / 2, CANVAS_H / 2 + 10);
+
+    // Start button
+    drawCanvasButton(W / 2 - 80, CANVAS_H / 2 + 38, 160, 46, '▶ 시작하기', '#FF6B35');
+
+    ctx.restore();
+  }
+
+  function drawGameOverScreen() {
+    ctx.fillStyle = 'rgba(8,8,24,0.90)';
+    ctx.fillRect(0, 0, W, CANVAS_H);
+
+    ctx.save();
+    ctx.textAlign = 'center';
+
+    ctx.font = 'bold 32px "Noto Sans KR", sans-serif';
+    ctx.fillStyle = '#ec4899';
+    ctx.shadowColor = '#ec4899';
+    ctx.shadowBlur = 20;
+    ctx.fillText('GAME OVER', W / 2, CANVAS_H / 2 - 80);
+    ctx.shadowBlur = 0;
+
+    ctx.font = '13px "Noto Sans KR", sans-serif';
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    ctx.fillText('최종 점수', W / 2, CANVAS_H / 2 - 40);
+
+    ctx.font = 'bold 52px "Noto Sans KR", sans-serif';
+    ctx.fillStyle = '#FFD700';
+    ctx.shadowColor = '#FFD700';
+    ctx.shadowBlur = 24;
+    ctx.fillText(score, W / 2, CANVAS_H / 2 + 12);
+    ctx.shadowBlur = 0;
+
+    if (score >= best && score > 0) {
+      ctx.font = 'bold 14px "Noto Sans KR", sans-serif';
+      ctx.fillStyle = '#4ECDC4';
+      ctx.fillText('🎉 신기록!', W / 2, CANVAS_H / 2 + 38);
+    }
+
+    ctx.font = '13px "Noto Sans KR", sans-serif';
+    ctx.fillStyle = 'rgba(255,255,255,0.45)';
+    ctx.fillText(`${stackHeight - 1}층까지 쌓았습니다`, W / 2, CANVAS_H / 2 + 62);
+
+    drawCanvasButton(W / 2 - 80, CANVAS_H / 2 + 82, 160, 46, '다시하기', '#FF6B35');
+
+    ctx.restore();
+  }
+
+  function drawCanvasButton(x, y, w, h, text, color) {
+    const r = 12;
+    ctx.save();
+    ctx.shadowColor = color;
+    ctx.shadowBlur = 18;
+    const grad = ctx.createLinearGradient(x, y, x, y + h);
+    grad.addColorStop(0, lighten(color, 0.15));
+    grad.addColorStop(1, color);
+    ctx.fillStyle = grad;
+    roundRect(ctx, x, y, w, h, r);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 15px "Noto Sans KR", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, x + w / 2, y + h / 2);
+    ctx.restore();
+  }
+
+  /* ── Helpers ────────────────────────────────────────────── */
+  function roundRect(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + w - r, y);
+    ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+    ctx.lineTo(x + w, y + h - r);
+    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    ctx.lineTo(x + r, y + h);
+    ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+    ctx.lineTo(x, y + r);
+    ctx.quadraticCurveTo(x, y, x + r, y);
+    ctx.closePath();
+  }
+
+  function lighten(hex, amt) {
+    const n = parseInt(hex.slice(1), 16);
+    const r = Math.min(255, ((n >> 16) & 0xff) + Math.round(255 * amt));
+    const g = Math.min(255, ((n >> 8) & 0xff)  + Math.round(255 * amt));
+    const b = Math.min(255, (n & 0xff)          + Math.round(255 * amt));
+    return `rgb(${r},${g},${b})`;
+  }
+
+  /* ── Game loop ──────────────────────────────────────────── */
+  function loop() {
+    update();
+    draw();
+    raf = requestAnimationFrame(loop);
+  }
+
+  /* ── Input ──────────────────────────────────────────────── */
+  function handleClick(e) {
+    if (state === 'idle' || state === 'over') {
+      if (state === 'idle') {
+        // check if click is in start button area (center region)
+        startGame();
+      } else {
+        startGame();
+      }
+      return;
+    }
+    if (state === 'playing') dropBlock();
+  }
+
+  canvas.addEventListener('click', function(e) {
+    e.preventDefault();
+    handleClick(e);
+  });
+
+  canvas.addEventListener('touchstart', function(e) {
+    e.preventDefault();
+    handleClick(e);
+  }, { passive: false });
+
+  document.addEventListener('keydown', function(e) {
+    if (e.code === 'Space' || e.code === 'ArrowDown' || e.code === 'Enter') {
+      e.preventDefault();
+      handleClick(e);
+    }
+  });
+
+  document.getElementById('retryBtn').addEventListener('click', function() {
+    startGame();
+  });
+
+  /* ── Window resize ──────────────────────────────────────── */
+  window.addEventListener('resize', function() {
+    const newW = Math.min(400, window.innerWidth - 32);
+    if (Math.abs(newW - W) > 4) {
+      W = newW;
+      canvas.style.width  = W + 'px';
+      canvas.style.height = CANVAS_H + 'px';
+      canvas.width  = Math.round(W * DPR);
+      canvas.height = Math.round(CANVAS_H * DPR);
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.scale(DPR, DPR);
+      generateStars();
+      // Rescale stack block widths proportionally is complex; just keep as-is
+    }
+  });
+
+  /* ── Bootstrap ──────────────────────────────────────────── */
+  initCanvas();
+  init();
+
+})();
+</script>
+
+<footer>
+  <p><strong>퇴근각</strong></p>
+</footer>
+</body>
+</html>

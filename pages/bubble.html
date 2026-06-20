@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <script>if(localStorage.getItem('theme')==='light')document.documentElement.classList.add('light')</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>버블슈터 - 퇴근각</title>
+  <meta name="description" content="버블슈터 게임. 마우스로 조준 후 클릭, 같은 색 3개 이상 연결하면 팡! 콤보, 파티클, 글로시 버블.">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .bs-wrap {
+      max-width: 480px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+    .bs-hud {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 12px;
+      padding: 10px 16px;
+    }
+    .bs-stat { text-align: center; }
+    .bs-stat-n { font-size: 1.3rem; font-weight: 900; color: #fff; line-height: 1; }
+    .bs-stat-n.gold { color: #FFD700; text-shadow: 0 0 8px #FFD700; }
+    .bs-stat-n.accent { color: #4ECDC4; text-shadow: 0 0 8px #4ECDC4; }
+    .bs-stat-l { font-size: 0.65rem; color: var(--text-muted); margin-top: 2px; }
+    .bs-canvas-wrap {
+      position: relative;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.06);
+    }
+    #bsCanvas { display: block; }
+    .bs-hint {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      text-align: center;
+    }
+  </style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9410871181012126" crossorigin="anonymous"></script>
+</head>
+<body>
+<nav>
+  <a href="../index.html" class="logo">🚪 퇴근<span>각</span></a>
+  <ul class="nav-links">
+    <li><a href="../index.html#calculators">계산기</a></li>
+    <li><a href="../index.html#tools">업무도구</a></li>
+    <li><a href="../index.html#games" class="active">루팡게임</a></li>
+    <li><a href="../index.html#tests">테스트</a></li>
+    <li><a href="../index.html#info">정보</a></li>
+  </ul>
+</nav>
+
+<div class="page-header">
+  <div class="breadcrumb"><a href="../index.html">홈</a> › 루팡게임</div>
+  <h1>🫧 버블슈터</h1>
+  <p>마우스로 조준 후 클릭 · 같은 색 3개 이상 연결하면 팡</p>
+</div>
+
+<main>
+  <div class="ad-banner">광고 영역 (Google AdSense)</div>
+  <div class="bs-wrap">
+    <div class="bs-hud">
+      <div class="bs-stat">
+        <div class="bs-stat-n" id="scoreEl">0</div>
+        <div class="bs-stat-l">점수</div>
+      </div>
+      <div class="bs-stat">
+        <div class="bs-stat-n accent" id="levelEl">1</div>
+        <div class="bs-stat-l">레벨</div>
+      </div>
+      <div class="bs-stat">
+        <div class="bs-stat-n" id="shotsEl">0</div>
+        <div class="bs-stat-l">발사</div>
+      </div>
+      <div class="bs-stat">
+        <div class="bs-stat-n gold" id="bestEl">0</div>
+        <div class="bs-stat-l">최고점수</div>
+      </div>
+    </div>
+    <div class="bs-canvas-wrap">
+      <canvas id="bsCanvas"></canvas>
+    </div>
+    <div class="bs-hint">마우스 클릭 또는 터치로 발사 · 벽 바운스 가능</div>
+  </div>
+</main>
+
+<footer>
+  <p><strong>퇴근각</strong></p>
+</footer>
+
+<script src="../js/theme.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  // ─── Canvas setup ──────────────────────────────────────────────
+  const canvas = document.getElementById('bsCanvas');
+  const ctx = canvas.getContext('2d');
+  const DPR = window.devicePixelRatio || 1;
+
+  const BASE_W = Math.min(420, window.innerWidth - 32);
+  const BASE_H = 580;
+  canvas.style.width = BASE_W + 'px';
+  canvas.style.height = BASE_H + 'px';
+  canvas.width = BASE_W * DPR;
+  canvas.height = BASE_H * DPR;
+  ctx.scale(DPR, DPR);
+
+  const W = BASE_W;
+  const H = BASE_H;
+
+  // ─── Constants ─────────────────────────────────────────────────
+  const R = 18;                // bubble radius
+  const COLS = 11;
+  const COLORS = ['#FF6B35','#FFD700','#4ECDC4','#a855f7','#ff4444','#22c55e'];
+  const SHOOTER_Y = H - 60;
+  const PUSH_EVERY = 8;        // shots before new row
+  const BEST_KEY = 'tg-bubble-best';
+
+  // ─── State ─────────────────────────────────────────────────────
+  let state = 'start';  // 'start' | 'play' | 'over'
+  let grid = [];        // grid[row][col] = color string or null
+  let score = 0;
+  let best = parseInt(localStorage.getItem(BEST_KEY) || '0');
+  let shots = 0;
+  let level = 1;
+  let combo = 0;
+  let comboTimer = 0;
+  let comboText = '';
+  let sinceLastPush = 0;
+
+  let shooterAngle = -Math.PI / 2;  // radians, -90° = straight up
+  let mouseX = W / 2, mouseY = 0;
+
+  let currentColor = '';
+  let nextColor = '';
+
+  // Flying bubble
+  let flyBubble = null;  // {x, y, vx, vy, color, bounced}
+
+  // Particles
+  let particles = [];
+  // Float texts
+  let floatTexts = [];
+  // Falling bubbles
+  let fallingBubbles = [];
+  // Background stars
+  let stars = [];
+
+  // Aim pulse phase
+  let aimPhase = 0;
+
+  // Glow flash
+  let glowFlashes = [];  // {x, y, color, alpha}
+
+  // ─── Init ──────────────────────────────────────────────────────
+  function init() {
+    score = 0;
+    shots = 0;
+    level = 1;
+    combo = 0;
+    comboTimer = 0;
+    comboText = '';
+    sinceLastPush = 0;
+    flyBubble = null;
+    particles = [];
+    floatTexts = [];
+    fallingBubbles = [];
+    glowFlashes = [];
+
+    grid = [];
+    const startRows = 6;
+    for (let r = 0; r < startRows; r++) {
+      const row = [];
+      for (let c = 0; c < COLS; c++) {
+        if (r === startRows - 1 && c % 3 === 0) {
+          row.push(null);  // some gaps in bottom row
+        } else {
+          row.push(randomColor());
+        }
+      }
+      grid.push(row);
+    }
+
+    currentColor = randomColor();
+    nextColor = randomColor();
+    updateHUD();
+  }
+
+  function initStars() {
+    stars = [];
+    for (let i = 0; i < 80; i++) {
+      stars.push({
+        x: Math.random() * W,
+        y: Math.random() * H,
+        r: Math.random() * 1.2 + 0.3,
+        alpha: Math.random() * 0.5 + 0.1,
+        speed: Math.random() * 0.15 + 0.03,
+        phase: Math.random() * Math.PI * 2
+      });
+    }
+  }
+
+  // ─── Grid helpers ──────────────────────────────────────────────
+  function rowOffset(r) {
+    return (r % 2 === 0) ? 0 : R;
+  }
+
+  function bubbleX(r, c) {
+    return R + c * R * 2 + rowOffset(r);
+  }
+
+  function bubbleY(r) {
+    return R + r * R * Math.sqrt(3);
+  }
+
+  function maxRows() {
+    // How many rows the grid can have before game over
+    return Math.floor((SHOOTER_Y - R * 2) / (R * Math.sqrt(3)));
+  }
+
+  function randomColor() {
+    return COLORS[Math.floor(Math.random() * COLORS.length)];
+  }
+
+  // ─── Snap to grid ──────────────────────────────────────────────
+  function snapToGrid(x, y) {
+    let bestDist = Infinity;
+    let bestR = 0, bestC = 0;
+    const rows = grid.length + 1;
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < COLS; c++) {
+        const bx = bubbleX(r, c);
+        const by = bubbleY(r);
+        const dist = (x - bx) ** 2 + (y - by) ** 2;
+        if (dist < bestDist && !isOccupied(r, c)) {
+          bestDist = dist;
+          bestR = r;
+          bestC = c;
+        }
+      }
+    }
+    return { r: bestR, c: bestC };
+  }
+
+  function isOccupied(r, c) {
+    if (r < 0 || c < 0 || c >= COLS) return true;
+    if (r >= grid.length) return false;
+    return grid[r][c] !== null;
+  }
+
+  // ─── Neighbors (hex grid) ──────────────────────────────────────
+  function neighbors(r, c) {
+    const even = r % 2 === 0;
+    return [
+      [r - 1, even ? c - 1 : c],
+      [r - 1, even ? c : c + 1],
+      [r, c - 1],
+      [r, c + 1],
+      [r + 1, even ? c - 1 : c],
+      [r + 1, even ? c : c + 1],
+    ].filter(([nr, nc]) => nr >= 0 && nc >= 0 && nc < COLS);
+  }
+
+  // ─── Flood fill for matching color ─────────────────────────────
+  function findMatches(startR, startC, color) {
+    const visited = new Set();
+    const queue = [[startR, startC]];
+    const key = (r, c) => r + ',' + c;
+    visited.add(key(startR, startC));
+
+    while (queue.length) {
+      const [r, c] = queue.shift();
+      for (const [nr, nc] of neighbors(r, c)) {
+        const k = key(nr, nc);
+        if (!visited.has(k) && nr < grid.length && grid[nr] && grid[nr][nc] === color) {
+          visited.add(k);
+          queue.push([nr, nc]);
+        }
+      }
+    }
+    return [...visited].map(k => k.split(',').map(Number));
+  }
+
+  // ─── Find disconnected bubbles (not connected to top row) ──────
+  function findDisconnected() {
+    const key = (r, c) => r + ',' + c;
+    const visited = new Set();
+    const queue = [];
+
+    // Seed from row 0
+    for (let c = 0; c < COLS; c++) {
+      if (grid[0] && grid[0][c]) {
+        const k = key(0, c);
+        if (!visited.has(k)) {
+          visited.add(k);
+          queue.push([0, c]);
+        }
+      }
+    }
+
+    while (queue.length) {
+      const [r, c] = queue.shift();
+      for (const [nr, nc] of neighbors(r, c)) {
+        const k = key(nr, nc);
+        if (!visited.has(k) && nr < grid.length && grid[nr] && grid[nr][nc]) {
+          visited.add(k);
+          queue.push([nr, nc]);
+        }
+      }
+    }
+
+    const disconnected = [];
+    for (let r = 0; r < grid.length; r++) {
+      for (let c = 0; c < COLS; c++) {
+        if (grid[r][c] && !visited.has(key(r, c))) {
+          disconnected.push([r, c]);
+        }
+      }
+    }
+    return disconnected;
+  }
+
+  // ─── Pop bubbles ───────────────────────────────────────────────
+  function popBubbles(cells) {
+    cells.forEach(([r, c]) => {
+      const color = grid[r][c];
+      const x = bubbleX(r, c);
+      const y = bubbleY(r);
+      spawnParticles(x, y, color, 16);
+      glowFlashes.push({ x, y, color, alpha: 1 });
+      grid[r][c] = null;
+    });
+  }
+
+  // ─── Drop disconnected ─────────────────────────────────────────
+  function dropDisconnected(cells) {
+    cells.forEach(([r, c]) => {
+      const color = grid[r][c];
+      const x = bubbleX(r, c);
+      const y = bubbleY(r);
+      fallingBubbles.push({
+        x, y, color,
+        vx: (Math.random() - 0.5) * 2,
+        vy: -2 + Math.random() * 1,
+        alpha: 1,
+        r: R
+      });
+      grid[r][c] = null;
+    });
+  }
+
+  // ─── Check matches after placing bubble ────────────────────────
+  function checkMatches(r, c) {
+    const color = grid[r][c];
+    const matches = findMatches(r, c, color);
+
+    if (matches.length >= 3) {
+      popBubbles(matches);
+      const pts = matches.length * 50;
+      score += pts;
+
+      // Combo
+      combo++;
+      comboTimer = 120;
+      if (combo >= 2) {
+        const mul = Math.min(combo, 6);
+        score += pts * (mul - 1);
+        comboText = `COMBO ×${mul}!`;
+      } else {
+        comboText = '';
+      }
+
+      // Float text
+      const cx = bubbleX(r, c);
+      const cy = bubbleY(r);
+      spawnFloatText(cx, cy, combo >= 2 ? `+${pts} COMBO×${combo}!` : `+${pts}`, combo >= 2 ? '#FFD700' : '#fff');
+
+      // Find and drop disconnected
+      const disc = findDisconnected();
+      if (disc.length) {
+        dropDisconnected(disc);
+        const bonusPts = disc.length * 100;
+        score += bonusPts;
+        spawnFloatText(cx, cy - 30, `+${bonusPts} DROP!`, '#4ECDC4');
+      }
+
+      // Trim empty rows from bottom
+      while (grid.length && grid[grid.length - 1].every(c => c === null)) {
+        grid.pop();
+      }
+
+      updateHUD();
+    } else {
+      combo = 0;
+      comboText = '';
+    }
+  }
+
+  // ─── Shoot ─────────────────────────────────────────────────────
+  function shoot() {
+    if (state !== 'play' || flyBubble) return;
+
+    const speed = 10;
+    let angle = shooterAngle;
+
+    // Clamp angle so it goes upward
+    if (angle > -0.1) angle = -0.1;
+    if (angle < -Math.PI + 0.1) angle = -Math.PI + 0.1;
+
+    flyBubble = {
+      x: W / 2,
+      y: SHOOTER_Y,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      color: currentColor,
+      bounced: false
+    };
+
+    currentColor = nextColor;
+    nextColor = randomColor();
+    shots++;
+    sinceLastPush++;
+    updateHUD();
+
+    if (sinceLastPush >= PUSH_EVERY) {
+      sinceLastPush = 0;
+      pushNewRow();
+      level = Math.floor(shots / (PUSH_EVERY * 3)) + 1;
+      updateHUD();
+    }
+  }
+
+  // ─── Push new row ──────────────────────────────────────────────
+  function pushNewRow() {
+    // Shift all rows down visually = insert row at top
+    const newRow = [];
+    for (let c = 0; c < COLS; c++) {
+      newRow.push(Math.random() > 0.15 ? randomColor() : null);
+    }
+    grid.unshift(newRow);
+
+    // Check game over — if any bubble in last row reaches shooter line
+    const lastRowY = bubbleY(grid.length - 1);
+    if (lastRowY + R >= SHOOTER_Y - R * 2) {
+      triggerGameOver();
+    }
+  }
+
+  // ─── Update flying bubble ──────────────────────────────────────
+  function updateFly() {
+    if (!flyBubble) return;
+    flyBubble.x += flyBubble.vx;
+    flyBubble.y += flyBubble.vy;
+
+    // Wall bounce (left/right) - max 1 bounce
+    if (flyBubble.x - R <= 0) {
+      if (!flyBubble.bounced) {
+        flyBubble.vx = Math.abs(flyBubble.vx);
+        flyBubble.x = R;
+        flyBubble.bounced = true;
+      } else {
+        flyBubble.vx = Math.abs(flyBubble.vx);
+        flyBubble.x = R;
+      }
+    }
+    if (flyBubble.x + R >= W) {
+      if (!flyBubble.bounced) {
+        flyBubble.vx = -Math.abs(flyBubble.vx);
+        flyBubble.x = W - R;
+        flyBubble.bounced = true;
+      } else {
+        flyBubble.vx = -Math.abs(flyBubble.vx);
+        flyBubble.x = W - R;
+      }
+    }
+
+    // Check collision with top wall
+    if (flyBubble.y - R <= 0) {
+      flyBubble.y = R;
+      placeFlyBubble();
+      return;
+    }
+
+    // Check collision with grid bubbles
+    for (let r = 0; r < grid.length; r++) {
+      for (let c = 0; c < COLS; c++) {
+        if (!grid[r][c]) continue;
+        const bx = bubbleX(r, c);
+        const by = bubbleY(r);
+        const dist = Math.sqrt((flyBubble.x - bx) ** 2 + (flyBubble.y - by) ** 2);
+        if (dist < R * 2 - 2) {
+          placeFlyBubble();
+          return;
+        }
+      }
+    }
+  }
+
+  function placeFlyBubble() {
+    if (!flyBubble) return;
+    const snap = snapToGrid(flyBubble.x, flyBubble.y);
+    const r = snap.r;
+    const c = snap.c;
+
+    // Ensure grid has enough rows
+    while (grid.length <= r) {
+      grid.push(new Array(COLS).fill(null));
+    }
+    grid[r][c] = flyBubble.color;
+    flyBubble = null;
+
+    checkMatches(r, c);
+
+    // Check game over
+    const lastRowY = bubbleY(grid.length - 1);
+    if (lastRowY + R >= SHOOTER_Y - R * 2) {
+      triggerGameOver();
+    }
+  }
+
+  // ─── Particles ─────────────────────────────────────────────────
+  function spawnParticles(x, y, color, count) {
+    for (let i = 0; i < count; i++) {
+      const angle = (Math.PI * 2 * i) / count + Math.random() * 0.4;
+      const speed = 2 + Math.random() * 4;
+      particles.push({
+        x, y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        color,
+        alpha: 1,
+        r: 3 + Math.random() * 4,
+        life: 1
+      });
+    }
+  }
+
+  function updateParticles() {
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const p = particles[i];
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vy += 0.15;  // gravity
+      p.alpha -= 0.025;
+      if (p.alpha <= 0) particles.splice(i, 1);
+    }
+  }
+
+  // ─── Float texts ───────────────────────────────────────────────
+  function spawnFloatText(x, y, text, color) {
+    floatTexts.push({ x, y, text, color, alpha: 1, vy: -1.2 });
+  }
+
+  function updateFloatTexts() {
+    for (let i = floatTexts.length - 1; i >= 0; i--) {
+      const t = floatTexts[i];
+      t.y += t.vy;
+      t.alpha -= 0.018;
+      if (t.alpha <= 0) floatTexts.splice(i, 1);
+    }
+  }
+
+  // ─── Falling bubbles ───────────────────────────────────────────
+  function updateFallingBubbles() {
+    for (let i = fallingBubbles.length - 1; i >= 0; i--) {
+      const fb = fallingBubbles[i];
+      fb.x += fb.vx;
+      fb.y += fb.vy;
+      fb.vy += 0.4;
+      fb.alpha -= 0.018;
+      if (fb.y > H + R || fb.alpha <= 0) {
+        fallingBubbles.splice(i, 1);
+      }
+    }
+  }
+
+  // ─── Glow flashes ──────────────────────────────────────────────
+  function updateGlowFlashes() {
+    for (let i = glowFlashes.length - 1; i >= 0; i--) {
+      glowFlashes[i].alpha -= 0.06;
+      if (glowFlashes[i].alpha <= 0) glowFlashes.splice(i, 1);
+    }
+  }
+
+  // ─── Game over ─────────────────────────────────────────────────
+  function triggerGameOver() {
+    state = 'over';
+    if (score > best) {
+      best = score;
+      localStorage.setItem(BEST_KEY, best);
+    }
+    updateHUD();
+  }
+
+  // ─── HUD ───────────────────────────────────────────────────────
+  function updateHUD() {
+    document.getElementById('scoreEl').textContent = score.toLocaleString();
+    document.getElementById('bestEl').textContent = best.toLocaleString();
+    document.getElementById('levelEl').textContent = level;
+    document.getElementById('shotsEl').textContent = shots;
+  }
+
+  // ─── Aim line trajectory ───────────────────────────────────────
+  function calcAimPath() {
+    const pts = [];
+    let x = W / 2;
+    let y = SHOOTER_Y;
+    let vx = Math.cos(shooterAngle);
+    let vy = Math.sin(shooterAngle);
+
+    // Clamp upward
+    if (vy >= 0) return pts;
+
+    pts.push({ x, y });
+
+    let bounced = false;
+    const step = 6;
+    const maxSteps = 120;
+
+    for (let i = 0; i < maxSteps; i++) {
+      x += vx * step;
+      y += vy * step;
+
+      if (x - R <= 0 && !bounced) {
+        vx = Math.abs(vx);
+        x = R;
+        bounced = true;
+      }
+      if (x + R >= W && !bounced) {
+        vx = -Math.abs(vx);
+        x = W - R;
+        bounced = true;
+      }
+      if (y <= R) {
+        y = R;
+        pts.push({ x, y });
+        break;
+      }
+
+      pts.push({ x, y });
+
+      // Stop if hitting a bubble
+      let hit = false;
+      for (let r = 0; r < grid.length; r++) {
+        for (let c = 0; c < COLS; c++) {
+          if (!grid[r][c]) continue;
+          const bx = bubbleX(r, c);
+          const by = bubbleY(r);
+          const dist = Math.sqrt((x - bx) ** 2 + (y - by) ** 2);
+          if (dist < R * 2) { hit = true; break; }
+        }
+        if (hit) break;
+      }
+      if (hit) break;
+    }
+
+    return pts;
+  }
+
+  // ─── Draw helpers ──────────────────────────────────────────────
+  function drawBubble(x, y, color, radius, alpha) {
+    alpha = alpha === undefined ? 1 : alpha;
+    ctx.save();
+    ctx.globalAlpha = alpha;
+
+    // Shadow glow
+    ctx.shadowColor = color;
+    ctx.shadowBlur = 8;
+
+    // Main fill
+    const grad = ctx.createRadialGradient(x - radius * 0.3, y - radius * 0.35, radius * 0.05, x, y, radius);
+    grad.addColorStop(0, lighten(color, 0.5));
+    grad.addColorStop(0.4, color);
+    grad.addColorStop(1, darken(color, 0.5));
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    ctx.shadowBlur = 0;
+
+    // Highlight
+    const hl = ctx.createRadialGradient(x - radius * 0.3, y - radius * 0.4, radius * 0.02, x - radius * 0.15, y - radius * 0.25, radius * 0.55);
+    hl.addColorStop(0, 'rgba(255,255,255,0.75)');
+    hl.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
+    ctx.fillStyle = hl;
+    ctx.fill();
+
+    // Outline
+    ctx.beginPath();
+    ctx.arc(x, y, radius - 0.5, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    ctx.restore();
+  }
+
+  function lighten(hex, amt) {
+    const r = parseInt(hex.slice(1,3),16);
+    const g = parseInt(hex.slice(3,5),16);
+    const b = parseInt(hex.slice(5,7),16);
+    return `rgb(${Math.min(255,r+Math.round(255*amt))},${Math.min(255,g+Math.round(255*amt))},${Math.min(255,b+Math.round(255*amt))})`;
+  }
+
+  function darken(hex, amt) {
+    const r = parseInt(hex.slice(1,3),16);
+    const g = parseInt(hex.slice(3,5),16);
+    const b = parseInt(hex.slice(5,7),16);
+    return `rgb(${Math.max(0,r-Math.round(255*amt))},${Math.max(0,g-Math.round(255*amt))},${Math.max(0,b-Math.round(255*amt))})`;
+  }
+
+  // ─── Draw ──────────────────────────────────────────────────────
+  function draw() {
+    // Background
+    ctx.fillStyle = '#06060f';
+    ctx.fillRect(0, 0, W, H);
+
+    // Radial background gradient
+    const bgGrad = ctx.createRadialGradient(W/2, H/2, 0, W/2, H/2, W * 0.8);
+    bgGrad.addColorStop(0, 'rgba(15,52,96,0.3)');
+    bgGrad.addColorStop(1, 'rgba(6,6,15,0)');
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, W, H);
+
+    // Stars
+    drawStars();
+
+    // Glow flashes
+    for (const gf of glowFlashes) {
+      ctx.save();
+      ctx.globalAlpha = gf.alpha * 0.6;
+      const gg = ctx.createRadialGradient(gf.x, gf.y, 0, gf.x, gf.y, R * 3);
+      gg.addColorStop(0, gf.color);
+      gg.addColorStop(1, 'transparent');
+      ctx.fillStyle = gg;
+      ctx.beginPath();
+      ctx.arc(gf.x, gf.y, R * 3, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // Grid bubbles
+    for (let r = 0; r < grid.length; r++) {
+      for (let c = 0; c < COLS; c++) {
+        if (!grid[r][c]) continue;
+        drawBubble(bubbleX(r, c), bubbleY(r), grid[r][c], R);
+      }
+    }
+
+    // Separator line
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4, 8]);
+    ctx.beginPath();
+    ctx.moveTo(0, SHOOTER_Y - R * 2.5);
+    ctx.lineTo(W, SHOOTER_Y - R * 2.5);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.restore();
+
+    // Aim line (only in play)
+    if (state === 'play' && !flyBubble) {
+      drawAimLine();
+    }
+
+    // Flying bubble
+    if (flyBubble) {
+      drawBubble(flyBubble.x, flyBubble.y, flyBubble.color, R);
+    }
+
+    // Falling bubbles
+    for (const fb of fallingBubbles) {
+      drawBubble(fb.x, fb.y, fb.color, fb.r, fb.alpha);
+    }
+
+    // Particles
+    for (const p of particles) {
+      ctx.save();
+      ctx.globalAlpha = p.alpha;
+      ctx.fillStyle = p.color;
+      ctx.shadowColor = p.color;
+      ctx.shadowBlur = 6;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // Float texts
+    for (const t of floatTexts) {
+      ctx.save();
+      ctx.globalAlpha = t.alpha;
+      ctx.fillStyle = t.color;
+      ctx.font = 'bold 14px "Noto Sans KR", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.shadowColor = t.color;
+      ctx.shadowBlur = 10;
+      ctx.fillText(t.text, t.x, t.y);
+      ctx.restore();
+    }
+
+    // Shooter
+    drawShooter();
+
+    // Combo text
+    if (comboTimer > 0 && comboText) {
+      const fadeAlpha = Math.min(1, comboTimer / 30);
+      ctx.save();
+      ctx.globalAlpha = fadeAlpha;
+      ctx.font = 'bold 28px "Noto Sans KR", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#FFD700';
+      ctx.shadowColor = '#FFD700';
+      ctx.shadowBlur = 20;
+      ctx.fillText(comboText, W / 2, H / 2);
+      ctx.restore();
+    }
+
+    // Overlays
+    if (state === 'start') drawStartOverlay();
+    if (state === 'over') drawOverOverlay();
+  }
+
+  function drawStars() {
+    const t = performance.now() / 1000;
+    for (const s of stars) {
+      const pulse = Math.sin(t * s.speed * 3 + s.phase) * 0.3 + 0.7;
+      ctx.save();
+      ctx.globalAlpha = s.alpha * pulse;
+      ctx.fillStyle = '#fff';
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  function drawAimLine() {
+    const pts = calcAimPath();
+    if (pts.length < 2) return;
+
+    aimPhase = (aimPhase + 0.1) % 1;
+    const pulse = Math.sin(aimPhase * Math.PI * 2) * 0.3 + 0.7;
+
+    ctx.save();
+    ctx.globalAlpha = 0.55 * pulse;
+    ctx.strokeStyle = currentColor;
+    ctx.lineWidth = 2;
+    ctx.shadowColor = currentColor;
+    ctx.shadowBlur = 6;
+    ctx.setLineDash([6, 8]);
+    ctx.lineDashOffset = -aimPhase * 14;
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x, pts[0].y);
+    for (let i = 1; i < pts.length; i++) {
+      ctx.lineTo(pts[i].x, pts[i].y);
+    }
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawShooter() {
+    const sx = W / 2;
+    const sy = SHOOTER_Y;
+
+    // Glow aura
+    ctx.save();
+    const aura = ctx.createRadialGradient(sx, sy, 0, sx, sy, R * 2.5);
+    aura.addColorStop(0, currentColor + '55');
+    aura.addColorStop(1, 'transparent');
+    ctx.fillStyle = aura;
+    ctx.beginPath();
+    ctx.arc(sx, sy, R * 2.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    // Current bubble
+    drawBubble(sx, sy, currentColor, R);
+
+    // Cannon barrel
+    ctx.save();
+    ctx.translate(sx, sy);
+    ctx.rotate(shooterAngle + Math.PI / 2);  // +90 to align with angle
+    const barrelLen = 32;
+    const barrelW = 8;
+
+    const barrelGrad = ctx.createLinearGradient(-barrelW/2, 0, barrelW/2, 0);
+    barrelGrad.addColorStop(0, 'rgba(180,180,200,0.6)');
+    barrelGrad.addColorStop(0.5, 'rgba(240,240,255,0.9)');
+    barrelGrad.addColorStop(1, 'rgba(120,120,160,0.6)');
+    ctx.fillStyle = barrelGrad;
+    ctx.beginPath();
+    ctx.roundRect(-barrelW/2, -barrelLen, barrelW, barrelLen, 3);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.restore();
+
+    // Next bubble preview
+    const nx = sx + R * 2.8;
+    const ny = sy + 8;
+    drawBubble(nx, ny, nextColor, R * 0.65);
+    ctx.save();
+    ctx.font = '600 10px "Noto Sans KR", sans-serif';
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    ctx.textAlign = 'center';
+    ctx.fillText('NEXT', nx, ny + R * 0.65 + 12);
+    ctx.restore();
+  }
+
+  function drawStartOverlay() {
+    ctx.save();
+    ctx.fillStyle = 'rgba(6,6,15,0.85)';
+    ctx.fillRect(0, 0, W, H);
+
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 48px "Noto Sans KR", sans-serif';
+    ctx.fillText('🫧', W/2, H/2 - 60);
+
+    const grad = ctx.createLinearGradient(W/2 - 100, 0, W/2 + 100, 0);
+    grad.addColorStop(0, '#FF6B35');
+    grad.addColorStop(0.5, '#FFD700');
+    grad.addColorStop(1, '#4ECDC4');
+    ctx.fillStyle = grad;
+    ctx.font = 'bold 30px "Noto Sans KR", sans-serif';
+    ctx.fillText('버블슈터', W/2, H/2 - 10);
+
+    ctx.fillStyle = 'rgba(255,255,255,0.6)';
+    ctx.font = '16px "Noto Sans KR", sans-serif';
+    ctx.fillText('클릭으로 시작', W/2, H/2 + 30);
+
+    ctx.fillStyle = 'rgba(255,255,255,0.35)';
+    ctx.font = '13px "Noto Sans KR", sans-serif';
+    ctx.fillText('같은 색 3개 이상 연결하면 팡!', W/2, H/2 + 58);
+    ctx.restore();
+  }
+
+  function drawOverOverlay() {
+    ctx.save();
+    ctx.fillStyle = 'rgba(6,6,15,0.88)';
+    ctx.fillRect(0, 0, W, H);
+
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#FF6B35';
+    ctx.font = 'bold 28px "Noto Sans KR", sans-serif';
+    ctx.shadowColor = '#FF6B35';
+    ctx.shadowBlur = 20;
+    ctx.fillText('GAME OVER', W/2, H/2 - 80);
+    ctx.shadowBlur = 0;
+
+    ctx.fillStyle = 'rgba(255,255,255,0.55)';
+    ctx.font = '14px "Noto Sans KR", sans-serif';
+    ctx.fillText('점수', W/2, H/2 - 40);
+
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 42px "Noto Sans KR", sans-serif';
+    ctx.fillText(score.toLocaleString(), W/2, H/2 + 5);
+
+    ctx.fillStyle = '#FFD700';
+    ctx.font = '13px "Noto Sans KR", sans-serif';
+    ctx.shadowColor = '#FFD700';
+    ctx.shadowBlur = 8;
+    ctx.fillText('최고: ' + best.toLocaleString(), W/2, H/2 + 35);
+    ctx.shadowBlur = 0;
+
+    // Retry button
+    const bw = 150, bh = 44;
+    const bx = W/2 - bw/2, by = H/2 + 60;
+    const btnGrad = ctx.createLinearGradient(bx, by, bx + bw, by + bh);
+    btnGrad.addColorStop(0, '#FF6B35');
+    btnGrad.addColorStop(1, '#ff9060');
+    ctx.fillStyle = btnGrad;
+    ctx.beginPath();
+    ctx.roundRect(bx, by, bw, bh, 12);
+    ctx.fill();
+
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 16px "Noto Sans KR", sans-serif';
+    ctx.fillText('다시하기', W/2, by + bh/2 + 6);
+
+    ctx.restore();
+  }
+
+  // ─── Update ────────────────────────────────────────────────────
+  function update() {
+    if (state !== 'play') return;
+
+    updateFly();
+    updateParticles();
+    updateFloatTexts();
+    updateFallingBubbles();
+    updateGlowFlashes();
+
+    if (comboTimer > 0) comboTimer--;
+    if (comboTimer === 0 && combo > 0 && !flyBubble) {
+      combo = 0;
+    }
+  }
+
+  // ─── Input ─────────────────────────────────────────────────────
+  function getCanvasPos(e) {
+    const rect = canvas.getBoundingClientRect();
+    const touch = (e.touches && e.touches[0]) || (e.changedTouches && e.changedTouches[0]);
+    if (touch) {
+      return {
+        x: (touch.clientX - rect.left) * (W / rect.width),
+        y: (touch.clientY - rect.top) * (H / rect.height)
+      };
+    }
+    return {
+      x: (e.clientX - rect.left) * (W / rect.width),
+      y: (e.clientY - rect.top) * (H / rect.height)
+    };
+  }
+
+  function onMove(e) {
+    const pos = getCanvasPos(e);
+    mouseX = pos.x;
+    mouseY = pos.y;
+
+    if (state === 'play') {
+      const dx = mouseX - W / 2;
+      const dy = mouseY - SHOOTER_Y;
+      if (Math.abs(dx) > 2 || Math.abs(dy) > 2) {
+        shooterAngle = Math.atan2(dy, dx);
+        // Clamp to upper half
+        if (shooterAngle > -0.08) shooterAngle = -0.08;
+        if (shooterAngle < -Math.PI + 0.08) shooterAngle = -Math.PI + 0.08;
+      }
+    }
+  }
+
+  function onClickOverlay(e) {
+    const pos = getCanvasPos(e);
+
+    if (state === 'start') {
+      state = 'play';
+      init();
+      return;
+    }
+
+    if (state === 'over') {
+      // Check retry button
+      const bw = 150, bh = 44;
+      const bx = W/2 - bw/2, by = H/2 + 60;
+      if (pos.x >= bx && pos.x <= bx + bw && pos.y >= by && pos.y <= by + bh) {
+        state = 'play';
+        init();
+      }
+      return;
+    }
+
+    if (state === 'play') {
+      shoot();
+    }
+  }
+
+  canvas.addEventListener('mousemove', onMove);
+  canvas.addEventListener('touchmove', (e) => { e.preventDefault(); onMove(e); }, { passive: false });
+  canvas.addEventListener('click', onClickOverlay);
+  canvas.addEventListener('touchend', (e) => { e.preventDefault(); onClickOverlay(e); }, { passive: false });
+
+  // ─── Loop ──────────────────────────────────────────────────────
+  function loop() {
+    update();
+    draw();
+    requestAnimationFrame(loop);
+  }
+
+  // ─── Start ─────────────────────────────────────────────────────
+  initStars();
+  init();
+  updateHUD();
+  loop();
+
+})();
+</script>
+</body>
+</html>
