@@ -6,19 +6,21 @@
 <title>농장이야기 🌾 | 퇴근각</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:#1a2e10;display:flex;align-items:center;justify-content:center;width:100vw;height:100vh;overflow:hidden;font-family:'Malgun Gothic','맑은 고딕',sans-serif}
+body{background:#fde8f0;display:flex;align-items:center;justify-content:center;width:100vw;height:100vh;overflow:hidden;font-family:'Malgun Gothic','맑은 고딕',sans-serif}
 #c{display:block;cursor:none}
-#title{position:fixed;inset:0;background:linear-gradient(135deg,#1a3a0a 0%,#0d2206 50%,#1a3a0a 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100}
-.t-logo{font-size:72px;margin-bottom:8px;filter:drop-shadow(0 4px 8px rgba(0,0,0,0.5));animation:float 3s ease-in-out infinite}
+#title{position:fixed;inset:0;background:linear-gradient(160deg,#fce4f0 0%,#f8d7ee 40%,#e8d4f8 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100}
+.t-logo{font-size:76px;margin-bottom:4px;filter:drop-shadow(0 4px 12px rgba(220,120,180,0.4));animation:float 3s ease-in-out infinite}
 @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
-.t-title{font-size:52px;font-weight:900;color:#FFE08A;text-shadow:3px 4px 0 #5A3000,0 0 40px rgba(255,200,50,0.4);margin-bottom:6px;letter-spacing:-1px}
-.t-sub{color:#8BC97A;font-size:16px;margin-bottom:44px;letter-spacing:1px}
-.t-btn{background:linear-gradient(to bottom,#6EC44E,#3D8B3D);color:#fff;border:none;padding:16px 56px;font-size:22px;border-radius:50px;cursor:pointer;font-family:inherit;font-weight:700;box-shadow:0 6px 0 #1E5C1E,0 10px 30px rgba(0,0,0,0.5);transition:transform .1s,box-shadow .1s;letter-spacing:2px}
-.t-btn:hover{background:linear-gradient(to bottom,#7ED45E,#4E9B4E);transform:translateY(-2px);box-shadow:0 8px 0 #1E5C1E,0 14px 34px rgba(0,0,0,0.5)}
-.t-btn:active{transform:translateY(4px);box-shadow:0 2px 0 #1E5C1E}
-.t-ctrl{margin-top:28px;color:#5a7a4a;font-size:13px;line-height:2;text-align:center}
-.t-ctrl span{color:#8BC97A}
-.t-deco{position:absolute;font-size:28px;opacity:0.15;pointer-events:none}
+.t-title{font-size:52px;font-weight:900;color:#c94f8a;text-shadow:3px 4px 0 #f9b8d8,0 0 40px rgba(220,100,160,0.3);margin-bottom:4px;letter-spacing:-1px}
+.t-sub{color:#b87abf;font-size:15px;margin-bottom:38px;letter-spacing:2px}
+.t-btn{background:linear-gradient(to bottom,#f78db8,#e05a96);color:#fff;border:none;padding:16px 52px;font-size:21px;border-radius:50px;cursor:pointer;font-family:inherit;font-weight:700;box-shadow:0 6px 0 #b03070,0 10px 30px rgba(200,80,140,0.35);transition:transform .1s,box-shadow .1s;letter-spacing:2px}
+.t-btn:hover{background:linear-gradient(to bottom,#f9a0c4,#f06aaa);transform:translateY(-2px);box-shadow:0 8px 0 #b03070,0 14px 34px rgba(200,80,140,0.4)}
+.t-btn:active{transform:translateY(4px);box-shadow:0 2px 0 #b03070}
+.t-ctrl{margin-top:20px;color:#c8a0c8;font-size:13px;line-height:2;text-align:center}
+.t-ctrl span{color:#e060a0}
+.t-deco{position:absolute;font-size:32px;opacity:0.18;pointer-events:none;animation:float 3s ease-in-out infinite}
+/* Pastel sakura petals */
+#title::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 20% 30%,rgba(255,180,210,0.3),transparent 50%),radial-gradient(ellipse at 80% 70%,rgba(200,160,240,0.25),transparent 50%);pointer-events:none}
 </style>
 </head>
 <body>
@@ -68,11 +70,16 @@ const WALK=new Set([T.GRASS,T.DIRT,T.TILLED,T.WET,T.PATH,T.GATE,T.FLOWER,
 
 // ── SEASONS ────────────────────────────────────
 const SEASONS=['봄','여름','가을','겨울'];
+// Kawaii pastel season palettes
 const SPAL=[
-  {sky:'#C8E6FF',sky2:'#FFE0E8',grass:'#6EC44E',grass2:'#5AB03A',tree:'#3A8C2A',tree2:'#2D7020',path:'#C4A882',path2:'#B09060',water:'#5BB8FF',water2:'#3A9AEE',flower:'#FF69B4',ui:'#5AB03A'},
-  {sky:'#4AA8E8',sky2:'#FFF3B0',grass:'#3EA040',grass2:'#2D8030',tree:'#2D7024',tree2:'#1E5018',path:'#B8965A',path2:'#A07840',water:'#2E99DD',water2:'#1A7FBB',flower:'#FFB300',ui:'#3EA040'},
-  {sky:'#E8A460',sky2:'#FFD5A0',grass:'#8B7B45',grass2:'#7A6A35',tree:'#C4520A',tree2:'#A44008',path:'#B09060',path2:'#9A7A50',water:'#4A88AA',water2:'#3A6888',flower:'#FF6030',ui:'#C4520A'},
-  {sky:'#A8C4E0',sky2:'#F0F4FF',grass:'#C8D8E8',grass2:'#B0C4D8',tree:'#607080',tree2:'#485860',path:'#C8C0B8',path2:'#B0A898',water:'#88AACC',water2:'#6888AA',flower:'#88CCEE',ui:'#607080'},
+  // 봄 — sakura pink & mint
+  {sky:'#fde8f8',sky2:'#ffe4f0',grass:'#a8e6a0',grass2:'#8ed490',tree:'#f4a0c0',tree2:'#e880a8',path:'#f0d8c0',path2:'#e0c4a8',water:'#98d8f8',water2:'#70c0f0',flower:'#f9b8d4',ui:'#e060a0',dirt:'#d4b8a0',tilled:'#c4a08c'},
+  // 여름 — sky blue & vivid green
+  {sky:'#c8f0ff',sky2:'#fff8c8',grass:'#78d870',grass2:'#60c458',tree:'#58c050',tree2:'#40a838',path:'#e8d8a0',path2:'#d8c488',water:'#50c8f8',water2:'#30b0e8',flower:'#fff060',ui:'#38b838',dirt:'#c8a870',tilled:'#b8946c'},
+  // 가을 — peach & amber
+  {sky:'#ffe8c8',sky2:'#ffd8a8',grass:'#d4c870',grass2:'#c4b858',tree:'#f09040',tree2:'#e07030',path:'#e0c898',path2:'#d0b880',water:'#88c8e0',water2:'#68b0cc',flower:'#ff9060',ui:'#e07030',dirt:'#c8a060',tilled:'#b89050'},
+  // 겨울 — lavender & ice
+  {sky:'#e8e0f8',sky2:'#f0f4ff',grass:'#d0e8f0',grass2:'#b8d4e4',tree:'#b0c0e0',tree2:'#9aacd0',path:'#e8e0d8',path2:'#d8d0c8',water:'#a8d0f0',water2:'#88b8e0',flower:'#d0d8ff',ui:'#8090c0',dirt:'#d8ccc0',tilled:'#c8bcb0'},
 ];
 
 // ── CROPS ──────────────────────────────────────
@@ -359,136 +366,233 @@ function drawTile(r,c,sx,sy,season){
   const t=world.tiles[r][c];
   const A=animFrame;
 
+  const mx=sx+TILE/2, my=sy+TILE/2;
   switch(t){
     case T.VOID:
-      ctx.fillStyle='#050A00';ctx.fillRect(sx,sy,TILE,TILE);break;
+      ctx.fillStyle='#2a1a2e';ctx.fillRect(sx,sy,TILE,TILE);break;
+
     case T.GRASS:{
-      const g=ctx.createLinearGradient(sx,sy,sx+TILE,sy+TILE);
-      g.addColorStop(0,p.grass);g.addColorStop(1,p.grass2);
-      ctx.fillStyle=g;ctx.fillRect(sx,sy,TILE,TILE);
-      // tiny grass tufts
-      const h=((r*73+c*37)%5);
-      if(h<2){ctx.fillStyle=p.grass2;ctx.fillRect(sx+8+h*12,sy+30,3,8);ctx.fillRect(sx+12+h*12,sy+28,3,10)}
+      // Soft pastel grass with tiny clover/flower dots
+      ctx.fillStyle=p.grass;ctx.fillRect(sx,sy,TILE,TILE);
+      const seed=(r*73+c*37);
+      // Gentle texture dots
+      ctx.fillStyle=p.grass2;
+      if(seed%7<3){ctx.beginPath();ctx.ellipse(sx+8+(seed%3)*14,sy+28,3,2,0,0,Math.PI*2);ctx.fill()}
+      if(seed%5===0){
+        // Tiny heart-shaped 4-leaf clover
+        const cx2=sx+20+(seed%20),cy2=sy+14+(seed%20);
+        ctx.fillStyle='rgba(255,255,255,0.35)';
+        for(let i=0;i<4;i++){const a=i*Math.PI/2;circ(cx2+Math.cos(a)*3,cy2+Math.sin(a)*3,3,'rgba(255,255,255,0.35)')}
+      }
       break;}
+
     case T.DIRT:
-      ctx.fillStyle='#7B5435';ctx.fillRect(sx,sy,TILE,TILE);
-      ctx.fillStyle='#6A4428';
-      for(let i=0;i<3;i++)ctx.fillRect(sx+5+i*14,sy+8+i*10,10,4);
+      ctx.fillStyle=p.dirt||'#d4b8a0';ctx.fillRect(sx,sy,TILE,TILE);
+      ctx.fillStyle='rgba(0,0,0,0.08)';
+      for(let i=0;i<3;i++)ctx.fillRect(sx+6+i*13,sy+10+i*10,8,3);
       break;
-    case T.TILLED:
-      ctx.fillStyle='#5C3D22';ctx.fillRect(sx,sy,TILE,TILE);
-      ctx.fillStyle='#4A2E14';
+
+    case T.TILLED:{
+      ctx.fillStyle=p.tilled||'#c4a08c';ctx.fillRect(sx,sy,TILE,TILE);
+      ctx.fillStyle='rgba(0,0,0,0.12)';
       for(let i=0;i<3;i++){ctx.fillRect(sx+2,sy+8+i*14,TILE-4,3)}
-      break;
-    case T.WET:
-      ctx.fillStyle='#3A2410';ctx.fillRect(sx,sy,TILE,TILE);
-      ctx.fillStyle='#4A2E14';
+      // Tiny sparkle dot
+      ctx.fillStyle='rgba(255,255,255,0.4)';ctx.fillRect(sx+4,sy+4,3,3);
+      break;}
+
+    case T.WET:{
+      ctx.fillStyle=p.tilled||'#c4a08c';ctx.fillRect(sx,sy,TILE,TILE);
+      ctx.fillStyle='rgba(0,0,0,0.12)';
       for(let i=0;i<3;i++){ctx.fillRect(sx+2,sy+8+i*14,TILE-4,3)}
-      ctx.fillStyle='rgba(80,140,200,0.3)';ctx.fillRect(sx,sy,TILE,TILE);
-      break;
+      // Sparkly water sheen
+      ctx.fillStyle='rgba(150,210,255,0.4)';ctx.fillRect(sx,sy,TILE,TILE);
+      ctx.fillStyle='rgba(255,255,255,0.6)';
+      circ(sx+8,sy+8,2,'rgba(255,255,255,0.6)');circ(sx+30,sy+20,1.5,'rgba(255,255,255,0.6)');
+      break;}
+
     case T.PATH:
+      // Cute cobblestone path
       ctx.fillStyle=p.path;ctx.fillRect(sx,sy,TILE,TILE);
       ctx.fillStyle=p.path2;
-      ctx.fillRect(sx+1,sy+1,TILE-2,8);
-      ctx.fillRect(sx+1,sy+TILE-9,TILE-2,8);
+      ctx.beginPath();ctx.roundRect(sx+3,sy+3,TILE/2-5,TILE/2-5,4);ctx.fill();
+      ctx.beginPath();ctx.roundRect(sx+TILE/2+2,sy+3,TILE/2-5,TILE/2-5,4);ctx.fill();
+      ctx.beginPath();ctx.roundRect(sx+3,sy+TILE/2+2,TILE/2-5,TILE/2-5,4);ctx.fill();
+      ctx.beginPath();ctx.roundRect(sx+TILE/2+2,sy+TILE/2+2,TILE/2-5,TILE/2-5,4);ctx.fill();
+      ctx.fillStyle='rgba(255,255,255,0.2)';
+      ctx.beginPath();ctx.roundRect(sx+4,sy+4,8,5,2);ctx.fill();
       break;
+
     case T.WATER:{
+      // Sparkly kawaii water
       const wg=ctx.createLinearGradient(sx,sy,sx,sy+TILE);
       wg.addColorStop(0,p.water);wg.addColorStop(1,p.water2);
       ctx.fillStyle=wg;ctx.fillRect(sx,sy,TILE,TILE);
-      const sh=Math.sin(A*0.05+(r+c)*0.5)*4;
-      ctx.fillStyle='rgba(255,255,255,0.25)';
-      ctx.fillRect(sx+4+sh,sy+14,20,3);ctx.fillRect(sx+22-sh,sy+26,18,3);
-      ctx.fillRect(sx+6+sh*0.5,sy+36,14,3);
+      const sh=Math.sin(A*0.05+(r+c)*0.6)*3;
+      ctx.fillStyle='rgba(255,255,255,0.5)';
+      ctx.fillRect(sx+6+sh,sy+10,16,2);ctx.fillRect(sx+20-sh,sy+22,12,2);
+      ctx.fillRect(sx+8+sh*0.5,sy+34,14,2);
+      // Sparkles
+      ctx.fillStyle='rgba(255,255,255,0.8)';
+      if((A+r+c)%20<5){circ(sx+12,sy+8,1.5,'rgba(255,255,255,0.8)')}
+      if((A+r+c*2)%18<4){circ(sx+32,sy+28,1.5,'rgba(255,255,255,0.8)')}
       break;}
+
     case T.DEEP:
       ctx.fillStyle=p.water2;ctx.fillRect(sx,sy,TILE,TILE);break;
     case T.SAND:
-      ctx.fillStyle='#D4B483';ctx.fillRect(sx,sy,TILE,TILE);break;
+      ctx.fillStyle='#f5e0c0';ctx.fillRect(sx,sy,TILE,TILE);
+      ctx.fillStyle='rgba(255,255,255,0.3)';ctx.fillRect(sx+6,sy+6,8,3);ctx.fillRect(sx+28,sy+20,6,3);
+      break;
+
     case T.FENCE:
       ctx.fillStyle=p.grass;ctx.fillRect(sx,sy,TILE,TILE);
-      ctx.fillStyle='#7B5435';ctx.fillRect(sx+TILE/2-4,sy+2,8,TILE-4);
-      ctx.fillStyle='#9B7355';ctx.fillRect(sx+2,sy+10,TILE-4,6);
-      ctx.fillRect(sx+2,sy+30,TILE-4,6);
+      // Cute white picket fence
+      ctx.fillStyle='#ffffff';
+      ctx.beginPath();ctx.roundRect(sx+TILE/2-4,sy+2,8,TILE-4,4);ctx.fill();
+      ctx.fillStyle='#f0f0f0';
+      ctx.beginPath();ctx.roundRect(sx+2,sy+10,TILE-4,6,3);ctx.fill();
+      ctx.beginPath();ctx.roundRect(sx+2,sy+30,TILE-4,6,3);ctx.fill();
+      ctx.fillStyle='rgba(200,150,180,0.3)';ctx.fillRect(sx+2,sy+10,TILE-4,6);
       break;
+
     case T.GATE:
       ctx.fillStyle=p.grass;ctx.fillRect(sx,sy,TILE,TILE);
-      ctx.fillStyle='#9B7355';ctx.fillRect(sx+4,sy+10,16,6);
-      ctx.fillRect(sx+4,sy+30,16,6);
+      ctx.fillStyle='#fff0f8';
+      ctx.beginPath();ctx.roundRect(sx+4,sy+10,16,6,3);ctx.fill();
+      ctx.beginPath();ctx.roundRect(sx+4,sy+30,16,6,3);ctx.fill();
+      ctx.fillStyle='#f8a0c8';ctx.fillRect(sx+4,sy+10,4,26);
       break;
+
     case T.BUILDING:
-      ctx.fillStyle='#B8724A';ctx.fillRect(sx,sy,TILE,TILE);
-      ctx.fillStyle='#9A5A35';ctx.fillRect(sx,sy,TILE,8);
-      ctx.fillStyle='rgba(255,255,255,0.07)';ctx.fillRect(sx+2,sy+2,TILE-4,TILE-4);
+      // Cozy cottage wall — pastel pink bricks
+      ctx.fillStyle='#f8d0e0';ctx.fillRect(sx,sy,TILE,TILE);
+      ctx.fillStyle='rgba(220,150,180,0.25)';
+      for(let bri=0;bri<3;bri++){
+        const off=(bri%2)*12;
+        for(let brj=0;brj<3;brj++)ctx.fillRect(sx+off+brj*16,sy+bri*14+2,14,10);
+      }
+      ctx.fillStyle='rgba(255,255,255,0.2)';ctx.fillRect(sx+2,sy+2,TILE-4,4);
       break;
+
     case T.FLOOR:
-      ctx.fillStyle='#C8A870';ctx.fillRect(sx,sy,TILE,TILE);
-      ctx.fillStyle='#B89860';
-      ctx.fillRect(sx,sy,TILE,2);ctx.fillRect(sx,sy,2,TILE);
+      // Warm wood floor with pastel grain
+      ctx.fillStyle='#f5e0c8';ctx.fillRect(sx,sy,TILE,TILE);
+      ctx.fillStyle='rgba(200,150,100,0.2)';
+      ctx.fillRect(sx,sy,TILE,2);ctx.fillRect(sx,sy+TILE/2,TILE,1);
+      ctx.fillStyle='rgba(200,150,100,0.12)';
+      ctx.fillRect(sx,sy,2,TILE);ctx.fillRect(sx+TILE/2,sy,1,TILE);
       break;
+
     case T.DOOR:
-      ctx.fillStyle='#C8A870';ctx.fillRect(sx,sy,TILE,TILE);
-      ctx.fillStyle='#7B4020';ctx.fillRect(sx+6,sy,TILE-12,TILE);
-      ctx.fillStyle='#8B5030';ctx.fillRect(sx+8,sy+4,TILE-16,TILE-8);
-      ctx.fillStyle='#F0C040';circ(sx+TILE/2+6,sy+TILE/2,3,'#F0C040');
+      ctx.fillStyle='#f5e0c8';ctx.fillRect(sx,sy,TILE,TILE);
+      // Cute round-top door
+      ctx.fillStyle='#e0908c';
+      ctx.beginPath();ctx.roundRect(sx+8,sy+4,TILE-16,TILE-6,12);ctx.fill();
+      ctx.fillStyle='#c87070';ctx.fillRect(sx+8,sy+16,TILE-16,TILE-22);
+      // Heart on door
+      ctx.fillStyle='#f8c0c0';
+      ctx.font='14px serif';ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillText('♡',mx,my-2);ctx.textBaseline='alphabetic';
+      // Gold knob
+      circ(mx+7,my+6,3,'#FFD700');
       break;
+
     case T.TREE:{
       ctx.fillStyle=p.grass;ctx.fillRect(sx,sy,TILE,TILE);
-      // trunk
-      ctx.fillStyle='#6B4226';ctx.fillRect(sx+TILE/2-5,sy+24,10,TILE-24);
-      // crown
+      // Cute round trunk
+      ctx.fillStyle='#c49870';ctx.beginPath();ctx.roundRect(mx-5,sy+26,10,TILE-26,4);ctx.fill();
+      // Fluffy crown — season-colored
       const tc1=p.tree,tc2=p.tree2;
-      circ(sx+TILE/2,sy+20,16,tc1);
-      circ(sx+TILE/2-10,sy+26,12,tc2);
-      circ(sx+TILE/2+10,sy+26,12,tc2);
-      circ(sx+TILE/2,sy+14,12,tc1);
+      // Big pom-pom tree top
+      circ(mx,sy+18,16,tc1);
+      circ(mx-11,sy+26,12,tc2);
+      circ(mx+11,sy+26,12,tc2);
+      circ(mx,sy+12,12,tc1);
+      // Tiny flowers on spring tree
+      if(GS&&GS.season===0){
+        ctx.fillStyle='#FFE0F0';
+        for(let i=0;i<5;i++){const a=i*Math.PI*2/5;circ(mx+Math.cos(a)*12,sy+18+Math.sin(a)*10,4,'#FFE0F0')}
+        circ(mx,sy+18,4,'#FFE8E0');
+      }
       break;}
+
     case T.STUMP:
       ctx.fillStyle=p.grass;ctx.fillRect(sx,sy,TILE,TILE);
-      ctx.fillStyle='#7B5230';ctx.fillRect(sx+10,sy+24,28,18);
-      ctx.fillStyle='#9B7250';ctx.beginPath();ctx.ellipse(sx+24,sy+24,14,6,0,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#c49870';ctx.beginPath();ctx.roundRect(sx+10,sy+26,28,16,3);ctx.fill();
+      ctx.fillStyle='#d4a880';ctx.beginPath();ctx.ellipse(mx,sy+26,14,5,0,0,Math.PI*2);ctx.fill();
+      // Ring
+      ctx.strokeStyle='rgba(160,120,80,0.3)';ctx.lineWidth=1.5;
+      ctx.beginPath();ctx.ellipse(mx,sy+26,8,3,0,0,Math.PI*2);ctx.stroke();
       break;
+
     case T.ROCK:{
       ctx.fillStyle=p.grass;ctx.fillRect(sx,sy,TILE,TILE);
-      ctx.fillStyle='#8090A0';
-      ctx.beginPath();ctx.ellipse(sx+TILE/2,sy+TILE/2+4,16,11,0,0,Math.PI*2);ctx.fill();
-      ctx.fillStyle='#A0B0C0';
-      ctx.beginPath();ctx.ellipse(sx+TILE/2-2,sy+TILE/2,14,9,0,0,Math.PI*2);ctx.fill();
-      ctx.fillStyle='rgba(255,255,255,0.2)';ctx.beginPath();ctx.ellipse(sx+TILE/2-4,sy+TILE/2-4,6,4,0.5,0,Math.PI*2);ctx.fill();
+      // Cute chibi rock
+      ctx.fillStyle='#c8d0d8';ctx.beginPath();ctx.ellipse(mx,my+4,15,11,0,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#dce4e8';ctx.beginPath();ctx.ellipse(mx-2,my,13,9,0,0,Math.PI*2);ctx.fill();
+      // Shine
+      ctx.fillStyle='rgba(255,255,255,0.6)';ctx.beginPath();ctx.ellipse(mx-5,my-4,5,3,-0.4,0,Math.PI*2);ctx.fill();
+      // Little face (kawaii rock!)
+      circ(mx-4,my+2,1.5,'#a0a8b0');circ(mx+2,my+2,1.5,'#a0a8b0');
+      ctx.strokeStyle='#a0a8b0';ctx.lineWidth=1;
+      ctx.beginPath();ctx.arc(mx-1,my+5,3,0.2,Math.PI-0.2);ctx.stroke();
       break;}
+
     case T.FLOWER:{
       ctx.fillStyle=p.grass;ctx.fillRect(sx,sy,TILE,TILE);
       const fc=p.flower;
-      const fx=sx+TILE/2,fy=sy+TILE/2;
-      ctx.fillStyle='#5A8C3A';ctx.fillRect(fx-2,fy+2,4,12);
-      for(let a=0;a<5;a++){
-        const ang=a*Math.PI*2/5;
-        circ(fx+Math.cos(ang)*8,fy+Math.sin(ang)*8,5,fc);
+      ctx.fillStyle='#80c060';ctx.fillRect(mx-2,my+2,4,14);
+      // Cute rounded petals
+      for(let a=0;a<6;a++){
+        const ang=a*Math.PI*2/6;
+        ctx.fillStyle=fc;
+        ctx.beginPath();ctx.ellipse(mx+Math.cos(ang)*9,my+Math.sin(ang)*9,5,5,0,0,Math.PI*2);ctx.fill();
       }
-      circ(fx,fy,5,'#FFE040');
+      circ(mx,my,6,'#FFF8A0');
+      // Shine dot
+      circ(mx-2,my-2,2,'rgba(255,255,255,0.7)');
       break;}
+
     case T.TALL:
       ctx.fillStyle=p.grass;ctx.fillRect(sx,sy,TILE,TILE);
-      ctx.fillStyle=p.tree2;
-      ctx.fillRect(sx+4,sy+10,6,TILE-10);
-      ctx.fillRect(sx+14,sy+6,6,TILE-6);
-      ctx.fillRect(sx+24,sy+12,6,TILE-12);
-      ctx.fillRect(sx+34,sy+8,6,TILE-8);
+      ctx.fillStyle=p.grass2;
+      // Wispy grass blades
+      for(let i=0;i<4;i++){
+        const gx=sx+6+i*11;
+        const wave=Math.sin(A*0.04+i)*2;
+        ctx.fillRect(gx+wave,sy+14,4,TILE-14);
+        ctx.fillStyle='rgba(255,255,255,0.2)';ctx.fillRect(gx+wave,sy+14,2,6);
+        ctx.fillStyle=p.grass2;
+      }
       break;
+
     case T.WELL:
       ctx.fillStyle=p.grass;ctx.fillRect(sx,sy,TILE,TILE);
-      ctx.fillStyle='#8090A0';ctx.beginPath();ctx.arc(sx+TILE/2,sy+TILE/2+4,14,0,Math.PI*2);ctx.fill();
-      ctx.fillStyle='#60707E';ctx.beginPath();ctx.arc(sx+TILE/2,sy+TILE/2+4,10,0,Math.PI*2);ctx.fill();
-      ctx.fillStyle=p.water;ctx.beginPath();ctx.arc(sx+TILE/2,sy+TILE/2+4,8,0,Math.PI*2);ctx.fill();
-      ctx.fillStyle='#6B4226';ctx.fillRect(sx+TILE/2-2,sy+2,4,TILE/2);
-      ctx.fillStyle='#8B6246';ctx.fillRect(sx+4,sy+8,TILE-8,6);
+      // Cute round well with pastel stone
+      ctx.fillStyle='#e0d0f0';ctx.beginPath();ctx.arc(mx,my+4,13,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#d0c0e0';ctx.beginPath();ctx.arc(mx,my+4,9,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle=p.water;ctx.beginPath();ctx.arc(mx,my+4,7,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='rgba(255,255,255,0.5)';ctx.beginPath();ctx.ellipse(mx-2,my+2,3,2,0,0,Math.PI*2);ctx.fill();
+      // Wooden arch
+      ctx.fillStyle='#d4a870';ctx.fillRect(mx-2,sy+2,4,TILE/2-4);
+      ctx.beginPath();ctx.roundRect(sx+4,sy+8,TILE-8,6,3);ctx.fill();
+      // Cute heart
+      ctx.fillStyle='#f8a0c0';ctx.font='10px serif';ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillText('♡',mx,sy+12);ctx.textBaseline='alphabetic';
       break;
+
     case T.CHEST:
       ctx.fillStyle=p.grass;ctx.fillRect(sx,sy,TILE,TILE);
-      ctx.fillStyle='#8B5E3C';ctx.fillRect(sx+8,sy+16,TILE-16,TILE-20);
-      ctx.fillStyle='#6B3E1C';ctx.fillRect(sx+8,sy+16,TILE-16,6);
-      ctx.fillStyle='#FFD700';ctx.fillRect(sx+TILE/2-4,sy+TILE/2-2,8,6);
-      ctx.fillStyle='#FFA000';ctx.beginPath();ctx.arc(sx+TILE/2,sy+TILE/2+1,3,0,Math.PI*2);ctx.fill();
+      // Kawaii treasure chest
+      ctx.fillStyle='#f0c878';ctx.beginPath();ctx.roundRect(sx+6,sy+18,TILE-12,TILE-22,4);ctx.fill();
+      ctx.fillStyle='#e8a840';ctx.beginPath();ctx.roundRect(sx+6,sy+18,TILE-12,8,4);ctx.fill();
+      // Cute bow ribbon
+      ctx.fillStyle='#f87090';
+      ctx.beginPath();ctx.moveTo(mx,my);ctx.lineTo(mx-8,my-6);ctx.lineTo(mx-6,my+2);ctx.fill();
+      ctx.beginPath();ctx.moveTo(mx,my);ctx.lineTo(mx+8,my-6);ctx.lineTo(mx+6,my+2);ctx.fill();
+      circ(mx,my,4,'#ff90a8');
+      // Shine
+      ctx.fillStyle='rgba(255,255,255,0.5)';ctx.beginPath();ctx.roundRect(sx+8,sy+20,10,4,2);ctx.fill();
       break;
   }
 
@@ -500,241 +604,382 @@ function drawTile(r,c,sx,sy,season){
 function drawCropOnTile(cr,sx,sy){
   const def=CROPS[cr.key];
   const progress=cr.stage/def.days;
-  const cy=sy+TILE-10;
+  const mx=sx+TILE/2, cy=sy+TILE-8;
+
   if(progress>=1){
-    // Fully grown — show icon + sparkle glow
-    ctx.fillStyle='rgba(255,255,100,0.15)';ctx.fillRect(sx,sy,TILE,TILE);
-    icon(def.icon,sx+TILE/2,cy-8,28);
-    ctx.fillStyle='rgba(255,255,100,0.6)';
-    circ(sx+TILE/2,cy-8,16,'rgba(255,255,100,0.1)');
+    // Fully grown — pastel glow + big icon
+    const glowC=def.color+'40';
+    ctx.fillStyle=glowC;ctx.beginPath();ctx.arc(mx,cy-12,20,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=def.color+'25';ctx.beginPath();ctx.arc(mx,cy-12,26,0,Math.PI*2);ctx.fill();
+    icon(def.icon,mx,cy-12,32);
+    // Sparkle stars
+    ctx.fillStyle='rgba(255,230,100,0.9)';
+    const sp=[[mx-16,cy-28],[mx+16,cy-26],[mx,cy-32],[mx-10,cy-34],[mx+12,cy-30]];
+    sp.forEach(([x,y],i)=>{if((animFrame+i*7)%30<8){ctx.font='10px serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('✦',x,y);ctx.textBaseline='alphabetic'}});
   } else if(progress>0.6){
-    // Mid growth
-    ctx.fillStyle=def.color;
-    ctx.fillRect(sx+TILE/2-3,cy-18,6,18);
-    ctx.beginPath();ctx.arc(sx+TILE/2,cy-22,7,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle='rgba(255,255,255,0.5)';
-    ctx.beginPath();ctx.arc(sx+TILE/2-2,cy-25,3,0,Math.PI*2);ctx.fill();
+    // Mid — cute round plant
+    ctx.fillStyle='#80c060';ctx.beginPath();ctx.roundRect(mx-3,cy-20,6,20,3);ctx.fill();
+    circ(mx,cy-24,10,def.color);
+    circ(mx-6,cy-20,7,def.color+'cc');
+    circ(mx+6,cy-20,7,def.color+'cc');
+    ctx.fillStyle='rgba(255,255,255,0.5)';ctx.beginPath();ctx.ellipse(mx-2,cy-28,3,2,0,0,Math.PI*2);ctx.fill();
   } else if(progress>0.3){
-    // Small plant
-    ctx.fillStyle='#4A9A2A';
-    ctx.fillRect(sx+TILE/2-2,cy-10,4,10);
-    ctx.beginPath();ctx.ellipse(sx+TILE/2-4,cy-10,6,4,-0.5,0,Math.PI*2);ctx.fill();
-    ctx.beginPath();ctx.ellipse(sx+TILE/2+4,cy-8,6,4,0.5,0,Math.PI*2);ctx.fill();
+    // Small — two leaves
+    ctx.fillStyle='#88c868';ctx.fillRect(mx-2,cy-12,4,12);
+    ctx.beginPath();ctx.ellipse(mx-5,cy-12,6,4,-0.5,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(mx+5,cy-10,6,4,0.5,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,0.4)';ctx.beginPath();ctx.ellipse(mx-6,cy-14,3,2,-0.5,0,Math.PI*2);ctx.fill();
   } else {
-    // Sprout
-    ctx.fillStyle='#5ABF30';
-    ctx.fillRect(sx+TILE/2-1,cy-6,3,6);
-    ctx.beginPath();ctx.ellipse(sx+TILE/2+2,cy-6,4,3,0.3,0,Math.PI*2);ctx.fill();
+    // Sprout — tiny cute
+    ctx.fillStyle='#a0d870';ctx.fillRect(mx-2,cy-8,4,8);
+    ctx.beginPath();ctx.ellipse(mx+3,cy-8,5,4,0.4,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,0.5)';ctx.beginPath();ctx.arc(mx+2,cy-10,1.5,0,Math.PI*2);ctx.fill();
   }
-  // Watered indicator
+  // Watered — cute water droplet
   if(cr.watered){
-    ctx.fillStyle='rgba(60,120,220,0.5)';
-    ctx.beginPath();ctx.arc(sx+6,sy+6,4,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='rgba(100,180,255,0.85)';
+    ctx.beginPath();ctx.moveTo(sx+7,sy+5);ctx.quadraticCurveTo(sx+4,sy+10,sx+7,sy+12);ctx.quadraticCurveTo(sx+10,sy+10,sx+7,sy+5);ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,0.6)';ctx.beginPath();ctx.ellipse(sx+6,sy+7,1.5,1,0,0,Math.PI*2);ctx.fill();
   }
 }
 
-// ── PLAYER RENDERING ───────────────────────────
+// ── PLAYER RENDERING — Kawaii Chibi Girl ───────
 function drawPlayer(px,py,dir,moving,frame){
   const x=Math.round(px),y=Math.round(py);
   const bob=moving?Math.sin(frame*0.22)*3:0;
+  const legSwing=moving?Math.sin(frame*0.28)*4:0;
   const S=GS;
 
   ctx.save();
   ctx.translate(x,y+bob);
 
   // Shadow
-  ctx.fillStyle='rgba(0,0,0,0.2)';ctx.beginPath();ctx.ellipse(0,14,12,5,0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='rgba(180,120,160,0.18)';ctx.beginPath();ctx.ellipse(0,18,14,5,0,0,Math.PI*2);ctx.fill();
+
+  // === LEGS / SKIRT ===
+  // Skirt (A-line, very cute)
+  ctx.fillStyle='#f8a0c0';ctx.beginPath();ctx.moveTo(-12,2);ctx.lineTo(12,2);ctx.lineTo(14,16);ctx.lineTo(-14,16);ctx.closePath();ctx.fill();
+  ctx.fillStyle='#ffc0d8';ctx.beginPath();ctx.moveTo(-12,2);ctx.lineTo(12,2);ctx.lineTo(11,9);ctx.lineTo(-11,9);ctx.closePath();ctx.fill();
+  // Skirt frill
+  ctx.fillStyle='#fff0f8';ctx.beginPath();
+  for(let i=0;i<7;i++){const fx=-13+i*4.2;ctx.moveTo(fx,14);ctx.quadraticCurveTo(fx+2,12,fx+4.2,14)}
+  ctx.stroke=false;ctx.fillRect(-14,13,28,4);
 
   // Legs
-  const legOff=moving?Math.sin(frame*0.25)*5:0;
-  ctx.fillStyle='#4A6FA5';
-  rr(-7,8,8,12,3,'#4A6FA5');  // left leg
-  rr(0,8,8,12,3,'#3A5F95');   // right leg
-  // Shoes
-  ctx.fillStyle='#2C1810';
-  rr(-9+legOff,17,8,6,2,'#2C1810');
-  rr(2-legOff,17,8,6,2,'#2C1810');
+  ctx.fillStyle='#ffe8f0';
+  ctx.beginPath();ctx.roundRect(-8+legSwing,14,7,10,3);ctx.fill();
+  ctx.beginPath();ctx.roundRect(1-legSwing,14,7,10,3);ctx.fill();
+  // Shoes — cute round pink shoes
+  ctx.fillStyle='#e06090';
+  ctx.beginPath();ctx.ellipse(-5+legSwing,24,6,4,0,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.ellipse(5-legSwing,24,6,4,0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='rgba(255,255,255,0.4)';
+  ctx.beginPath();ctx.ellipse(-7+legSwing,22,3,2,0,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.ellipse(3-legSwing,22,3,2,0,0,Math.PI*2);ctx.fill();
 
-  // Body (overalls)
-  rr(-10,-4,20,16,6,'#4A6FA5');
-  // Shirt
-  rr(-7,2,14,8,4,'#FFFFFF');
-  // Suspenders
-  ctx.fillStyle='#2A4F85';
-  ctx.fillRect(-6,-4,3,10);ctx.fillRect(3,-4,3,10);
+  // === BODY ===
+  // Blouse
+  ctx.fillStyle='#ffffff';ctx.beginPath();ctx.roundRect(-10,-4,20,14,6);ctx.fill();
+  // Collar / ribbon bow
+  ctx.fillStyle='#f8a0c0';ctx.beginPath();ctx.roundRect(-4,-4,8,6,3);ctx.fill();
+  // Bow
+  ctx.fillStyle='#f870a0';
+  ctx.beginPath();ctx.moveTo(0,-1);ctx.lineTo(-8,-6);ctx.lineTo(-6,0);ctx.fill();
+  ctx.beginPath();ctx.moveTo(0,-1);ctx.lineTo(8,-6);ctx.lineTo(6,0);ctx.fill();
+  circ(0,-1,3,'#ff90b8');
+  // Apron
+  ctx.fillStyle='rgba(255,240,248,0.7)';ctx.beginPath();ctx.roundRect(-6,0,12,8,4);ctx.fill();
 
-  // Arms
-  const armAng=moving?Math.sin(frame*0.25)*0.3:0;
-  ctx.save();ctx.translate(-12,0);ctx.rotate(-armAng);
-  rr(-4,-2,8,14,4,'#FDBCB4');ctx.restore();
-  ctx.save();ctx.translate(12,0);ctx.rotate(armAng);
-  rr(-4,-2,8,14,4,'#FDBCB4');ctx.restore();
+  // === ARMS ===
+  const armAng=moving?Math.sin(frame*0.25)*0.35:0;
+  // Left arm
+  ctx.save();ctx.translate(-12,1);ctx.rotate(-armAng);
+  ctx.fillStyle='#fde0e8';ctx.beginPath();ctx.roundRect(-4,0,8,11,4);ctx.fill();
+  // Glove/cuff
+  ctx.fillStyle='#f8a0c0';ctx.beginPath();ctx.roundRect(-4,0,8,4,3);ctx.fill();
+  ctx.restore();
+  // Right arm
+  ctx.save();ctx.translate(12,1);ctx.rotate(armAng);
+  ctx.fillStyle='#fde0e8';ctx.beginPath();ctx.roundRect(-4,0,8,11,4);ctx.fill();
+  ctx.fillStyle='#f8a0c0';ctx.beginPath();ctx.roundRect(-4,0,8,4,3);ctx.fill();
+  ctx.restore();
 
   // Tool in right hand
   const tool=S.bar[S.slot];
   if(tool){
-    const icons={'hoe':'⛏️','watering_can':'🚿','sickle':'🌾','axe':'🪓','pickaxe':'⛏','fishing_rod':'🎣'};
-    const ti=icons[tool]||'🌱';
-    ctx.save();ctx.translate(16,2);
+    const ticons={'hoe':'⛏️','watering_can':'🪣','sickle':'🌾','axe':'🪓','pickaxe':'⛏','fishing_rod':'🎣'};
+    const ti=ticons[tool]||'🌱';
+    ctx.save();ctx.translate(18,4);ctx.rotate(0.3);
     icon(ti,0,0,16);ctx.restore();
   }
 
-  // Head
-  circ(0,-18,13,'#FDBCB4');
-  // Eyes
-  if(dir!==0){
-    ctx.fillStyle='#2C1810';
-    if(dir===3){circ(-5,-19,2.5,'#2C1810');circ(2,-19,2.5,'#2C1810')}
-    else if(dir===1){circ(-2,-19,2.5,'#2C1810');circ(5,-19,2.5,'#2C1810')}
-    else{circ(-4,-20,2.5,'#2C1810');circ(4,-20,2.5,'#2C1810')}
-    // Blush
-    ctx.fillStyle='rgba(255,150,150,0.55)';
-    if(dir===3){circ(-8,-17,4,'rgba(255,150,150,0.55)');circ(-1,-17,4,'rgba(255,150,150,0.55)')}
-    else if(dir===1){circ(1,-17,4,'rgba(255,150,150,0.55)');circ(8,-17,4,'rgba(255,150,150,0.55)')}
-    else{circ(-6,-17,4,'rgba(255,150,150,0.55)');circ(6,-17,4,'rgba(255,150,150,0.55)')}
-    // Smile
-    ctx.strokeStyle='#2C1810';ctx.lineWidth=1.5;
-    ctx.beginPath();
-    if(dir===3){ctx.arc(-3,-16,4,0.2,Math.PI-0.2)}
-    else if(dir===1){ctx.arc(3,-16,4,0.2,Math.PI-0.2)}
-    else{ctx.arc(0,-16,4,0.2,Math.PI-0.2)}
-    ctx.stroke();
+  // === HEAD (big chibi style) ===
+  // Hair back
+  ctx.fillStyle='#8B4513';
+  if(dir===0){
+    // Facing away — show pigtails from back
+    circ(-10,-28,8,'#8B4513');circ(10,-28,8,'#8B4513');
+    circ(0,-28,16,'#9B5523');
   } else {
-    // Back of head — just hair
+    // Side pigtails
+    if(dir===3){ctx.beginPath();ctx.ellipse(-16,-26,7,10,0.3,0,Math.PI*2);ctx.fill()}
+    else if(dir===1){ctx.beginPath();ctx.ellipse(16,-26,7,10,-0.3,0,Math.PI*2);ctx.fill()}
+    else{ctx.beginPath();ctx.ellipse(-16,-26,7,10,0.3,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.ellipse(16,-26,7,10,-0.3,0,Math.PI*2);ctx.fill()}
   }
 
-  // Hat
-  const hc=dir===0?'#6B3210':'#7B4220';
-  rr(-12,-32,24,8,3,hc);
-  rr(-9,-40,18,12,4,'#8B5230');
-  // Hat band
-  ctx.fillStyle='#FF8C00';ctx.fillRect(-12,-32,24,3);
+  // Head circle — big chibi (head=1.4x body)
+  circ(0,-22,17,'#fde8d8');
+  // Cheek blush (always visible)
+  circ(-11,-20,6,'rgba(255,160,180,0.5)');
+  circ(11,-20,6,'rgba(255,160,180,0.5)');
+
+  if(dir!==0){
+    // Big sparkly eyes
+    const eyeOff=dir===3?-3:dir===1?3:0;
+    // Eye whites
+    ctx.fillStyle='white';
+    ctx.beginPath();ctx.ellipse(eyeOff-5,-24,4,5,0,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(eyeOff+5,-24,4,5,0,0,Math.PI*2);ctx.fill();
+    // Iris (large, colorful)
+    ctx.fillStyle='#6060c0';
+    ctx.beginPath();ctx.ellipse(eyeOff-5,-24,3,4,0,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(eyeOff+5,-24,3,4,0,0,Math.PI*2);ctx.fill();
+    // Pupil
+    ctx.fillStyle='#101030';
+    ctx.beginPath();ctx.ellipse(eyeOff-5,-24,1.5,2,0,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(eyeOff+5,-24,1.5,2,0,0,Math.PI*2);ctx.fill();
+    // Eye shine (twin sparkle)
+    ctx.fillStyle='white';
+    circ(eyeOff-6,-25.5,1.5,'white');circ(eyeOff-3.5,-23.5,1,'white');
+    circ(eyeOff+4,-25.5,1.5,'white');circ(eyeOff+6.5,-23.5,1,'white');
+    // Lashes
+    ctx.strokeStyle='#101030';ctx.lineWidth=1.2;
+    ctx.beginPath();ctx.moveTo(eyeOff-9,-22);ctx.lineTo(eyeOff-10,-20);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(eyeOff+9,-22);ctx.lineTo(eyeOff+10,-20);ctx.stroke();
+    // Tiny nose
+    circ(eyeOff,-20,1.5,'rgba(200,120,120,0.5)');
+    // Smile
+    ctx.strokeStyle='#c07080';ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.arc(eyeOff,-18,4,0.15,Math.PI-0.15);ctx.stroke();
+  } else {
+    // Facing up — show back of head, hair ribbon
+    circ(0,-22,17,'#9B5523');
+  }
+
+  // === HAIR (front, over head) ===
+  ctx.fillStyle='#9B5523';
+  if(dir!==0){
+    // Bangs / fringe
+    ctx.beginPath();ctx.ellipse(-4,-35,10,8,0.15,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(6,-35,10,8,-0.15,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#8B4513';ctx.beginPath();ctx.ellipse(1,-34,8,6,0,0,Math.PI*2);ctx.fill();
+  }
+
+  // Hair ribbon bow on top
+  ctx.fillStyle='#f860a0';
+  ctx.beginPath();ctx.moveTo(0,-38);ctx.lineTo(-10,-44);ctx.lineTo(-8,-36);ctx.fill();
+  ctx.beginPath();ctx.moveTo(0,-38);ctx.lineTo(10,-44);ctx.lineTo(8,-36);ctx.fill();
+  circ(0,-38,4,'#ff90c0');
 
   ctx.restore();
 }
 
-// ── NPC RENDERING ──────────────────────────────
-const NPC_OUTFITS=[
-  {body:'#E91E8C',shirt:'#FF80AB',hat:'#880E4F'},   // mj — pink
-  {body:'#8B6914',shirt:'#FFCC02',hat:'#5D4037'},   // mayor — gold
-  {body:'#795548',shirt:'#A1887F',hat:'#4E342E'},   // grandma — brown
-  {body:'#455A64',shirt:'#78909C',hat:'#263238'},   // smith — steel
-  {body:'#1565C0',shirt:'#90CAF9',hat:'#0D47A1'},   // doc — blue
+// ── NPC RENDERING — Kawaii Chibi NPCs ──────────
+// Each NPC: {hair, dress/outfit, bow, skin, eyeColor, accessory}
+const NPC_STYLES=[
+  // 민지 — Shop girl, rose pink twin-tails
+  {hair:'#d4607a',skin:'#fde8d8',dress:'#f87090',bow:'#ff3060',eye:'#c060a0',acc:'🎀'},
+  // 이장님 — Mayor, warm tan, navy uniform
+  {hair:'#5a3a20',skin:'#f5d5b0',dress:'#3a5a8a',bow:'#f0c030',eye:'#604820',acc:'👒'},
+  // 할머니 — Grandma, white hair, lavender dress
+  {hair:'#e8e8f0',skin:'#f0d8c0',dress:'#b09ac8',bow:'#d8c0e8',eye:'#708090',acc:'🌸'},
+  // 철수 — Smith, dark hair, brown apron
+  {hair:'#302010',skin:'#f0c898',dress:'#8a6040',bow:'#c08040',eye:'#402810',acc:'🔨'},
+  // 선생님 — Doctor, mint hair, white coat
+  {hair:'#80c8b0',skin:'#fde8d8',dress:'#e8f8f0',bow:'#60b8a0',eye:'#4090a0',acc:'💊'},
 ];
 
-function drawNPC(npc,outfit,frame){
+function drawNPC(npc,style,frame){
   const x=Math.round(npc.ox*TILE+24-camX());
   const y=Math.round(npc.oy*TILE+24-camY());
   if(x<-60||x>W+60||y<-60||y>H+60)return;
 
-  const bob=Math.sin(frame*0.06)*2;
+  const bob=Math.sin(frame*0.07+npc.ox)*2;
   ctx.save();ctx.translate(x,y+bob);
 
   // Shadow
-  ctx.fillStyle='rgba(0,0,0,0.2)';ctx.beginPath();ctx.ellipse(0,14,10,4,0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='rgba(150,100,130,0.15)';ctx.beginPath();ctx.ellipse(0,18,12,4,0,0,Math.PI*2);ctx.fill();
 
   // Legs
-  rr(-6,8,6,10,3,outfit.body);rr(1,8,6,10,3,outfit.body);
+  ctx.fillStyle=style.skin;
+  ctx.beginPath();ctx.roundRect(-6,12,6,10,3);ctx.fill();
+  ctx.beginPath();ctx.roundRect(1,12,6,10,3);ctx.fill();
+  // Shoes
+  ctx.fillStyle=style.dress;
+  ctx.beginPath();ctx.ellipse(-3,22,5,3,0,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.ellipse(4,22,5,3,0,0,Math.PI*2);ctx.fill();
+
+  // Skirt / outfit
+  ctx.fillStyle=style.dress;
+  ctx.beginPath();ctx.moveTo(-10,1);ctx.lineTo(10,1);ctx.lineTo(12,14);ctx.lineTo(-12,14);ctx.closePath();ctx.fill();
+  ctx.fillStyle='rgba(255,255,255,0.25)';
+  ctx.beginPath();ctx.moveTo(-10,1);ctx.lineTo(10,1);ctx.lineTo(9,7);ctx.lineTo(-9,7);ctx.closePath();ctx.fill();
+
   // Body
-  rr(-9,-2,18,14,5,outfit.body);
-  // Shirt
-  rr(-6,2,12,8,3,outfit.shirt);
-  // Head
-  circ(0,-16,11,'#FDBCB4');
-  // Eyes
-  circ(-3,-18,2,'#333');circ(3,-18,2,'#333');
+  ctx.fillStyle='rgba(255,255,255,0.9)';ctx.beginPath();ctx.roundRect(-9,-3,18,12,5);ctx.fill();
+  ctx.fillStyle=style.dress+'cc';ctx.beginPath();ctx.roundRect(-9,-3,18,6,5);ctx.fill();
+
+  // Head (bigger for chibi)
+  circ(0,-18,15,style.skin);
   // Blush
-  circ(-6,-14,3,'rgba(255,150,150,0.5)');circ(6,-14,3,'rgba(255,150,150,0.5)');
+  circ(-9,-16,5,'rgba(255,160,180,0.45)');circ(9,-16,5,'rgba(255,160,180,0.45)');
+  // Big eyes
+  ctx.fillStyle='white';ctx.beginPath();ctx.ellipse(-5,-20,3.5,4.5,0,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.ellipse(5,-20,3.5,4.5,0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle=style.eye;ctx.beginPath();ctx.ellipse(-5,-20,2.5,3.5,0,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.ellipse(5,-20,2.5,3.5,0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#111';ctx.beginPath();ctx.ellipse(-5,-20,1.2,2,0,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.ellipse(5,-20,1.2,2,0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='white';circ(-5.8,-21.5,1.2,'white');circ(4.2,-21.5,1.2,'white');
   // Smile
-  ctx.strokeStyle='#333';ctx.lineWidth=1.5;
-  ctx.beginPath();ctx.arc(0,-14,3,0.2,Math.PI-0.2);ctx.stroke();
-  // Hat/hair
-  rr(-11,-28,22,7,2,outfit.hat);
-  rr(-8,-34,16,9,4,outfit.hat);
-  // Name tag
+  ctx.strokeStyle='#c07080';ctx.lineWidth=1.2;
+  ctx.beginPath();ctx.arc(0,-15,3.5,0.2,Math.PI-0.2);ctx.stroke();
+  // Tiny nose
+  circ(0,-16.5,1.2,'rgba(200,120,120,0.5)');
+
+  // Hair
+  ctx.fillStyle=style.hair;
+  ctx.beginPath();ctx.ellipse(0,-30,13,8,0,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.ellipse(-12,-24,7,9,0.4,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.ellipse(12,-24,7,9,-0.4,0,Math.PI*2);ctx.fill();
+
+  // Bow / hat
+  ctx.fillStyle=style.bow;
+  ctx.beginPath();ctx.moveTo(0,-34);ctx.lineTo(-9,-40);ctx.lineTo(-7,-32);ctx.fill();
+  ctx.beginPath();ctx.moveTo(0,-34);ctx.lineTo(9,-40);ctx.lineTo(7,-32);ctx.fill();
+  circ(0,-34,4,style.bow);
+
+  // Accessory icon
+  ctx.font='12px serif';ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText(style.acc,-14,-34);ctx.textBaseline='alphabetic';
+
+  // Name bubble
   const nm=npc.name;
   ctx.font='bold 11px "Malgun Gothic"';ctx.textAlign='center';
-  const nw=ctx.measureText(nm).width+12;
-  rr(-nw/2,-54,nw,18,6,'rgba(0,0,0,0.65)');
-  ctx.fillStyle='#fff';ctx.fillText(nm,0,-41);
+  const nw=ctx.measureText(nm).width+16;
+  ctx.fillStyle='rgba(255,240,248,0.92)';ctx.beginPath();ctx.roundRect(-nw/2,-62,nw,20,10);ctx.fill();
+  ctx.strokeStyle=style.bow+'80';ctx.lineWidth=1.5;ctx.beginPath();ctx.roundRect(-nw/2,-62,nw,20,10);ctx.stroke();
+  ctx.fillStyle=style.dress;ctx.fillText(nm,0,-47);
 
   ctx.restore();
 }
 
-// ── ANIMAL RENDERING ───────────────────────────
+// ── ANIMAL RENDERING — Kawaii Chibi Animals ────
 function drawAnimal(a,frame){
-  // Animals are in the barn area
   const bx=30*TILE, by=18*TILE;
   const idx=GS.animals.indexOf(a);
   const x=bx+idx*TILE*2+TILE-camX();
   const y=by+TILE-camY();
   if(x<-60||x>W+60||y<-60||y>H+60)return;
 
-  const bob=Math.sin(frame*0.08+idx)*2;
+  const bob=Math.sin(frame*0.09+idx*1.4)*2.5;
   ctx.save();ctx.translate(x,y+bob);
 
+  // Shadow
+  ctx.fillStyle='rgba(180,120,160,0.15)';ctx.beginPath();ctx.ellipse(0,18,16,5,0,0,Math.PI*2);ctx.fill();
+
   if(a.type==='chicken'){
-    // White body
-    ctx.fillStyle='#F5F5F5';ctx.beginPath();ctx.ellipse(0,0,14,12,0,0,Math.PI*2);ctx.fill();
-    // Head
-    circ(12,-10,8,'#F5F5F5');
-    // Comb
-    ctx.fillStyle='#E53935';ctx.fillRect(10,-20,4,10);ctx.fillRect(6,-18,4,8);
-    // Beak
-    ctx.fillStyle='#FFB300';ctx.beginPath();ctx.moveTo(18,-10);ctx.lineTo(24,-8);ctx.lineTo(18,-6);ctx.fill();
-    // Eye
-    circ(14,-12,2,'#333');
-    // Wing
-    ctx.fillStyle='#E0E0E0';ctx.beginPath();ctx.ellipse(-4,0,10,7,0.3,0,Math.PI*2);ctx.fill();
-    // Feet
-    ctx.fillStyle='#FFB300';ctx.fillRect(-8,10,4,8);ctx.fillRect(0,10,4,8);
+    // Cute round body
+    ctx.fillStyle='#FFF8F0';ctx.beginPath();ctx.ellipse(0,2,15,13,0,0,Math.PI*2);ctx.fill();
+    // Wing puff
+    ctx.fillStyle='#FFE8D8';ctx.beginPath();ctx.ellipse(-8,4,9,7,-0.3,0,Math.PI*2);ctx.fill();
+    // Round head
+    circ(12,-10,11,'#FFF8F0');
+    // Pink comb (cute small)
+    ctx.fillStyle='#FF8096';
+    circ(10,-22,5,'#FF8096');circ(14,-24,4,'#FF8096');circ(12,-20,4,'#FF8096');
+    // Beak (tiny orange triangle)
+    ctx.fillStyle='#FFB050';ctx.beginPath();ctx.moveTo(21,-10);ctx.lineTo(26,-8);ctx.lineTo(21,-6);ctx.fill();
+    // Big kawaii eye
+    circ(16,-13,4,'white');circ(16,-13,3,'#604080');circ(16,-13,1.5,'#100818');
+    circ(14.5,-14.5,1.2,'white');
+    // Blush
+    circ(20,-10,3,'rgba(255,160,180,0.5)');
+    // Tiny feet
+    ctx.fillStyle='#FFB050';ctx.fillRect(-8,14,5,6);ctx.fillRect(2,14,5,6);
+    ctx.fillRect(-11,19,3,3);ctx.fillRect(-8,19,3,3);ctx.fillRect(2,19,3,3);ctx.fillRect(5,19,3,3);
+
   } else if(a.type==='cow'){
-    // Body
-    ctx.fillStyle='#F5F5F5';ctx.beginPath();ctx.ellipse(0,0,20,14,0,0,Math.PI*2);ctx.fill();
-    // Spots
-    ctx.fillStyle='#5D4037';ctx.beginPath();ctx.ellipse(8,4,6,5,0.3,0,Math.PI*2);ctx.fill();
-    ctx.beginPath();ctx.ellipse(-10,-2,5,4,0,0,Math.PI*2);ctx.fill();
-    // Head
-    circ(20,-8,11,'#F5F5F5');
-    // Pink nose
-    ctx.fillStyle='#FFCDD2';ctx.beginPath();ctx.ellipse(26,-6,5,4,0,0,Math.PI*2);ctx.fill();
-    circ(24,-6,1.5,'#888');circ(28,-6,1.5,'#888');
-    // Eyes
-    circ(18,-12,2.5,'#333');
-    // Horns
-    ctx.fillStyle='#F0E0A0';ctx.fillRect(16,-22,3,8);ctx.fillRect(22,-22,3,8);
-    // Legs
-    ctx.fillStyle='#E0E0E0';[[-14,12],[-6,12],[6,12],[14,12]].forEach(([lx])=>ctx.fillRect(lx-2,12,5,12));
-    // Udder
-    ctx.fillStyle='#FFB3BA';ctx.beginPath();ctx.ellipse(0,14,8,5,0,0,Math.PI*2);ctx.fill();
+    // Chubby body
+    ctx.fillStyle='#FFF5F0';ctx.beginPath();ctx.ellipse(0,2,22,16,0,0,Math.PI*2);ctx.fill();
+    // Cute spots (pastel)
+    ctx.fillStyle='#f0d0e0';ctx.beginPath();ctx.ellipse(8,4,7,6,0.3,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(-10,-2,5,5,0,0,Math.PI*2);ctx.fill();
+    // Big round head
+    circ(22,-8,13,'#FFF5F0');
+    // Round pink nose
+    ctx.fillStyle='#FFD0D8';ctx.beginPath();ctx.ellipse(28,-5,6,4,0,0,Math.PI*2);ctx.fill();
+    circ(26,-5,1.5,'#c090a0');circ(30,-5,1.5,'#c090a0');
+    // Big eyes
+    circ(19,-13,5,'white');circ(19,-13,3.5,'#604080');circ(19,-13,1.8,'#100818');
+    circ(17.5,-14.5,1.5,'white');
+    // Eyelash
+    ctx.strokeStyle='#604080';ctx.lineWidth=1.2;
+    ctx.beginPath();ctx.moveTo(15,-16);ctx.lineTo(14,-18);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(22,-17);ctx.lineTo(22,-19);ctx.stroke();
+    // Blush
+    circ(24,-8,4,'rgba(255,160,180,0.5)');
+    // Little horns (pink!)
+    ctx.fillStyle='#FFB0D0';ctx.beginPath();ctx.moveTo(18,-20);ctx.quadraticCurveTo(15,-28,19,-26);ctx.closePath();ctx.fill();
+    ctx.beginPath();ctx.moveTo(24,-21);ctx.quadraticCurveTo(28,-28,24,-26);ctx.closePath();ctx.fill();
+    // Chubby legs
+    ctx.fillStyle='#FFF0E8';
+    [[-14,14],[-6,14],[6,14],[14,14]].forEach(([lx])=>{ctx.beginPath();ctx.roundRect(lx-3,14,7,10,3);ctx.fill()});
+    // Pink udder
+    ctx.fillStyle='#FFD0D8';ctx.beginPath();ctx.ellipse(0,16,9,6,0,0,Math.PI*2);ctx.fill();
+
   } else if(a.type==='sheep'){
-    // Fluffy body (multiple circles)
-    const wool='#F0F0F0';
-    [[-10,-4],[0,-8],[10,-4],[14,4],[-14,4],[0,4]].forEach(([wx,wy])=>circ(wx,wy,10,wool));
-    ctx.fillStyle='#E0E0E0';ctx.beginPath();ctx.ellipse(0,0,18,12,0,0,Math.PI*2);ctx.fill();
-    // Black face
-    circ(18,-4,8,'#333');
-    circ(22,0,2,'#555');
-    circ(22,-6,2,'#FFF');
-    // Legs
-    ctx.fillStyle='#333';[[-10,10],[-4,10],[6,10],[12,10]].forEach(([lx])=>ctx.fillRect(lx-2,10,4,10));
+    // SUPER fluffy — lots of circles
+    const wool='#F8F0FF';
+    [[-12,-6],[0,-10],[12,-6],[16,2],[-16,2],[0,2],[-8,6],[8,6]].forEach(([wx,wy])=>circ(wx,wy,11,wool));
+    ctx.fillStyle='#EEE8F8';ctx.beginPath();ctx.ellipse(0,0,20,14,0,0,Math.PI*2);ctx.fill();
+    // Little face (cute dark)
+    circ(20,-4,10,'#b0a0c0');
+    circ(25,0,3,'#fff0ff');circ(25,-6,3,'#403050');
+    // Big eye on face
+    circ(18,-8,4,'white');circ(18,-8,3,'#806090');circ(18,-8,1.5,'#200830');circ(16.8,-9.2,1.2,'white');
+    // Pink nose
+    ctx.fillStyle='#f0c0d8';ctx.beginPath();ctx.ellipse(24,-2,3,2,0,0,Math.PI*2);ctx.fill();
+    // Blush
+    circ(22,1,3,'rgba(255,160,180,0.5)');
+    // Legs (small dark)
+    ctx.fillStyle='#9080a8';
+    [[-12,12],[-5,12],[5,12],[12,12]].forEach(([lx])=>{ctx.beginPath();ctx.roundRect(lx-3,12,6,10,3);ctx.fill()});
+    // Pink bow on wool
+    ctx.fillStyle='#f870b0';
+    ctx.beginPath();ctx.moveTo(-4,-14);ctx.lineTo(-12,-20);ctx.lineTo(-10,-12);ctx.fill();
+    ctx.beginPath();ctx.moveTo(-4,-14);ctx.lineTo(4,-20);ctx.lineTo(2,-12);ctx.fill();
+    circ(-4,-14,4,'#ff90c8');
   }
 
-  // Product indicator
+  // Product indicator — cute speech bubble style
   if(a.product){
     const ico={chicken:'🥚',cow:'🥛',sheep:'🧶'}[a.type];
-    ctx.save();ctx.translate(16,-24);
-    rr(-12,-12,24,20,6,'rgba(255,240,0,0.9)');
-    ctx.font='14px serif';ctx.textAlign='center';ctx.textBaseline='middle';
-    ctx.fillText(ico,0,-2);
-    ctx.restore();
+    ctx.save();ctx.translate(22,-28);
+    ctx.fillStyle='rgba(255,240,255,0.95)';ctx.beginPath();ctx.roundRect(-14,-14,28,22,10);ctx.fill();
+    ctx.strokeStyle='#f0a0c0';ctx.lineWidth=1.5;ctx.beginPath();ctx.roundRect(-14,-14,28,22,10);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(-4,8);ctx.lineTo(-8,16);ctx.lineTo(4,8);ctx.fill();
+    ctx.strokeStyle='#f0a0c0';ctx.beginPath();ctx.moveTo(-4,8);ctx.lineTo(-8,16);ctx.lineTo(4,8);ctx.stroke();
+    ctx.font='16px serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(ico,0,-3);
+    ctx.textBaseline='alphabetic';ctx.restore();
   }
 
-  // Name
-  ctx.font='10px "Malgun Gothic"';ctx.textAlign='center';
-  const an={chicken:'닭',cow:'소',sheep:'양'}[a.type];
-  ctx.fillStyle='rgba(0,0,0,0.6)';ctx.fillRect(-15,18,30,14);
-  ctx.fillStyle='#fff';ctx.fillText(an,0,29);
+  // Name bubble
+  const an={chicken:'병아리',cow:'젖소',sheep:'양'}[a.type];
+  ctx.font='bold 10px "Malgun Gothic"';ctx.textAlign='center';
+  const aw=ctx.measureText(an).width+14;
+  ctx.fillStyle='rgba(255,240,248,0.88)';ctx.beginPath();ctx.roundRect(-aw/2,22,aw,16,8);ctx.fill();
+  ctx.fillStyle='#c060a0';ctx.fillText(an,0,33);
 
   ctx.restore();
 }
@@ -1079,246 +1324,277 @@ function renderShop(){
   // Backdrop
   ctx.fillStyle='rgba(0,0,0,0.6)';ctx.fillRect(0,0,W2,H2);
   // Panel
-  rr(px,py,pw,ph,16,'#2C1A0E');
-  rr(px+2,py+2,pw-4,ph-4,14,'#3D2518');
+  ctx.fillStyle='rgba(0,0,0,0.45)';ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='rgba(255,235,248,0.97)';ctx.beginPath();ctx.roundRect(px,py,pw,ph,20);ctx.fill();
+  ctx.strokeStyle='rgba(240,150,200,0.5)';ctx.lineWidth=2;ctx.beginPath();ctx.roundRect(px,py,pw,ph,20);ctx.stroke();
   // Title
-  rr(px,py,pw,48,14,'#7B4220');
-  txtShadow('🏪 민지네 상점',px+pw/2,py+32,22,'#FFE08A','rgba(0,0,0,0.5)','center');
+  rr(px,py,pw,52,14,'#f87098');
+  ctx.fillStyle='rgba(255,180,210,0.4)';ctx.fillRect(px,py+40,pw,12);
+  txtShadow('🏪 민지네 상점',px+pw/2,py+34,22,'#fff','rgba(200,50,100,0.4)','center');
 
   // Tabs
   const tabs=['buy','sell'];
-  const tl=['구매','판매'];
+  const tl=['🛍️ 구매','💰 판매'];
   tabs.forEach((tab,i)=>{
     const active=GS.shopTab===tab;
-    rr(px+20+i*100,py+54,90,34,8,active?'#7B4220':'#1E0E06');
-    txt(tl[i],px+65+i*100,py+76,15,active?'#FFE08A':'#888','center');
+    rr(px+20+i*106,py+58,96,34,17,active?'#f87098':'rgba(255,220,240,0.6)');
+    txt(tl[i],px+68+i*106,py+80,14,active?'#fff':'#c06090','center');
   });
 
   if(GS.shopTab==='buy'){
     const stock=[...SHOP_SEASONS[GS.season],...['parsnip_seed','turnip_seed']];
     const unique=[...new Set(stock)];
-    txt('현재 계절 판매 씨앗:',px+20,py+106,13,'#A09070');
+    txt('✿ 이번 계절 씨앗',px+20,py+106,13,'#c06090');
     unique.forEach((key,i)=>{
       const meta=ITEM_META[key];if(!meta)return;
       const ix=i%3,iy=Math.floor(i/3);
       const bx=px+20+ix*180,by=py+118+iy*72;
-      const hover=false;
-      rr(bx,by,168,62,10,'#1E0E06');
-      rr(bx+2,by+2,164,58,8,'#2E1A0E');
-      ctx.font='24px serif';ctx.textAlign='left';ctx.fillText(meta.icon||'🌱',bx+10,by+38);
-      txt(meta.name,bx+46,by+26,13,'#FFE08A');
-      txt(`${meta.buy||CROPS[key.replace('_seed','')]?.seed||'?'}G`,bx+46,by+46,13,'#4CAF50');
-      // Buy button
-      rr(bx+118,by+14,44,30,8,'#4CAF50');
-      txt('구매',bx+140,by+34,13,'#fff','center');
-      // Click handler stored
+      ctx.fillStyle='rgba(255,220,240,0.7)';ctx.beginPath();ctx.roundRect(bx,by,168,62,12);ctx.fill();
+      ctx.strokeStyle='rgba(240,150,200,0.4)';ctx.lineWidth=1;ctx.beginPath();ctx.roundRect(bx,by,168,62,12);ctx.stroke();
+      ctx.font='24px serif';ctx.textAlign='left';ctx.fillText(meta.icon||'🌱',bx+10,by+40);
+      txt(meta.name,bx+46,by+28,13,'#904060');
+      txt(`${meta.buy||CROPS[key.replace('_seed','')]?.seed||'?'}G`,bx+46,by+48,13,'#c06090');
+      rr(bx+118,by+16,42,28,14,'#f870a0');
+      txt('구매',bx+139,by+34,13,'#fff','center');
       if(!GS._shopBtns)GS._shopBtns=[];
-      GS._shopBtns.push({x:bx+118,y:by+14,w:44,h:30,key});
+      GS._shopBtns.push({x:bx+118,y:by+16,w:42,h:28,key});
     });
   } else {
-    // Sell tab — list sellable items
-    txt('보유 중인 판매 가능 아이템:',px+20,py+106,13,'#A09070');
+    txt('✿ 판매 가능한 아이템',px+20,py+106,13,'#c06090');
     let row=0;
     Object.entries(GS.inv).forEach(([key,qty])=>{
       const meta=ITEM_META[key];
       if(!meta||!meta.sell||qty<=0)return;
       const bx=px+20,by=py+118+row*60;
       if(by>py+ph-60)return;
-      rr(bx,by,pw-40,52,10,'#1E0E06');
-      ctx.font='22px serif';ctx.textAlign='left';ctx.fillText(meta.icon||'📦',bx+10,by+35);
-      txt(meta.name,bx+44,by+24,13,'#FFE08A');
-      txt(`보유: ${qty}개`,bx+44,by+42,12,'#A09070');
-      txt(`${meta.sell}G/개`,bx+200,by+33,13,'#4CAF50');
-      // Sell buttons
-      rr(bx+pw-120,by+8,48,34,8,'#E67E22');
-      txt('1개',bx+pw-96,by+30,13,'#fff','center');
-      rr(bx+pw-68,by+8,48,34,8,'#C0392B');
-      txt('전부',bx+pw-44,by+30,13,'#fff','center');
+      ctx.fillStyle='rgba(255,220,240,0.7)';ctx.beginPath();ctx.roundRect(bx,by,pw-40,52,12);ctx.fill();
+      ctx.strokeStyle='rgba(240,150,200,0.3)';ctx.lineWidth=1;ctx.beginPath();ctx.roundRect(bx,by,pw-40,52,12);ctx.stroke();
+      ctx.font='22px serif';ctx.textAlign='left';ctx.fillText(meta.icon||'📦',bx+10,by+36);
+      txt(meta.name,bx+44,by+26,13,'#904060');
+      txt(`보유: ${qty}개`,bx+44,by+44,12,'#b08090');
+      txt(`${meta.sell}G/개`,bx+200,by+35,13,'#c06090');
+      rr(bx+pw-124,by+10,46,30,15,'#f8a030');
+      txt('1개',bx+pw-101,by+30,13,'#fff','center');
+      rr(bx+pw-74,by+10,46,30,15,'#f87098');
+      txt('전부',bx+pw-51,by+30,13,'#fff','center');
       if(!GS._sellBtns)GS._sellBtns=[];
-      GS._sellBtns.push({x:bx+pw-120,y:by+8,w:48,h:34,key,qty:1});
-      GS._sellBtns.push({x:bx+pw-68,y:by+8,w:48,h:34,key,qty});
+      GS._sellBtns.push({x:bx+pw-124,y:by+10,w:46,h:30,key,qty:1});
+      GS._sellBtns.push({x:bx+pw-74,y:by+10,w:46,h:30,key,qty});
       row++;
     });
-    if(row===0)txt('판매할 수 있는 아이템이 없습니다.',px+pw/2,py+200,15,'#666','center');
+    if(row===0)txt('판매할 수 있는 아이템이 없어요 🌸',px+pw/2,py+200,15,'#b090a0','center');
   }
 
   // Close button
-  rr(px+pw-44,py+8,32,32,8,'#C0392B');
-  txtShadow('✕',px+pw-28,py+30,18,'#fff','rgba(0,0,0,0.4)','center');
-  GS._closeShopBtn={x:px+pw-44,y:py+8,w:32,h:32};
+  rr(px+pw-44,py+10,30,30,15,'#f87098');
+  txtShadow('✕',px+pw-29,py+30,16,'#fff','rgba(0,0,0,0.2)','center');
+  GS._closeShopBtn={x:px+pw-44,y:py+10,w:30,h:30};
 
   // Money display
-  rr(px+pw-200,py+ph-44,190,36,10,'#1E0E06');
-  txt(`💰 보유: ${GS.money.toLocaleString()}G`,px+pw-105,py+ph-20,15,'#FFD700','center');
+  ctx.fillStyle='rgba(255,220,240,0.85)';ctx.beginPath();ctx.roundRect(px+pw-204,py+ph-46,194,34,17);ctx.fill();
+  ctx.fillStyle='#c04080';ctx.font='bold 15px "Malgun Gothic"';ctx.textAlign='center';
+  ctx.fillText(`💰 보유: ${GS.money.toLocaleString()}G`,px+pw-107,py+ph-22);
 }
 
 // ── INVENTORY UI ───────────────────────────────
 function renderInventory(){
   const pw=500,ph=420;
   const ipx=(W-pw)/2,ipy=(H-ph)/2;
-  ctx.fillStyle='rgba(0,0,0,0.6)';ctx.fillRect(0,0,W,H);
-  rr(ipx,ipy,pw,ph,16,'#2C1A0E');
-  rr(ipx+2,ipy+2,pw-4,ph-4,14,'#3D2518');
-  rr(ipx,ipy,pw,48,14,'#7B4220');
-  txtShadow('🎒 인벤토리',ipx+pw/2,ipy+32,22,'#FFE08A','rgba(0,0,0,0.5)','center');
+  ctx.fillStyle='rgba(0,0,0,0.4)';ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='rgba(255,235,248,0.97)';ctx.beginPath();ctx.roundRect(ipx,ipy,pw,ph,20);ctx.fill();
+  ctx.strokeStyle='rgba(240,150,200,0.5)';ctx.lineWidth=2;ctx.beginPath();ctx.roundRect(ipx,ipy,pw,ph,20);ctx.stroke();
+  rr(ipx,ipy,pw,52,20,'#f87098');
+  ctx.fillStyle='rgba(255,180,210,0.3)';ctx.fillRect(ipx,ipy+40,pw,12);
+  txtShadow('🎒 인벤토리',ipx+pw/2,ipy+34,22,'#fff','rgba(200,50,100,0.3)','center');
 
   let idx=0;
   Object.entries(GS.inv).forEach(([key,qty])=>{
     if(qty<=0)return;
     const meta=ITEM_META[key];if(!meta)return;
     const cx=idx%6,cy=Math.floor(idx/6);
-    const bx=ipx+16+cx*78,by=ipy+58+cy*78;
+    const bx=ipx+16+cx*78,by=ipy+60+cy*78;
     if(by>ipy+ph-60){idx++;return}
-    rr(bx,by,70,70,10,'#1E0E06');
-    rr(bx+2,by+2,66,66,8,'#2A1408');
+    ctx.fillStyle='rgba(255,220,240,0.7)';ctx.beginPath();ctx.roundRect(bx,by,70,70,12);ctx.fill();
+    ctx.strokeStyle='rgba(240,160,200,0.35)';ctx.lineWidth=1;ctx.beginPath();ctx.roundRect(bx,by,70,70,12);ctx.stroke();
     ctx.font='28px serif';ctx.textAlign='center';ctx.textBaseline='middle';
     ctx.fillText(meta.icon||'📦',bx+35,by+30);
     ctx.textBaseline='alphabetic';
-    rr(bx+34,by+46,32,18,6,'rgba(0,0,0,0.7)');
-    txt(`x${qty}`,bx+50,by+60,12,'#FFE08A','center');
-    // Tooltip on hover handled separately
+    ctx.fillStyle='rgba(255,200,230,0.9)';ctx.beginPath();ctx.roundRect(bx+34,by+48,32,16,8);ctx.fill();
+    ctx.fillStyle='#c04080';ctx.font='bold 10px "Malgun Gothic"';ctx.textAlign='center';
+    ctx.fillText(`x${qty}`,bx+50,by+61);
     idx++;
   });
-  if(idx===0)txt('아직 아이템이 없습니다.',ipx+pw/2,ipy+200,15,'#666','center');
+  if(idx===0){ctx.fillStyle='#c090b0';ctx.font='14px "Malgun Gothic"';ctx.textAlign='center';ctx.fillText('아직 아이템이 없어요 🌸',ipx+pw/2,ipy+200);}
 
-  rr(ipx+pw-44,ipy+8,32,32,8,'#C0392B');
-  txtShadow('✕',ipx+pw-28,ipy+30,18,'#fff','rgba(0,0,0,0.4)','center');
-  GS._closeInvBtn={x:ipx+pw-44,y:ipy+8,w:32,h:32};
+  rr(ipx+pw-44,ipy+10,30,30,15,'#f87098');
+  txtShadow('✕',ipx+pw-29,ipy+30,16,'#fff','rgba(0,0,0,0.2)','center');
+  GS._closeInvBtn={x:ipx+pw-44,y:ipy+10,w:30,h:30};
 }
 
 // ── DIALOG UI ──────────────────────────────────
 function renderDialog(){
   const d=GS.dialog;if(!d)return;
   const npc=GS.npcs[d.npcIdx];
-  const outfit=NPC_OUTFITS[d.npcIdx];
-  const pw=W*0.55,ph=130;
-  const dpx=(W-pw)/2,dpy=H-ph-16;
+  const style=NPC_STYLES[d.npcIdx];
+  const pw=W*0.55,ph=136;
+  const dpx=(W-pw)/2,dpy=H-ph-18;
 
-  rr(dpx,dpy,pw,ph,14,'rgba(20,10,5,0.92)');
-  rr(dpx+2,dpy+2,pw-4,ph-4,12,'rgba(45,25,10,0.95)');
-  rr(dpx,dpy,pw,40,12,outfit.body);
-  txtShadow(npc.name,dpx+16,dpy+28,17,'#fff','rgba(0,0,0,0.4)');
-  txt('[ Space / Enter = 다음 ]',dpx+pw-12,dpy+28,12,'rgba(255,255,255,0.5)','right');
+  // Main bubble
+  ctx.fillStyle='rgba(255,240,250,0.97)';ctx.beginPath();ctx.roundRect(dpx,dpy,pw,ph,18);ctx.fill();
+  ctx.strokeStyle=style.bow+'90';ctx.lineWidth=2;ctx.beginPath();ctx.roundRect(dpx,dpy,pw,ph,18);ctx.stroke();
+
+  // Name badge
+  ctx.fillStyle=style.dress;ctx.beginPath();ctx.roundRect(dpx+14,dpy-14,90,28,14);ctx.fill();
+  ctx.strokeStyle=style.bow;ctx.lineWidth=1.5;ctx.beginPath();ctx.roundRect(dpx+14,dpy-14,90,28,14);ctx.stroke();
+  ctx.fillStyle='#fff';ctx.font='bold 14px "Malgun Gothic"';ctx.textAlign='left';ctx.fillText(npc.name,dpx+22,dpy+6);
+
+  // Hint
+  ctx.font='11px "Malgun Gothic"';ctx.fillStyle='rgba(180,120,160,0.7)';ctx.textAlign='right';
+  ctx.fillText('Space / Enter 다음',dpx+pw-14,dpy+20);
+
+  // Dialog text
   const line=d.lines[d.page]||'';
-  txt(line,dpx+16,dpy+72,15,'#FFE0C0');
+  ctx.fillStyle='#6040608';ctx.font='15px "Malgun Gothic"';ctx.textAlign='left';
+  // Word wrap basic
+  const words=line.split('');let row='';let rowY=dpy+62;
+  for(const ch of words){
+    const test=row+ch;
+    if(ctx.measureText(test).width>pw-36){ctx.fillText(row,dpx+18,rowY);row=ch;rowY+=24}
+    else row=test;
+  }
+  ctx.fillText(row,dpx+18,rowY);
+
+  // Next arrow
   if(d.page<d.lines.length-1){
-    ctx.fillStyle='#FFE08A';ctx.font='20px serif';ctx.textAlign='right';
-    ctx.fillText('▶',dpx+pw-16,dpy+ph-14);
+    ctx.fillStyle=style.bow;ctx.font='20px serif';ctx.textAlign='right';ctx.fillText('▶',dpx+pw-14,dpy+ph-14);
+  } else {
+    ctx.fillStyle='rgba(180,120,160,0.5)';ctx.font='12px "Malgun Gothic"';ctx.textAlign='right';
+    ctx.fillText('[ 닫기 ]',dpx+pw-14,dpy+ph-14);
   }
 }
 
-// ── HUD ────────────────────────────────────────
+// ── HUD — Kawaii Pastel UI ──────────────────────
 function renderHUD(){
-  const p=SPAL[GS.season];
-  // Top bar
-  rr(0,0,W,48,0,'rgba(0,0,0,0.55)');
+  // Top bar — soft frosted glass
+  ctx.fillStyle='rgba(255,230,245,0.78)';ctx.fillRect(0,0,W,52);
+  ctx.fillStyle='rgba(220,150,190,0.3)';ctx.fillRect(0,50,W,2);
 
-  // Day/Season/Year
-  txt(`${GS.year}년 ${SEASONS[GS.season]} ${GS.day}일`,12,32,17,'#FFE08A');
+  // Season icon + Day
+  const sdi=['🌸','☀️','🍂','❄️'][GS.season];
+  ctx.font='20px serif';ctx.textAlign='left';ctx.fillText(sdi,10,34);
+  txtShadow(`${GS.year}년 ${SEASONS[GS.season]} ${GS.day}일`,38,32,15,'#c04080','rgba(255,200,220,0.5)');
 
   // Time
   const h=GS.hour%24,m=GS.minute;
   const ts=`${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}`;
-  txt(ts,180,32,17,'#C8E0FF');
+  rr(190,8,76,34,17,'rgba(255,200,230,0.7)');
+  txtShadow(ts,228,30,16,'#a030a0','rgba(255,180,220,0.4)','center');
 
   // Weather
   const wi={sunny:'☀️',rain:'🌧️'}[GS.weather];
-  txt(wi,240,30,22);
+  ctx.font='18px serif';ctx.textAlign='left';ctx.fillText(wi,278,32);
 
-  // Money
-  txt(`💰 ${GS.money.toLocaleString()}G`,W/2-60,32,17,'#FFD700','center');
+  // Money — cute coin bubble
+  const moneyStr=`💰 ${GS.money.toLocaleString()}G`;
+  ctx.font='bold 15px "Malgun Gothic"';ctx.textAlign='center';
+  const mw=ctx.measureText(moneyStr).width+24;
+  rr(W/2-mw/2,8,mw,34,17,'rgba(255,220,180,0.8)');
+  ctx.strokeStyle='rgba(240,180,80,0.5)';ctx.lineWidth=1.5;ctx.beginPath();ctx.roundRect(W/2-mw/2,8,mw,34,17);ctx.stroke();
+  txtShadow(moneyStr,W/2,30,15,'#b06000','rgba(255,200,100,0.4)','center');
 
   // Energy bar
-  const eW=140,eH=16;
-  const ex=W-eW-160,ey=14;
-  rr(ex-2,ey-2,eW+4,eH+4,8,'rgba(0,0,0,0.5)');
-  rr(ex,ey,eW,eH,6,'#1A0A00');
+  const eW=130,eH=14;
+  const ex=W-eW-170,ey=10;
+  ctx.fillStyle='rgba(255,200,230,0.7)';ctx.beginPath();ctx.roundRect(ex-2,ey-2,eW+4+50,eH+6,10);ctx.fill();
+  rr(ex,ey,eW,eH,7,'rgba(255,180,210,0.4)');
   const ep=GS.energy/MAX_E;
-  const ec=ep>0.6?'#4CAF50':ep>0.3?'#FF9800':'#E53935';
-  rr(ex,ey,eW*ep,eH,6,ec);
-  txt(`⚡ ${GS.energy}`,ex+eW+6,ey+13,13,'#C8E0C8');
+  const ec=ep>0.6?'#f060a0':ep>0.3?'#ff9858':'#ff4060';
+  rr(ex,ey,Math.max(0,eW*ep),eH,7,ec);
+  ctx.fillStyle='rgba(255,255,255,0.5)';ctx.beginPath();ctx.roundRect(ex,ey,Math.max(0,eW*ep)*0.5,eH*0.45,5);ctx.fill();
+  ctx.font='11px "Malgun Gothic"';ctx.textAlign='left';ctx.fillStyle='#a03060';ctx.fillText(`⚡${GS.energy}`,ex+eW+6,ey+12);
 
-  // Water can
-  const wx2=W-eW-160,wy=34;
-  rr(wx2-2,wy-2,eW+4,12,6,'rgba(0,0,0,0.5)');
-  rr(wx2,wy,eW,8,4,'#1A0A00');
+  // Water bar
+  const wy=28;
+  rr(ex,wy,eW,eH-2,6,'rgba(180,210,255,0.4)');
   const wp=GS.waterCan/GS.maxWater;
-  rr(wx2,wy,eW*wp,8,4,'#2196F3');
-  txt(`💧 ${GS.waterCan}/${GS.maxWater}`,wx2+eW+6,wy+8,12,'#88C8FF');
+  rr(ex,wy,Math.max(0,eW*wp),eH-2,6,'#70b8f8');
+  ctx.fillStyle='rgba(255,255,255,0.5)';ctx.beginPath();ctx.roundRect(ex,wy,Math.max(0,eW*wp)*0.5,(eH-2)*0.45,4);ctx.fill();
+  ctx.fillStyle='#2060b0';ctx.fillText(`💧${GS.waterCan}/${GS.maxWater}`,ex+eW+6,wy+11);
 
-  // Hotbar
-  const slotSize=56,gap=4;
+  // ── Hotbar ──
+  const slotSize=54,gap=5;
   const total=GS.bar.length;
   const hbW=total*(slotSize+gap)-gap;
-  const hbX=(W-hbW)/2,hbY=H-slotSize-12;
+  const hbX=(W-hbW)/2,hbY=H-slotSize-14;
 
-  rr(hbX-8,hbY-8,hbW+16,slotSize+16,12,'rgba(0,0,0,0.65)');
+  // Hotbar background — frosted pink
+  ctx.fillStyle='rgba(255,220,240,0.82)';ctx.beginPath();ctx.roundRect(hbX-10,hbY-8,hbW+20,slotSize+16,18);ctx.fill();
+  ctx.strokeStyle='rgba(220,150,190,0.5)';ctx.lineWidth=1.5;ctx.beginPath();ctx.roundRect(hbX-10,hbY-8,hbW+20,slotSize+16,18);ctx.stroke();
 
   GS.bar.forEach((key,i)=>{
     const bx=hbX+i*(slotSize+gap),by=hbY;
     const sel=i===GS.slot;
-    rr(bx,by,slotSize,slotSize,10,sel?'#7B4220':'#1A0A00');
-    rr(bx+2,by+2,slotSize-4,slotSize-4,8,sel?'#3D2010':'#100600');
+    ctx.fillStyle=sel?'rgba(255,150,200,0.5)':'rgba(255,255,255,0.4)';
+    ctx.beginPath();ctx.roundRect(bx,by,slotSize,slotSize,12);ctx.fill();
     if(sel){
-      ctx.strokeStyle='#FFD700';ctx.lineWidth=2.5;
-      ctx.beginPath();ctx.roundRect(bx,by,slotSize,slotSize,10);ctx.stroke();
+      ctx.strokeStyle='#f050a0';ctx.lineWidth=2.5;
+      ctx.beginPath();ctx.roundRect(bx,by,slotSize,slotSize,12);ctx.stroke();
+      // Cute glow below selected
+      ctx.fillStyle='rgba(240,80,160,0.2)';ctx.beginPath();ctx.ellipse(bx+slotSize/2,by+slotSize+4,18,5,0,0,Math.PI*2);ctx.fill();
     }
     if(key){
       const meta=ITEM_META[key];
       const ic=meta?.icon||'📦';
       ctx.font='26px serif';ctx.textAlign='center';ctx.textBaseline='middle';
-      ctx.fillText(ic,bx+slotSize/2,by+slotSize/2-4);
+      ctx.fillText(ic,bx+slotSize/2,by+slotSize/2-3);
       ctx.textBaseline='alphabetic';
-      if(GS.inv[key]!==undefined){
-        rr(bx+32,by+36,20,16,4,'rgba(0,0,0,0.7)');
-        txt(`${GS.inv[key]||0}`,bx+42,by+49,11,'#FFE08A','center');
+      if(GS.inv[key]!==undefined&&GS.inv[key]>0){
+        ctx.fillStyle='rgba(255,220,240,0.9)';ctx.beginPath();ctx.roundRect(bx+slotSize-20,by+slotSize-18,20,14,6);ctx.fill();
+        ctx.font='bold 10px "Malgun Gothic"';ctx.textAlign='center';ctx.fillStyle='#c04080';
+        ctx.fillText(GS.inv[key],bx+slotSize-10,by+slotSize-7);
       }
     }
-    // Number key
-    txt(`${i+1}`,bx+4,by+14,11,'rgba(255,255,255,0.3)');
+    // Number hint
+    ctx.font='10px "Malgun Gothic"';ctx.textAlign='left';ctx.fillStyle='rgba(180,100,140,0.5)';
+    ctx.fillText(i+1,bx+4,by+14);
   });
 
   // Notifications
   GS.notes.forEach((n,i)=>{
-    const ny=H-slotSize-44-i*34;
+    const ny=H-slotSize-50-i*36;
+    ctx.font='14px "Malgun Gothic"';
     const nw=ctx.measureText(n.txt).width+32;
-    ctx.font='15px "Malgun Gothic"';
     const opacity=Math.min(1,n.timer);
     ctx.globalAlpha=opacity;
-    rr(W/2-nw/2,ny-22,nw,28,10,'rgba(0,0,0,0.75)');
-    ctx.strokeStyle=n.col;ctx.lineWidth=1.5;
-    ctx.beginPath();ctx.roundRect(W/2-nw/2,ny-22,nw,28,10);ctx.stroke();
-    txt(n.txt,W/2,ny,15,n.col,'center');
+    ctx.fillStyle='rgba(255,240,248,0.92)';ctx.beginPath();ctx.roundRect(W/2-nw/2,ny-22,nw,28,14);ctx.fill();
+    ctx.strokeStyle=n.col;ctx.lineWidth=1.5;ctx.beginPath();ctx.roundRect(W/2-nw/2,ny-22,nw,28,14);ctx.stroke();
+    ctx.fillStyle=n.col;ctx.textAlign='center';ctx.fillText(n.txt,W/2,ny);
     ctx.globalAlpha=1;
   });
 
-  // Sleep button hint
-  if(GS.hour>=20&&!GS.sleeping){
-    const sw=180;
-    rr(W-sw-12,H-60,sw,36,10,'rgba(0,0,0,0.7)');
-    ctx.strokeStyle='#A0C4FF';ctx.lineWidth=1;
-    ctx.beginPath();ctx.roundRect(W-sw-12,H-60,sw,36,10);ctx.stroke();
-    txt('Z — 수면하기 💤',W-sw/2-12,H-36,14,'#A0C4FF','center');
+  // Sleep hint
+  if(GS.hour%24>=20&&!GS.sleeping){
+    const sw=190;
+    ctx.fillStyle='rgba(200,180,240,0.85)';ctx.beginPath();ctx.roundRect(W-sw-14,H-62,sw,38,19);ctx.fill();
+    ctx.strokeStyle='rgba(180,140,220,0.6)';ctx.lineWidth=1.5;ctx.beginPath();ctx.roundRect(W-sw-14,H-62,sw,38,19);ctx.stroke();
+    ctx.fillStyle='#8050b0';ctx.font='13px "Malgun Gothic"';ctx.textAlign='center';
+    ctx.fillText('Z — 수면하기 💤',W-sw/2-14,H-38);
   }
 
-  // Quest indicator
+  // Quest panel
   const activeQ=GS.quests.find(q=>!q.done);
   if(activeQ){
-    const qw=240;
-    rr(W-qw-12,56,qw,56,10,'rgba(0,0,0,0.65)');
-    txt('📋 현재 퀘스트',W-qw-12+8,74,12,'#FFD700');
-    txt(activeQ.title,W-qw-12+8,90,13,'#FFE08A');
+    const qw=230;
+    ctx.fillStyle='rgba(255,230,248,0.88)';ctx.beginPath();ctx.roundRect(W-qw-14,58,qw,60,14);ctx.fill();
+    ctx.strokeStyle='rgba(220,150,200,0.5)';ctx.lineWidth=1.5;ctx.beginPath();ctx.roundRect(W-qw-14,58,qw,60,14);ctx.stroke();
+    ctx.fillStyle='#b03080';ctx.font='bold 12px "Malgun Gothic"';ctx.textAlign='left';ctx.fillText('📋 '+activeQ.title,W-qw-6,76);
+    ctx.fillStyle='#808090';ctx.font='11px "Malgun Gothic"';ctx.fillText(activeQ.desc,W-qw-6,92);
     const prog=Math.min(activeQ.prog,activeQ.target);
-    txt(`${prog}/${activeQ.target}`,W-qw-12+8,106,12,'#A0C8A0');
-    // Progress bar
     const qpW=qw-16;
-    rr(W-qw-4,110,qpW,8,4,'#1A0A00');
-    rr(W-qw-4,110,qpW*(prog/activeQ.target),8,4,'#4CAF50');
+    ctx.fillStyle='rgba(220,180,220,0.4)';ctx.beginPath();ctx.roundRect(W-qw-6,100,qpW,8,4);ctx.fill();
+    ctx.fillStyle='#f060a0';ctx.beginPath();ctx.roundRect(W-qw-6,100,qpW*(prog/activeQ.target),8,4);ctx.fill();
+    ctx.fillStyle='#b03080';ctx.font='10px "Malgun Gothic"';ctx.fillText(`${prog}/${activeQ.target}`,W-qw-6+qpW+4,108);
   }
-
-  // Season decorations (corner)
-  const sdi=['🌸','🌻','🍂','❄️'][GS.season];
-  ctx.font='22px serif';ctx.textAlign='left';ctx.fillText(sdi,W-46,32);
 }
 
 // ── SLEEP SCREEN ───────────────────────────────
@@ -1350,58 +1626,118 @@ function renderWorld(){
   }
 }
 
-// ── SKY BACKGROUND ─────────────────────────────
+// ── SKY BACKGROUND — Kawaii Pastel ─────────────
 function renderSky(){
   const p=SPAL[GS.season];
-  const h=GS.hour;
-  // Color based on time
-  let t;
-  if(h>=6&&h<=8)t=(h-6)/2;
-  else if(h>8&&h<=17)t=1;
-  else if(h>17&&h<=20)t=1-(h-17)/3;
-  else t=0;
+  const h=GS.hour%24;
 
-  const dawn=`#1a0020`,day=p.sky,dusk='#FF8C42';
-  // Simple: use sky color based on time
-  const skyC=h<7?'#1a0020':h<9?p.sky2:h<18?p.sky:h<20?'#FF8C42':'#1a0020';
-  ctx.fillStyle=skyC;ctx.fillRect(0,0,W,H);
+  // Gradient sky by time
+  const SKY={
+    day:p.sky, dawn:p.sky2, dusk:'#f8c0d8', night:'#2a1a3e'
+  };
+  let skyTop,skyBot;
+  if(h>=6&&h<8){skyTop=SKY.dawn;skyBot=p.sky2}
+  else if(h>=8&&h<18){skyTop=p.sky;skyBot=p.sky+'cc'}
+  else if(h>=18&&h<20){skyTop='#f8a0c0';skyBot='#f0c0e0'}
+  else{skyTop='#2a1a3e';skyBot='#3a2050'}
 
-  // Stars at night
-  if(h<6||h>=21){
-    ctx.fillStyle='rgba(255,255,255,0.7)';
-    for(let i=0;i<80;i++){
-      const sx=(i*173)%W,sy=(i*97)%H*0.6;
-      const sz=Math.sin(animFrame*0.03+i)*0.4+0.6;
-      ctx.globalAlpha=sz*0.8;
-      ctx.fillRect(sx,sy,1.5,1.5);
+  const skyG=ctx.createLinearGradient(0,0,0,H*0.7);
+  skyG.addColorStop(0,skyTop);skyG.addColorStop(1,skyBot);
+  ctx.fillStyle=skyG;ctx.fillRect(0,0,W,H);
+
+  // Stars / sparkles at night
+  if(h<6||h>=20){
+    for(let i=0;i<100;i++){
+      const sx=(i*173+31)%W,sy=(i*97+17)%(H*0.65);
+      const pulse=Math.sin(animFrame*0.04+i*0.7)*0.4+0.6;
+      ctx.globalAlpha=pulse*0.9;
+      // Cute star shape
+      if(i%4===0){ctx.fillStyle='#ffe8ff';ctx.font='10px serif';ctx.textAlign='center';ctx.fillText('✦',sx,sy)}
+      else{ctx.fillStyle='#ffffff';ctx.fillRect(sx,sy,1.5,1.5)}
     }
     ctx.globalAlpha=1;
-  }
-
-  // Sun/Moon
-  if(h>=7&&h<=19){
-    const sunX=W*(h-7)/12,sunY=H*0.15-Math.sin(Math.PI*(h-7)/12)*H*0.08;
-    const sunG=ctx.createRadialGradient(sunX,sunY,4,sunX,sunY,22);
-    sunG.addColorStop(0,'#FFF176');sunG.addColorStop(1,'rgba(255,200,50,0)');
-    ctx.fillStyle=sunG;ctx.beginPath();ctx.arc(sunX,sunY,22,0,Math.PI*2);ctx.fill();
-    circ(sunX,sunY,12,'#FFD740');
+    // Moon — cute crescent with face
+    const moonX=W*0.82,moonY=H*0.14;
+    circ(moonX,moonY,18,'#fff8d0');
+    circ(moonX+7,moonY-4,14,'#2a1a3e'); // crescent cut
+    ctx.fillStyle='rgba(255,220,100,0.6)';
+    circ(moonX-4,moonY+6,2,'rgba(200,180,80,0.5)');// face dot
+    ctx.strokeStyle='rgba(200,180,80,0.6)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.arc(moonX-6,moonY+8,3,0.2,Math.PI-0.2);ctx.stroke();
   } else {
-    const moonX=W*0.8,moonY=H*0.12;
-    circ(moonX,moonY,14,'#E8E0C8');
-    circ(moonX+4,moonY-2,11,'#1a0020'); // crescent
+    // Sun — cute round with rays
+    const sunX=W*(h-6)/14,sunY=H*0.14-Math.sin(Math.PI*(h-6)/14)*H*0.06;
+    // Glow
+    const sg=ctx.createRadialGradient(sunX,sunY,8,sunX,sunY,40);
+    sg.addColorStop(0,'rgba(255,230,100,0.6)');sg.addColorStop(1,'rgba(255,200,80,0)');
+    ctx.fillStyle=sg;ctx.beginPath();ctx.arc(sunX,sunY,40,0,Math.PI*2);ctx.fill();
+    circ(sunX,sunY,18,'#FFE050');
+    circ(sunX,sunY,14,'#FFF080');
+    // Cute sun rays
+    ctx.strokeStyle='#FFD030';ctx.lineWidth=3;ctx.lineCap='round';
+    for(let i=0;i<8;i++){
+      const a=i*Math.PI/4+animFrame*0.01;
+      ctx.beginPath();ctx.moveTo(sunX+Math.cos(a)*22,sunY+Math.sin(a)*22);
+      ctx.lineTo(sunX+Math.cos(a)*30,sunY+Math.sin(a)*30);ctx.stroke();
+    }
+    ctx.lineCap='butt';
+    // Cute sun face
+    circ(sunX-5,sunY-3,2.5,'#b06000');circ(sunX+5,sunY-3,2.5,'#b06000');
+    ctx.strokeStyle='#b06000';ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.arc(sunX,sunY+3,4,0.1,Math.PI-0.1);ctx.stroke();
   }
 
-  // Clouds
-  if(GS.weather==='rain'||GS.weather==='cloudy'||h<20){
-    const nc=GS.weather==='rain'?6:3;
-    for(let i=0;i<nc;i++){
-      const cx2=(i*300+animFrame*0.3*(i%2===0?1:-0.5))%W;
-      const cy2=40+i*25;
-      const cc=GS.weather==='rain'?'rgba(100,120,140,0.7)':'rgba(255,255,255,0.5)';
-      [0,20,36,50,64,78].forEach((ox,j)=>{
-        circ(cx2+ox,cy2+[0,10,5,-2,8,2][j],18+j%3*4,cc);
-      });
+  // Clouds — fluffy kawaii
+  const nc=GS.weather==='rain'?8:4;
+  const cloudCol=GS.weather==='rain'?'rgba(160,140,200,0.75)':'rgba(255,255,255,0.78)';
+  for(let i=0;i<nc;i++){
+    const spd=(i%2===0?0.25:-0.18)*(1+i*0.05);
+    const cx2=((i*340+animFrame*spd)%( W+120))-60;
+    const cy2=50+i*22+(i%2)*12;
+    const puffs=[0,22,40,56,70,84];
+    const hs=[0,12,6,-2,9,4];
+    puffs.forEach((ox,j)=>circ(cx2+ox,cy2+hs[j],22-j%3*2,cloudCol));
+    // Cute face on one cloud per group
+    if(i===0){
+      ctx.fillStyle='rgba(180,140,200,0.5)';
+      circ(cx2+20,cy2,2,'rgba(180,140,200,0.5)');circ(cx2+36,cy2,2,'rgba(180,140,200,0.5)');
+      ctx.strokeStyle='rgba(180,140,200,0.5)';ctx.lineWidth=1.5;
+      ctx.beginPath();ctx.arc(cx2+28,cy2+4,4,0.1,Math.PI-0.1);ctx.stroke();
     }
+  }
+
+  // Rain drops (kawaii teardrop shape)
+  if(GS.weather==='rain'){
+    ctx.fillStyle='rgba(180,210,255,0.55)';
+    RAIN.forEach(r=>{
+      ctx.beginPath();ctx.moveTo(r.x,r.y-8);ctx.quadraticCurveTo(r.x+3,r.y-3,r.x,r.y+2);
+      ctx.quadraticCurveTo(r.x-3,r.y-3,r.x,r.y-8);ctx.fill();
+    });
+  }
+
+  // Sakura petals (spring only, always)
+  if(GS.season===0){
+    ctx.fillStyle='rgba(255,180,210,0.6)';
+    for(let i=0;i<20;i++){
+      const px2=((i*217+animFrame*(0.5+i*0.03))%(W+60))-30;
+      const py2=((i*113+animFrame*(1+i*0.02))%(H*0.8));
+      const pa=Math.sin(animFrame*0.03+i)*0.5;
+      ctx.save();ctx.translate(px2,py2);ctx.rotate(pa);
+      ctx.beginPath();ctx.ellipse(0,0,5,3,0,0,Math.PI*2);ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  // Snowflakes (winter)
+  if(GS.season===3){
+    ctx.fillStyle='rgba(220,230,255,0.7)';ctx.font='12px serif';ctx.textAlign='center';
+    for(let i=0;i<15;i++){
+      const px2=((i*197+animFrame*(0.4+i*0.02))%(W+60))-30;
+      const py2=((i*131+animFrame*(0.8+i*0.015))%(H*0.8));
+      ctx.globalAlpha=0.5+Math.sin(animFrame*0.04+i)*0.3;
+      ctx.fillText('❄',px2,py2);
+    }
+    ctx.globalAlpha=1;
   }
 }
 
@@ -1415,14 +1751,14 @@ function render(){
   GS.animals.forEach(a=>drawAnimal(a,animFrame));
 
   // Draw NPCs
-  GS.npcs.forEach((n,i)=>drawNPC(n,NPC_OUTFITS[i],animFrame));
+  GS.npcs.forEach((n,i)=>drawNPC(n,NPC_STYLES[i],animFrame));
 
   // Draw player
   drawPlayer(GS.px-camX(),GS.py-camY(),GS.dir,GS.moving,animFrame);
 
   // Draw particles
   drawParticles();
-  drawRain();
+  // Rain is drawn inside renderSky() already
 
   // Facing tile highlight
   if(!GS.dialog&&!GS.shopOpen&&!GS.invOpen){
