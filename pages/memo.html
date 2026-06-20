@@ -527,7 +527,7 @@
     </div>
 
     <!-- Editor content (hidden until note selected) -->
-    <div id="editorContent" style="display:none; flex-direction:column; flex:1; overflow:hidden; display:none;">
+    <div id="editorContent" style="display:none;">
       <!-- Top bar -->
       <div class="editor-topbar">
         <div class="md-toolbar" id="mdToolbar">
@@ -1007,10 +1007,9 @@ function handleTabKey(e) {
    EXPORT
 ══════════════════════════════════════════════ */
 function exportMd() {
-  const note = notes.find(n => n.id === activeId);
-  if (!note) return;
-  const filename = (note.title || '메모') + '.md';
-  const blob = new Blob([note.content], { type: 'text/markdown;charset=utf-8' });
+  if (!activeId) return;
+  const filename = (document.getElementById('titleInput').value.trim() || '메모') + '.md';
+  const blob = new Blob([document.getElementById('mdEditor').value], { type: 'text/markdown;charset=utf-8' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = filename;

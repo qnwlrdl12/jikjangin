@@ -268,7 +268,7 @@
           <textarea id="f-todo-desc" placeholder="설명 (선택)"></textarea>
           <div class="form-row">
             <select id="f-todo-priority">
-              <option value="medium">우선순위</option>
+              <option value="">우선순위</option>
               <option value="high">🔴 높음</option>
               <option value="medium">🟠 보통</option>
               <option value="low">🟢 낮음</option>
@@ -297,7 +297,7 @@
           <textarea id="f-doing-desc" placeholder="설명 (선택)"></textarea>
           <div class="form-row">
             <select id="f-doing-priority">
-              <option value="medium">우선순위</option>
+              <option value="">우선순위</option>
               <option value="high">🔴 높음</option>
               <option value="medium">🟠 보통</option>
               <option value="low">🟢 낮음</option>
@@ -326,7 +326,7 @@
           <textarea id="f-done-desc" placeholder="설명 (선택)"></textarea>
           <div class="form-row">
             <select id="f-done-priority">
-              <option value="medium">우선순위</option>
+              <option value="">우선순위</option>
               <option value="high">🔴 높음</option>
               <option value="medium">🟠 보통</option>
               <option value="low">🟢 낮음</option>
@@ -458,7 +458,7 @@ function closeForm(col) {
   // Reset fields
   document.getElementById('f-' + col + '-title').value    = '';
   document.getElementById('f-' + col + '-desc').value     = '';
-  document.getElementById('f-' + col + '-priority').value = 'medium';
+  document.getElementById('f-' + col + '-priority').value = '';
   document.getElementById('f-' + col + '-due').value      = '';
 }
 
