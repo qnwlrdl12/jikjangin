@@ -33,6 +33,8 @@
     .cell.mine-boom{background:radial-gradient(circle,#ff6b35,#ff0000);box-shadow:0 0 16px #ff4444;animation:boom .3s ease}
     .cell.mine-show{background:#1a0a0a}
     @keyframes boom{0%{transform:scale(1)}50%{transform:scale(1.4)}100%{transform:scale(1)}}
+    @keyframes cellReveal{0%{transform:scale(1.15);filter:brightness(2.8)}60%{transform:scale(.95)}100%{transform:scale(1);filter:brightness(1)}}
+    .cell-reveal{animation:cellReveal .18s ease-out forwards}
     .n1{color:#4ECDC4}.n2{color:#2ecc71}.n3{color:#FF6B35}.n4{color:#9b59b6}
     .n5{color:#e74c3c}.n6{color:#1abc9c}.n7{color:#f39c12}.n8{color:#ecf0f1}
     .res-msg{text-align:center;margin-top:12px;font-size:1.1rem;font-weight:700;padding:16px 12px;border-radius:10px;display:none}
@@ -92,8 +94,8 @@ const DIFFS=[
   {rows:16,cols:30,mines:99,label:'고급'},
 ];
 let diffIdx=0,rows,cols,mines;
-let cells=[],revealed=[],flagged=[],minePos=[];
-let gameState='idle'; // idle, playing, win, lose
+let cells=[],revealed=[],flagged=[],minePos=[],cellEls=[];
+let gameState='idle';
 let firstClick=true,boomIdx=-1;
 let timerEl,timerVal=0,timerInt=null;
 
@@ -135,10 +137,10 @@ function initBoard(){
   document.getElementById('faceBtn').textContent='😊';
   document.getElementById('resMsg').style.display='none';
   gameState='idle';firstClick=true;
-  cells=[];revealed=[];flagged=[];minePos=[];
+  cells=[];revealed=[];flagged=[];minePos=[];cellEls=[];
   for(let i=0;i<rows*cols;i++){revealed.push(false);flagged.push(false);}
   document.getElementById('mineCount').textContent=mines;
-  render();updateBestRow();
+  buildBoard();updateBestRow();
 }
 
 function placeMines(safeIdx){
@@ -162,12 +164,25 @@ function getNeighbors(r,c){
 function countAround(r,c){return getNeighbors(r,c).filter(i=>minePos.includes(i)).length;}
 function countFlags(r,c){return getNeighbors(r,c).filter(i=>flagged[i]).length;}
 
-function reveal(r,c,animate=false){
-  const idx=r*cols+c;
-  if(revealed[idx]||flagged[idx])return;
-  revealed[idx]=true;
-  const n=countAround(r,c);
-  if(n===0){getNeighbors(r,c).forEach(ni=>reveal(Math.floor(ni/cols),ni%cols));}
+function revealWave(startR,startC){
+  const queue=[[startR,startC,0]];
+  const visited=new Set();
+  const toReveal=[];
+  while(queue.length){
+    const[r,c,dist]=queue.shift();
+    const idx=r*cols+c;
+    if(visited.has(idx)||revealed[idx]||flagged[idx])continue;
+    visited.add(idx);revealed[idx]=true;
+    toReveal.push({idx,dist});
+    if(countAround(r,c)===0){
+      getNeighbors(r,c).forEach(ni=>{
+        if(!visited.has(ni))queue.push([Math.floor(ni/cols),ni%cols,dist+1]);
+      });
+    }
+  }
+  const D=28;
+  toReveal.forEach(({idx,dist})=>setTimeout(()=>updateCell(idx,true),dist*D));
+  return toReveal.reduce((m,{dist})=>Math.max(m,dist),0)*D;
 }
 
 function openCell(r,c){
@@ -178,20 +193,25 @@ function openCell(r,c){
   if(firstClick){firstClick=false;placeMines(idx);startTimer();}
   if(minePos.includes(idx)){triggerBoom(r,c);return;}
   if(revealed[idx]){
-    // Chord: if flagged count matches number, reveal all unflagged neighbors
     const n=countAround(r,c);
     if(n>0&&countFlags(r,c)===n){
       let boom=false;
-      getNeighbors(r,c).forEach(ni=>{if(!flagged[ni]&&minePos.includes(ni)){boom=true;}});
+      getNeighbors(r,c).forEach(ni=>{if(!flagged[ni]&&minePos.includes(ni))boom=true;});
       if(boom){triggerBoom(r,c);return;}
       SFX.chord();
-      getNeighbors(r,c).forEach(ni=>{if(!flagged[ni]&&!revealed[ni])reveal(Math.floor(ni/cols),ni%cols);});
-      render();checkWin();return;
+      const toReveal=[];
+      getNeighbors(r,c).forEach((ni,i)=>{
+        if(!flagged[ni]&&!revealed[ni]){revealed[ni]=true;toReveal.push(ni);}
+      });
+      toReveal.forEach((ni,i)=>setTimeout(()=>updateCell(ni,true),i*30));
+      setTimeout(()=>checkWin(),toReveal.length*30+50);
+      return;
     }
     return;
   }
   SFX.open();
-  reveal(r,c);render();checkWin();
+  const maxDelay=revealWave(r,c);
+  setTimeout(()=>checkWin(),maxDelay+50);
 }
 
 function toggleFlag(r,c){
@@ -202,20 +222,18 @@ function toggleFlag(r,c){
   SFX.flag();
   const flagCount=flagged.filter(Boolean).length;
   document.getElementById('mineCount').textContent=mines-flagCount;
-  render();
+  updateCell(idx);
 }
 
 function triggerBoom(r,c){
   gameState='lose';clearInterval(timerInt);
   iAC();SFX.boom();
   document.getElementById('faceBtn').textContent='😵';
-  // Animate explosion then show all mines
   boomIdx=r*cols+c;
   revealed[boomIdx]=true;
-  render();
+  updateCell(boomIdx);
   setTimeout(()=>{
-    minePos.forEach(i=>revealed[i]=true);
-    render();
+    minePos.forEach(i=>{revealed[i]=true;updateCell(i);});
     const msg=document.getElementById('resMsg');
     msg.innerHTML='💥 펑! 지뢰를 밟았습니다.<br><button class="retry-btn" onclick="initBoard()">🔄 다시도전</button>';
     msg.className='res-msg lose';msg.style.display='block';
@@ -228,14 +246,12 @@ function checkWin(){
     gameState='win';clearInterval(timerInt);
     iAC();SFX.win();
     document.getElementById('faceBtn').textContent='🥳';
-    // Auto-flag remaining mines
-    minePos.forEach(i=>{flagged[i]=true;});
+    minePos.forEach(i=>{flagged[i]=true;updateCell(i);});
     document.getElementById('mineCount').textContent='0';
-    saveBest();spawnConfetti();render();
+    saveBest();spawnConfetti();updateBestRow();
     const msg=document.getElementById('resMsg');
     msg.innerHTML=`🎉 클리어! ${timerVal}초 · ${DIFFS[diffIdx].label}<br><button class="retry-btn" onclick="initBoard()">🔄 다시도전</button>`;
     msg.className='res-msg win';msg.style.display='block';
-    updateBestRow();
   }
 }
 
@@ -255,38 +271,44 @@ function updateBestRow(){
 
 // ── RENDER ──
 const NCOLS=['','n1','n2','n3','n4','n5','n6','n7','n8'];
-function render(){
+
+function buildBoard(){
   const board=document.getElementById('board');
-  board.innerHTML='';
+  board.innerHTML='';cellEls=[];
   for(let r=0;r<rows;r++){
     const row=document.createElement('div');row.className='row';
     for(let c=0;c<cols;c++){
-      const idx=r*cols+c;
       const cell=document.createElement('div');
-      cell.className='cell';
-      if(revealed[idx]){
-        if(minePos.includes(idx)){
-          cell.className='cell '+(idx===boomIdx?'mine-boom':'mine-show');
-          cell.textContent='💣';
-        }else{
-          cell.className='cell open';
-          const n=countAround(r,c);
-          if(n>0){cell.textContent=n;cell.classList.add(NCOLS[n]);}
-        }
-      }else if(flagged[idx]){
-        cell.className='cell flagged';cell.textContent='🚩';
-      }else{
-        cell.className='cell hidden';
-      }
+      cell.className='cell hidden';
       cell.addEventListener('click',()=>openCell(r,c));
       cell.addEventListener('contextmenu',e=>{e.preventDefault();toggleFlag(r,c);});
-      // Long press for mobile flag
       let lp;
       cell.addEventListener('touchstart',()=>{lp=setTimeout(()=>toggleFlag(r,c),500);},{passive:true});
       cell.addEventListener('touchend',()=>clearTimeout(lp),{passive:true});
-      row.appendChild(cell);
+      row.appendChild(cell);cellEls.push(cell);
     }
     board.appendChild(row);
+  }
+}
+
+function updateCell(idx,animate=false){
+  const r=Math.floor(idx/cols),c=idx%cols;
+  const el=cellEls[idx];
+  el.className='cell';el.textContent='';
+  if(revealed[idx]){
+    if(minePos.includes(idx)){
+      el.classList.add(idx===boomIdx?'mine-boom':'mine-show');
+      el.textContent='💣';
+    }else{
+      el.classList.add('open');
+      if(animate)el.classList.add('cell-reveal');
+      const n=countAround(r,c);
+      if(n>0){el.textContent=n;el.classList.add(NCOLS[n]);}
+    }
+  }else if(flagged[idx]){
+    el.classList.add('flagged');el.textContent='🚩';
+  }else{
+    el.classList.add('hidden');
   }
 }
 
