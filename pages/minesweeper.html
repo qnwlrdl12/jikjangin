@@ -35,8 +35,6 @@
     @keyframes boom{0%{transform:scale(1)}50%{transform:scale(1.4)}100%{transform:scale(1)}}
     @keyframes cellReveal{0%{transform:scale(1.15);filter:brightness(2.8)}60%{transform:scale(.95)}100%{transform:scale(1);filter:brightness(1)}}
     .cell-reveal{animation:cellReveal .18s ease-out forwards}
-    @keyframes cellPulse{0%{transform:scale(1)}40%{transform:scale(.93)}100%{transform:scale(1)}}
-    .cell-pulse{animation:cellPulse .18s ease-out forwards!important}
     .n1{color:#4ECDC4}.n2{color:#2ecc71}.n3{color:#FF6B35}.n4{color:#9b59b6}
     .n5{color:#e74c3c}.n6{color:#1abc9c}.n7{color:#f39c12}.n8{color:#ecf0f1}
     .res-msg{text-align:center;margin-top:12px;font-size:1.1rem;font-weight:700;padding:16px 12px;border-radius:10px;display:none}
@@ -187,11 +185,16 @@ function revealWave(startR,startC){
 }
 
 function pulseCell(r,c){
-  const el=cellEls[r*cols+c];
-  el.classList.remove('cell-pulse');
-  void el.offsetWidth;
-  el.classList.add('cell-pulse');
-  setTimeout(()=>el.classList.remove('cell-pulse'),200);
+  function flash(idx){
+    const el=cellEls[idx];
+    if(!el)return;
+    el.classList.remove('cell-reveal');
+    void el.offsetWidth;
+    el.classList.add('cell-reveal');
+    setTimeout(()=>el.classList.remove('cell-reveal'),220);
+  }
+  flash(r*cols+c);
+  setTimeout(()=>getNeighbors(r,c).forEach(flash),40);
 }
 
 function openCell(r,c){
