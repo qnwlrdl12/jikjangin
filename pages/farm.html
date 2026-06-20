@@ -100,8 +100,8 @@ const DEFENSE_DEFS={
   magetower:{name:'마법탑', icon:'🗼',cost:800, maxHp:120,atk:32,range:TILE*7,  delay:2,  desc:'광역 마법 공격'},
 };
 
-// House target (player house center)
-const HOUSE_X=31*TILE+24,HOUSE_Y=7*TILE+24;
+// Sacred statue inside player house (on floor tile, row 11 center)
+const HOUSE_X=31*TILE+TILE/2,HOUSE_Y=11*TILE+TILE/2;
 
 // ── CROPS ──────────────────────────────────────
 const CROPS={
@@ -1218,6 +1218,71 @@ function drawProjectile(p){
   ctx.globalAlpha=1;ctx.restore();
 }
 
+// ── SACRED STATUE ──────────────────────────────
+function drawStatue(){
+  const sx=HOUSE_X-camX(), sy=HOUSE_Y-camY();
+  if(sx<-80||sx>W+80||sy<-80||sy>H+80)return;
+  const hp=GS.farmHP/GS.farmMaxHP;
+  const pulse=0.72+0.28*Math.sin(animFrame*0.09);
+  ctx.save();ctx.translate(sx,sy);
+
+  // Shadow
+  ctx.fillStyle='rgba(0,0,0,0.22)';
+  ctx.beginPath();ctx.ellipse(0,18,16,5,0,0,Math.PI*2);ctx.fill();
+
+  // Stone pedestal
+  const baseCol=hp>0.5?'#a8b4cc':'#907880';
+  ctx.fillStyle=baseCol;
+  ctx.beginPath();ctx.roundRect(-14,6,28,15,3);ctx.fill();
+  ctx.fillStyle='rgba(255,255,255,0.18)';ctx.beginPath();ctx.roundRect(-13,7,26,5,2);ctx.fill();
+
+  // Obelisk body
+  ctx.fillStyle=hp>0.5?'#c8d2e4':'#a09098';
+  ctx.beginPath();ctx.moveTo(-8,6);ctx.lineTo(8,6);ctx.lineTo(4,-20);ctx.lineTo(-4,-20);ctx.closePath();ctx.fill();
+  ctx.fillStyle='rgba(255,255,255,0.18)';
+  ctx.beginPath();ctx.moveTo(-6,4);ctx.lineTo(-4,4);ctx.lineTo(-5,-18);ctx.closePath();ctx.fill();
+
+  // Cracks when HP low
+  if(hp<0.65){
+    const cr=Math.min(1,(0.65-hp)/0.65);
+    ctx.strokeStyle=`rgba(60,25,25,${cr*0.9})`;ctx.lineWidth=1.5;ctx.lineCap='round';
+    ctx.beginPath();ctx.moveTo(-4,-1);ctx.lineTo(2,6);ctx.lineTo(-1,12);ctx.stroke();
+    if(hp<0.35){
+      ctx.beginPath();ctx.moveTo(3,-16);ctx.lineTo(0,-9);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(-3,-12);ctx.lineTo(3,-6);ctx.stroke();
+    }
+  }
+
+  // Crystal orb glow aura
+  const gc=hp>0.6?`rgba(120,80,255,${pulse*0.42})`
+           :hp>0.3?`rgba(255,130,50,${pulse*0.55})`
+           :`rgba(255,40,40,${pulse*0.65})`;
+  const glow=ctx.createRadialGradient(0,-24,0,0,-24,20);
+  glow.addColorStop(0,gc);glow.addColorStop(1,'rgba(120,80,255,0)');
+  ctx.fillStyle=glow;ctx.beginPath();ctx.arc(0,-24,20,0,Math.PI*2);ctx.fill();
+
+  // Orb body
+  const oc=hp>0.6?['#ece0ff','#8055e0','#3010b0']
+           :hp>0.3?['#ffe8c0','#e07820','#804000']
+           :['#ffb0b0','#e02020','#800000'];
+  const orbR=(7+Math.sin(animFrame*0.11)*0.8);
+  const orb=ctx.createRadialGradient(-3,-27,1,-1,-25,orbR);
+  orb.addColorStop(0,oc[0]);orb.addColorStop(0.6,oc[1]);orb.addColorStop(1,oc[2]);
+  ctx.fillStyle=orb;ctx.beginPath();ctx.arc(0,-24,orbR,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='rgba(255,255,255,0.55)';
+  ctx.beginPath();ctx.ellipse(-2,-27,2.5,1.8,-0.4,0,Math.PI*2);ctx.fill();
+
+  // HP mini-bar (always visible, not just during wave)
+  if(GS.farmHP<GS.farmMaxHP||GS.waveActive){
+    const bw=36,bh=4;
+    ctx.fillStyle='rgba(0,0,0,0.45)';ctx.beginPath();ctx.roundRect(-bw/2,22,bw,bh,2);ctx.fill();
+    const bc=hp>0.6?'#60e060':hp>0.3?'#e0c030':'#ff3030';
+    ctx.fillStyle=bc;ctx.beginPath();ctx.roundRect(-bw/2,22,Math.max(0,bw*hp),bh,2);ctx.fill();
+  }
+
+  ctx.restore();
+}
+
 // ── MONSTER PATH VISUALIZATION ─────────────────
 function drawMonsterPaths(){
   if(!GS.waveActive&&!GS.buildMenuOpen&&!GS.buildSelected)return;
@@ -1260,10 +1325,14 @@ function drawMonsterPaths(){
     ctx.fillStyle=`rgba(255,210,190,${pulse})`;
     ctx.fillText(`⚠ ${s.label}`,lx,ly+4);
   }
-  // House target ring
-  ctx.strokeStyle=`rgba(255,120,50,${pulse*0.85})`;
+  // Statue target ring
+  ctx.strokeStyle=`rgba(200,150,255,${pulse*0.85})`;
   ctx.lineWidth=2.5;
-  ctx.beginPath();ctx.arc(hx,hy,TILE*1.7,0,Math.PI*2);ctx.stroke();
+  ctx.beginPath();ctx.arc(hx,hy,TILE*1.5,0,Math.PI*2);ctx.stroke();
+  ctx.fillStyle=`rgba(200,150,255,${pulse*0.12})`;ctx.fill();
+  ctx.fillStyle=`rgba(240,220,255,${pulse*0.9})`;
+  ctx.font='bold 12px sans-serif';ctx.textAlign='center';
+  ctx.fillText('💎 석상',hx,hy-TILE*1.8);
   ctx.restore();
 }
 
@@ -1375,7 +1444,7 @@ function updateWave(dt){
       if(m.houseAtkCd<=0){m.houseAtkCd=0.7;m.atkAnim=0.45;}
       if(GS.farmHP<=0&&!GS.gameOver){
         GS.gameOver=true;
-        notify('🏚️ 농장이 무너졌습니다!','#FF0000');
+        notify('💎 석상이 파괴되었습니다!','#FF0000');
       }
     }
   }
@@ -2106,7 +2175,7 @@ function renderWaveHUD(){
   rr(bx,by,Math.max(0,bw*hr),bh,6,hc);
   ctx.fillStyle='rgba(255,255,255,0.4)';ctx.beginPath();ctx.roundRect(bx,by,Math.max(0,bw*hr)*0.5,bh*0.4,4);ctx.fill();
   ctx.font='11px "Malgun Gothic"';ctx.textAlign='left';ctx.fillStyle='#980030';
-  ctx.fillText(`🏠 ${Math.ceil(GS.farmHP)}/${GS.farmMaxHP}`,bx+bw+6,by+11);
+  ctx.fillText(`💎 석상 ${Math.ceil(GS.farmHP)}/${GS.farmMaxHP}`,bx+bw+6,by+11);
 
   // Wave status
   if(GS.waveNum>0||GS.waveActive){
@@ -2150,7 +2219,7 @@ function renderWaveHUD(){
     ctx.globalAlpha=alpha;
     ctx.fillStyle='rgba(70,0,10,0.75)';ctx.fillRect(0,H/2-64,W,128);
     txtShadow(`⚔️ 웨이브 ${GS.waveNum}`,W/2,H/2-12,38,'#FF8080','rgba(0,0,0,0.5)','center');
-    txtShadow('몬스터들이 농장을 습격합니다!',W/2,H/2+32,22,'#FFCCCC','rgba(0,0,0,0.5)','center');
+    txtShadow('석상을 노린 몬스터가 나타났습니다!',W/2,H/2+32,22,'#FFCCCC','rgba(0,0,0,0.5)','center');
     ctx.globalAlpha=1;
   }
 }
@@ -2159,7 +2228,7 @@ function renderWaveHUD(){
 function renderGameOver(){
   ctx.fillStyle='rgba(0,0,0,0.84)';ctx.fillRect(0,0,W,H);
   txtShadow('💀 게임 오버',W/2,H/2-70,52,'#FF5050','rgba(0,0,0,0.5)','center');
-  txtShadow('농장이 몬스터에게 점령되었습니다.',W/2,H/2-4,22,'#FF9090','rgba(0,0,0,0.5)','center');
+  txtShadow('석상이 파괴되어 몬스터에게 점령당했습니다.',W/2,H/2-4,20,'#FF9090','rgba(0,0,0,0.5)','center');
   txtShadow(`⚔️ ${GS.waveNum}웨이브까지 방어 성공`,W/2,H/2+34,18,'#FFD080','rgba(0,0,0,0.5)','center');
   rr(W/2-90,H/2+80,180,48,24,'#d04040');
   ctx.strokeStyle='rgba(255,100,100,0.5)';ctx.lineWidth=2;ctx.beginPath();ctx.roundRect(W/2-90,H/2+80,180,48,24);ctx.stroke();
@@ -2309,6 +2378,9 @@ function render(){
 
   // Draw defenses (behind animals/NPCs)
   GS.defenses.forEach(d=>drawDefense(d));
+
+  // Sacred statue inside house
+  drawStatue();
 
   // Draw animals
   GS.animals.forEach(a=>drawAnimal(a,animFrame));
