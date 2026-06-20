@@ -111,16 +111,16 @@ const SHOP_SEASONS=[
 
 // ── NPC DATA ───────────────────────────────────
 const NPC_DEFS=[
-  {id:'mj',name:'민지',role:'상점 주인',color:'#E91E8C',ox:48,oy:7,isShop:true,
+  {id:'mj',name:'민지',role:'상점 주인',color:'#E91E8C',ox:49,oy:11,isShop:true,
    lines:['어서오세요! 씨앗이나 도구 필요하면 말해요~','오늘도 좋은 하루 되세요! 수확한 건 저한테 파세요.','봄 씨앗이 싸게 나왔어요! 얼른 사세요~']},
-  {id:'mayor',name:'이장님',role:'마을 이장',color:'#8B6914',ox:58,oy:8,
+  {id:'mayor',name:'이장님',role:'마을 이장',color:'#8B6914',ox:60,oy:11,
    lines:['마을에 온 걸 환영해요! 열심히 농사지어보세요.','계절이 바뀌면 새 작물을 심을 수 있어요.','마을 사람들이 응원하고 있답니다!']},
   {id:'halmeo',name:'김 할머니',role:'농업 전문가',color:'#795548',ox:48,oy:18,
    lines:['이런이런, 젊은이가 농사를 짓다니 기특하구나.','작물은 매일 물을 주어야 잘 자란단다.','비가 오면 물 안 줘도 된단다. 하늘이 도와주니까!'],
    quest:{id:'q1',title:'할머니의 부탁',desc:'순무 3개를 가져다 드리세요.',need:{turnip:3},reward:{money:300},done:false,given:false}},
   {id:'smith',name:'철수',role:'대장장이',color:'#455A64',ox:56,oy:18,
    lines:['도구 업그레이드하고 싶으면 나한테 와!','좋은 도구가 있어야 좋은 농사를 짓는 법이지.','재료 모아오면 더 좋은 도구 만들어줄게.']},
-  {id:'doc',name:'선생님',role:'마을 의사',color:'#1565C0',ox:64,oy:8,
+  {id:'doc',name:'선생님',role:'마을 의사',color:'#1565C0',ox:71,oy:11,
    lines:['에너지가 다 떨어지면 집에서 쉬세요.','잘 먹고 잘 자야 농사도 잘 됩니다.','밤이 되기 전에 꼭 집으로 돌아가야 해요.']},
 ];
 
@@ -1795,8 +1795,8 @@ function update(dt){
 
   // Time — hours go 6→26 (26=2AM next day), display as %24
   timeAcc+=dt;
-  if(timeAcc>=0.5){
-    timeAcc-=0.5;
+  if(timeAcc>=0.25){
+    timeAcc-=0.25;
     GS.minute+=1;
     if(GS.minute>=60){GS.minute=0;GS.hour++}
     if(GS.hour>=26){GS.hour=26} // cap at 2 AM next day
