@@ -1126,7 +1126,8 @@
     ctx.shadowBlur = 0;
     ctx.font = 'bold 16px "Noto Sans KR", sans-serif';
     ctx.fillStyle = '#fff';
-    ctx.fillText('다시하기', cx, btnY + 28);
+    ctx.textBaseline = 'middle';
+    ctx.fillText('다시하기', cx, btnY + btnH / 2);
 
     // store btn rect for click detection
     drawGameOver._btnRect = { x: btnX, y: btnY, w: btnW, h: btnH };

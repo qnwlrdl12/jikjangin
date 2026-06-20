@@ -736,8 +736,12 @@
 
   /* ── Game loop ──────────────────────────────────────────── */
   function loop() {
-    update();
-    draw();
+    try {
+      update();
+      draw();
+    } catch (e) {
+      console.error('[Stack] loop error:', e);
+    }
     raf = requestAnimationFrame(loop);
   }
 

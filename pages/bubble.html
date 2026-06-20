@@ -142,6 +142,7 @@
   let comboTimer = 0;
   let comboText = '';
   let sinceLastPush = 0;
+  let gridTopParity = 0;  // tracks parity shift from grid.unshift() calls
 
   let shooterAngle = -Math.PI / 2;  // radians, -90° = straight up
   let mouseX = W / 2, mouseY = 0;
@@ -176,6 +177,7 @@
     comboTimer = 0;
     comboText = '';
     sinceLastPush = 0;
+    gridTopParity = 0;
     flyBubble = null;
     particles = [];
     floatTexts = [];
@@ -217,7 +219,7 @@
 
   // ─── Grid helpers ──────────────────────────────────────────────
   function rowOffset(r) {
-    return (r % 2 === 0) ? 0 : R;
+    return ((r + gridTopParity) % 2 === 0) ? 0 : R;
   }
 
   function bubbleX(r, c) {
@@ -265,7 +267,7 @@
 
   // ─── Neighbors (hex grid) ──────────────────────────────────────
   function neighbors(r, c) {
-    const even = r % 2 === 0;
+    const even = (r + gridTopParity) % 2 === 0;
     return [
       [r - 1, even ? c - 1 : c],
       [r - 1, even ? c : c + 1],
@@ -428,7 +430,6 @@
       vx: Math.cos(angle) * speed,
       vy: Math.sin(angle) * speed,
       color: currentColor,
-      bounced: false
     };
 
     currentColor = nextColor;
@@ -453,6 +454,8 @@
       newRow.push(Math.random() > 0.15 ? randomColor() : null);
     }
     grid.unshift(newRow);
+    // Flip parity so existing rows keep their visual x-offset after index shift
+    gridTopParity = 1 - gridTopParity;
 
     // Check game over — if any bubble in last row reaches shooter line
     const lastRowY = bubbleY(grid.length - 1);
@@ -467,26 +470,14 @@
     flyBubble.x += flyBubble.vx;
     flyBubble.y += flyBubble.vy;
 
-    // Wall bounce (left/right) - max 1 bounce
+    // Wall bounce (left/right)
     if (flyBubble.x - R <= 0) {
-      if (!flyBubble.bounced) {
-        flyBubble.vx = Math.abs(flyBubble.vx);
-        flyBubble.x = R;
-        flyBubble.bounced = true;
-      } else {
-        flyBubble.vx = Math.abs(flyBubble.vx);
-        flyBubble.x = R;
-      }
+      flyBubble.vx = Math.abs(flyBubble.vx);
+      flyBubble.x = R;
     }
     if (flyBubble.x + R >= W) {
-      if (!flyBubble.bounced) {
-        flyBubble.vx = -Math.abs(flyBubble.vx);
-        flyBubble.x = W - R;
-        flyBubble.bounced = true;
-      } else {
-        flyBubble.vx = -Math.abs(flyBubble.vx);
-        flyBubble.x = W - R;
-      }
+      flyBubble.vx = -Math.abs(flyBubble.vx);
+      flyBubble.x = W - R;
     }
 
     // Check collision with top wall
@@ -628,7 +619,6 @@
 
     pts.push({ x, y });
 
-    let bounced = false;
     const step = 6;
     const maxSteps = 120;
 
@@ -636,15 +626,13 @@
       x += vx * step;
       y += vy * step;
 
-      if (x - R <= 0 && !bounced) {
+      if (x - R <= 0) {
         vx = Math.abs(vx);
         x = R;
-        bounced = true;
       }
-      if (x + R >= W && !bounced) {
+      if (x + R >= W) {
         vx = -Math.abs(vx);
         x = W - R;
-        bounced = true;
       }
       if (y <= R) {
         y = R;
