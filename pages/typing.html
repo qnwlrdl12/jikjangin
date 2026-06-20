@@ -1,10 +1,10 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
   <script>if(localStorage.getItem('theme')=='light')document.documentElement.classList.add('light')</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>직장인 타자 게임 - 월급루팡 게임 - 직장인닷컴</title>
+  <title>직장인 타자 게임 - 월급루팡 게임 - 퇴근각</title>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../css/style.css">
   <style>
@@ -241,7 +241,7 @@
   </div>
 </div>
 
-<footer><p><strong>직장인닷컴</strong> — 직장인을 위한 올인원 도구 사이트</p></footer>
+<footer><p><strong>퇴근각</strong> — 직장인을 위한 올인원 도구 사이트</p></footer>
 
 <script>
 const SENTENCES = [
@@ -514,7 +514,7 @@ function closeResultAndRestart() {
 function shareResult() {
   const wpm = document.getElementById('r-wpm').textContent;
   const acc = document.getElementById('r-acc').textContent;
-  const text = `⌨️ 직장인 타자 게임 결과\n분당 타수: ${wpm} | 정확도: ${acc}\n직장인닷컴에서 도전해보세요!`;
+  const text = `⌨️ 직장인 타자 게임 결과\n분당 타수: ${wpm} | 정확도: ${acc}\n퇴근각에서 도전해보세요!`;
   if (navigator.share) {
     navigator.share({ title: '직장인 타자 게임', text });
   } else if (navigator.clipboard) {

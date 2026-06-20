@@ -1,10 +1,10 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
   <script>if(localStorage.getItem('theme')=='light')document.documentElement.classList.add('light')</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>직장인 유형 테스트 - 직장인닷컴</title>
+  <title>직장인 유형 테스트 - 퇴근각</title>
   <meta name="description" content="나는 어떤 직장인 유형일까? 12문항으로 알아보는 직장인 유형 ABCD 성격 테스트.">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../css/style.css">
@@ -79,7 +79,7 @@
   </div>
   <div class="ad-banner">광고 영역 (Google AdSense)</div>
 </main>
-<footer><p><strong>직장인닷컴</strong></p></footer>
+<footer><p><strong>퇴근각</strong></p></footer>
 <script>
 // 3가지 축: AB(성과 vs 관계), CD(독립 vs 협력), EF(적극 vs 안정)
 const questions = [
@@ -222,7 +222,7 @@ function restart(){
 function shareResult(){
   const t=document.getElementById('r-title').textContent;
   const tag=document.getElementById('r-type').textContent;
-  const text=`나의 직장인 유형: ${t}\n${tag}\n직장인닷컴에서 테스트해보세요!`;
+  const text=`나의 직장인 유형: ${t}\n${tag}\n퇴근각에서 테스트해보세요!`;
   if(navigator.share) navigator.share({title:'직장인 유형 테스트',text,url:location.href});
   else navigator.clipboard.writeText(text).then(()=>alert('결과가 복사되었습니다!'));
 }

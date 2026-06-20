@@ -1,10 +1,10 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
   <script>if(localStorage.getItem('theme')=='light')document.documentElement.classList.add('light')</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>번아웃 지수 테스트 - 직장인닷컴</title>
+  <title>번아웃 지수 테스트 - 퇴근각</title>
   <meta name="description" content="나는 번아웃 상태일까? 15문항 3개 영역 직장인 번아웃 지수 테스트.">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../css/style.css">
@@ -93,7 +93,7 @@
   </div>
   <div class="ad-banner">광고 영역 (Google AdSense)</div>
 </main>
-<footer><p><strong>직장인닷컴</strong></p></footer>
+<footer><p><strong>퇴근각</strong></p></footer>
 <script>
 // 3개 영역 × 5문항씩 (총 15문항)
 const questions = [
@@ -237,7 +237,7 @@ function restart(){
 function shareResult(){
   const t=document.getElementById('r-title').textContent;
   const s=document.getElementById('r-score').textContent;
-  const text=`나의 번아웃 지수: ${t} (${s})\n직장인닷컴에서 테스트해보세요!`;
+  const text=`나의 번아웃 지수: ${t} (${s})\n퇴근각에서 테스트해보세요!`;
   if(navigator.share) navigator.share({title:'번아웃 지수 테스트',text,url:location.href});
   else navigator.clipboard.writeText(text).then(()=>alert('결과가 복사되었습니다!'));
 }

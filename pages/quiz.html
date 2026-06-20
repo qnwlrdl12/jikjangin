@@ -1,10 +1,10 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
   <script>if(localStorage.getItem('theme')=='light')document.documentElement.classList.add('light')</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>직장인 OX 퀴즈 - 월급루팡 게임 - 직장인닷컴</title>
+  <title>직장인 OX 퀴즈 - 월급루팡 게임 - 퇴근각</title>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../css/style.css">
   <style>
@@ -319,7 +319,7 @@
   <div class="ad-banner">광고 영역 (Google AdSense)</div>
 </main>
 
-<footer><p><strong>직장인닷컴</strong> — 직장인을 위한 올인원 도구 사이트</p></footer>
+<footer><p><strong>퇴근각</strong> — 직장인을 위한 올인원 도구 사이트</p></footer>
 
 <script>
 const questions = [
@@ -564,7 +564,7 @@ function endQuiz() {
 
 function shareResult() {
   const grade = GRADES.find(g => finalScore >= g.min) || GRADES[GRADES.length - 1];
-  const text = `📋 직장인 OX 퀴즈 결과\n${grade.emoji} ${grade.grade}등급 (${finalScore.toLocaleString()}점)\n정답: ${correctCount}/25 | 최고 연속: ${maxStreak}연속\n직장인닷컴에서 도전해보세요!`;
+  const text = `📋 직장인 OX 퀴즈 결과\n${grade.emoji} ${grade.grade}등급 (${finalScore.toLocaleString()}점)\n정답: ${correctCount}/25 | 최고 연속: ${maxStreak}연속\n퇴근각에서 도전해보세요!`;
   if (navigator.share) {
     navigator.share({ title: '직장인 OX 퀴즈', text });
   } else if (navigator.clipboard) {
