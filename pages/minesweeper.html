@@ -35,9 +35,7 @@
     @keyframes boom{0%{transform:scale(1)}50%{transform:scale(1.4)}100%{transform:scale(1)}}
     @keyframes cellReveal{0%{transform:scale(1.15);filter:brightness(2.8)}60%{transform:scale(.95)}100%{transform:scale(1);filter:brightness(1)}}
     .cell-reveal{animation:cellReveal .18s ease-out forwards}
-    @keyframes msRipple{0%{transform:translate(-50%,-50%) scale(0);opacity:.9}70%{opacity:.45}100%{transform:translate(-50%,-50%) scale(5.5);opacity:0}}
-    .ms-ripple{position:absolute;width:var(--cell-sz,32px);height:var(--cell-sz,32px);border:2.5px solid #4ECDC4;border-radius:50%;pointer-events:none;animation:msRipple .52s cubic-bezier(.15,.5,.25,1) forwards;z-index:20}
-    @keyframes cellFlash{0%{filter:brightness(1) saturate(1)}20%{filter:brightness(2.6) saturate(2)}100%{filter:brightness(1) saturate(1)}}
+@keyframes cellFlash{0%{filter:brightness(1) saturate(1)}20%{filter:brightness(2.6) saturate(2)}100%{filter:brightness(1) saturate(1)}}
     .cell-flash{animation:cellFlash .4s ease-out forwards!important}
     .n1{color:#4ECDC4}.n2{color:#2ecc71}.n3{color:#FF6B35}.n4{color:#9b59b6}
     .n5{color:#e74c3c}.n6{color:#1abc9c}.n7{color:#f39c12}.n8{color:#ecf0f1}
@@ -190,17 +188,6 @@ function revealWave(startR,startC){
 
 function pulseCell(r,c){
   const idx=r*cols+c;
-  const el=cellEls[idx];
-  const bw=document.querySelector('.bw');
-  const er=el.getBoundingClientRect(),br=bw.getBoundingClientRect();
-  const numColors=['','#4ECDC4','#2ecc71','#FF6B35','#9b59b6','#e74c3c','#1abc9c','#f39c12','#ecf0f1'];
-  const ripple=document.createElement('div');
-  ripple.className='ms-ripple';
-  ripple.style.left=(er.left-br.left+er.width/2)+'px';
-  ripple.style.top=(er.top-br.top+er.height/2)+'px';
-  ripple.style.borderColor=numColors[countAround(r,c)]||'#fff';
-  bw.appendChild(ripple);
-  setTimeout(()=>ripple.remove(),600);
   function flash(i,delay){
     const e2=cellEls[i];if(!e2)return;
     setTimeout(()=>{e2.classList.remove('cell-flash');void e2.offsetWidth;e2.classList.add('cell-flash');setTimeout(()=>e2.classList.remove('cell-flash'),420);},delay);
