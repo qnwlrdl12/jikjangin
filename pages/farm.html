@@ -33,8 +33,12 @@ body{background:#1a2e10;display:flex;align-items:center;justify-content:center;w
   <div class="t-logo">🌾</div>
   <div class="t-title">농장이야기</div>
   <div class="t-sub">Farm Story — 씨앗을 심고, 꿈을 키워요</div>
-  <button class="t-btn" onclick="startGame()">🌱 게임 시작</button>
-  <div class="t-ctrl">
+  <div id="t-btns">
+    <button class="t-btn" id="btn-continue" style="display:none;background:linear-gradient(to bottom,#4A90D9,#2A6AAD);box-shadow:0 6px 0 #1A4A8D,0 10px 30px rgba(0,0,0,0.5)" onclick="continueGame()">💾 이어하기</button>
+    <button class="t-btn" id="btn-new" onclick="startGame(true)">🌱 새 게임</button>
+  </div>
+  <div id="t-saveinfo" style="color:#5a7a4a;font-size:13px;margin-top:10px;display:none"></div>
+  <div class="t-ctrl" style="margin-top:20px">
     <span>방향키</span> 이동 &nbsp;|&nbsp; <span>E</span> 도구 사용 &nbsp;|&nbsp; <span>Space</span> 상호작용<br>
     <span>1~7</span> 도구 선택 &nbsp;|&nbsp; <span>I</span> 인벤토리 &nbsp;|&nbsp; <span>Z</span> 수면 (하루 넘기기) &nbsp;|&nbsp; <span>Esc</span> 닫기
   </div>
@@ -1059,6 +1063,9 @@ function doSleep(){
   GS.energy=MAX_E;GS.waterCan=GS.maxWater;
   GS.hour=6;GS.minute=0;GS.days++;
   checkQuestProgress();
+  // Auto-save on sleep
+  saveGame(true);
+  notify('💾 자동저장 완료','#4CAF50');
 }
 
 // ── SHOP UI ────────────────────────────────────
@@ -1610,17 +1617,103 @@ function loop(ts){
   requestAnimationFrame(loop);
 }
 
+// ── SAVE / LOAD ────────────────────────────────
+const SAVE_KEY='farmstory_v1';
+
+function saveGame(silent=false){
+  try{
+    const save={
+      v:1,ts:Date.now(),
+      g:{
+        hour:GS.hour,minute:GS.minute,day:GS.day,season:GS.season,year:GS.year,
+        px:GS.px,py:GS.py,dir:GS.dir,
+        energy:GS.energy,money:GS.money,waterCan:GS.waterCan,
+        inv:{...GS.inv},bar:[...GS.bar],slot:GS.slot,
+        harvested:GS.harvested,watered:GS.watered,earned:GS.earned,days:GS.days,
+        weather:GS.weather,chestLooted:GS.chestLooted,
+        animals:JSON.parse(JSON.stringify(GS.animals)),
+        quests:GS.quests.map(q=>({id:q.id,prog:q.prog,done:q.done})),
+        npcs:GS.npcs.map(n=>({id:n.id,lineIdx:n.lineIdx,quest:n.quest?{...n.quest}:null})),
+      },
+      tiles:Array.from({length:WH},(_,r)=>Array.from(world.tiles[r])),
+      cd:world.cd.map(row=>row.map(c=>c?{...c}:null)),
+    };
+    localStorage.setItem(SAVE_KEY,JSON.stringify(save));
+    if(!silent)notify('💾 저장됨','#4CAF50');
+  }catch(e){console.error('Save failed',e)}
+}
+
+function loadSave(){
+  try{
+    const raw=localStorage.getItem(SAVE_KEY);
+    if(!raw)return false;
+    const save=JSON.parse(raw);
+    if(!save||save.v!==1)return false;
+    // Restore world
+    for(let r=0;r<WH;r++)for(let c=0;c<WW;c++){
+      if(save.tiles[r])world.tiles[r][c]=save.tiles[r][c];
+      world.cd[r][c]=save.cd[r]?save.cd[r][c]:null;
+    }
+    // Restore GS fields
+    const g=save.g;
+    Object.assign(GS,{
+      hour:g.hour,minute:g.minute,day:g.day,season:g.season,year:g.year,
+      px:g.px,py:g.py,dir:g.dir,
+      energy:g.energy,money:g.money,waterCan:g.waterCan,
+      inv:{...g.inv},bar:[...g.bar],slot:g.slot,
+      harvested:g.harvested,watered:g.watered,earned:g.earned,days:g.days,
+      weather:g.weather||'sunny',chestLooted:!!g.chestLooted,
+      animals:g.animals||GS.animals,
+    });
+    g.quests.forEach(sq=>{const q=GS.quests.find(q=>q.id===sq.id);if(q){q.prog=sq.prog;q.done=sq.done}});
+    g.npcs.forEach(sn=>{const n=GS.npcs.find(n=>n.id===sn.id);if(n){n.lineIdx=sn.lineIdx;if(sn.quest)n.quest={...sn.quest}}});
+    return true;
+  }catch(e){console.error('Load failed',e);return false}
+}
+
+function getSaveInfo(){
+  try{
+    const raw=localStorage.getItem(SAVE_KEY);
+    if(!raw)return null;
+    const s=JSON.parse(raw);
+    if(!s||!s.g)return null;
+    const g=s.g;
+    const d=new Date(s.ts);
+    const ds=`${d.getMonth()+1}/${d.getDate()} ${d.getHours()}:${d.getMinutes().toString().padStart(2,'0')}`;
+    return `${g.year}년 ${SEASONS[g.season]} ${g.day}일 · 💰${g.money}G · ${ds} 저장`;
+  }catch(e){return null}
+}
+
 // ── START ──────────────────────────────────────
-function startGame(){
+function startGame(fresh=false){
+  if(fresh)localStorage.removeItem(SAVE_KEY);
   document.getElementById('title').style.display='none';
   initGS();
   gameRunning=true;
   lastTime=performance.now();
-  // Hotbar: add seeds to slot 2 display
-  GS.bar[2]='parsnip_seed';
-  // Refill sell btns
   GS._shopBtns=[];GS._sellBtns=[];
 }
+
+function continueGame(){
+  document.getElementById('title').style.display='none';
+  initGS();
+  const ok=loadSave();
+  if(!ok){initGS();notify('저장 데이터를 불러올 수 없습니다.','#E53935')}
+  gameRunning=true;
+  lastTime=performance.now();
+  GS._shopBtns=[];GS._sellBtns=[];
+}
+
+// Show continue button if save exists
+(function(){
+  const info=getSaveInfo();
+  if(info){
+    document.getElementById('btn-continue').style.display='inline-block';
+    document.getElementById('btn-new').style.marginLeft='12px';
+    const si=document.getElementById('t-saveinfo');
+    si.textContent=info;si.style.display='block';
+  }
+})();
 
 requestAnimationFrame(loop);
 </script>
