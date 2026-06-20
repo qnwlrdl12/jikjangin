@@ -1063,6 +1063,8 @@ function doSleep(){
 
 // ── SHOP UI ────────────────────────────────────
 function renderShop(){
+  // Rebuild button arrays fresh every frame to prevent accumulation
+  GS._shopBtns=[];GS._sellBtns=[];
   const W2=W,H2=H;
   const pw=580,ph=460;
   const px=(W2-pw)/2,py=(H2-ph)/2;
@@ -1208,7 +1210,7 @@ function renderHUD(){
   txt(`${GS.year}년 ${SEASONS[GS.season]} ${GS.day}일`,12,32,17,'#FFE08A');
 
   // Time
-  const h=GS.hour,m=GS.minute;
+  const h=GS.hour%24,m=GS.minute;
   const ts=`${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}`;
   txt(ts,180,32,17,'#C8E0FF');
 
@@ -1433,38 +1435,54 @@ function render(){
 }
 
 // ── UPDATE ─────────────────────────────────────
+function clearJust(){
+  // Fix: clear JUST_PREV completely each frame so keys don't stay "already pressed" forever
+  Object.keys(JUST_PREV).forEach(k=>delete JUST_PREV[k]);
+  Object.assign(JUST_PREV,JUST);
+  Object.keys(JUST).forEach(k=>delete JUST[k]);
+}
+
 function update(dt){
   animFrame++;
   if(GS.sleeping){
     GS.sleepT+=dt;
     if(GS.sleepT>=1.5){doSleep();GS.sleeping=false;GS.sleepT=0}
-    return;
+    clearJust();return;
   }
 
-  // Time
+  // Time — hours go 6→26 (26=2AM next day), display as %24
   timeAcc+=dt;
   if(timeAcc>=1/10){
-    GS.minute+=6;timeAcc-=1/10;
+    timeAcc-=1/10;
+    GS.minute+=6;
     if(GS.minute>=60){GS.minute=0;GS.hour++}
-    if(GS.hour>=2&&GS.day>0){GS.hour=2} // cap at 2 AM
-    if(GS.hour>=22&&GS.minute>=0&&!GS.sleeping){
-      if(GS.minute===0)notify('밤이 깊었습니다. Z키로 수면하세요. 💤','#A0C4FF');
+    if(GS.hour>=26){GS.hour=26} // cap at 2 AM next day
+    if(GS.hour===22&&GS.minute===0&&!GS.sleeping){
+      notify('밤이 깊었습니다. Z키로 수면하세요. 💤','#A0C4FF');
     }
   }
 
-  // Notifications
+  // Always update these regardless of UI state
   GS.notes=GS.notes.filter(n=>{n.timer-=dt;return n.timer>0});
-
-  // Particles
   updateParticles(dt);
   updateRain();
   updateCam();
 
-  // Dialog dismiss advance
+  // Dialog: handle keyboard here before early return
   if(GS.dialog){
-    return; // no movement during dialog
+    const d=GS.dialog;
+    if(justPressed('Space')||justPressed('Enter')||justPressed('KeyE')){
+      if(d.page<d.lines.length-1)d.page++;
+      else GS.dialog=null;
+    }
+    clearJust();return;
   }
-  if(GS.shopOpen||GS.invOpen)return;
+
+  // Shop / Inventory: only Escape closes them
+  if(GS.shopOpen||GS.invOpen){
+    if(justPressed('Escape')){GS.shopOpen=false;GS.invOpen=false;}
+    clearJust();return;
+  }
 
   // Movement
   let dx=0,dy=0;
@@ -1474,7 +1492,6 @@ function update(dt){
   if(KEYS['ArrowRight']||KEYS['KeyD'])dx=SPEED;
 
   if(dx!==0&&dy!==0){dx*=0.707;dy*=0.707}
-
   GS.moving=dx!==0||dy!==0;
 
   if(dx<0)GS.dir=3;
@@ -1484,36 +1501,32 @@ function update(dt){
 
   // Collision
   const margin=10;
-  const nx=GS.px+dx,ny=GS.py;
-  if(dx!==0&&canWalk(nx,ny,margin))GS.px=nx;
-  const nx2=GS.px,ny2=GS.py+dy;
-  if(dy!==0&&canWalk(nx2,ny2,margin))GS.py=ny2;
+  if(dx!==0&&canWalk(GS.px+dx,GS.py,margin))GS.px+=dx;
+  if(dy!==0&&canWalk(GS.px,GS.py+dy,margin))GS.py+=dy;
 
   // Clamp to world
   GS.px=Math.max(TILE,Math.min((WW-1)*TILE-TILE/2,GS.px));
   GS.py=Math.max(TILE,Math.min((WH-1)*TILE-TILE/2,GS.py));
 
-  // Just-pressed keys
+  // Actions
   if(justPressed('KeyE'))useTool();
   if(justPressed('Space')||justPressed('Enter'))interact();
   if(justPressed('KeyZ')&&GS.hour>=20)advanceDay();
   if(justPressed('KeyI'))GS.invOpen=!GS.invOpen;
-  if(justPressed('Escape')){GS.shopOpen=false;GS.invOpen=false;GS.dialog=null}
+  if(justPressed('Escape')){GS.shopOpen=false;GS.invOpen=false;GS.dialog=null;}
 
-  // Hotbar selection
+  // Hotbar 1~7
   for(let i=0;i<GS.bar.length;i++){
     if(justPressed(`Digit${i+1}`))GS.slot=i;
   }
 
-  // Well auto-refill
+  // Well/water refill via E
   const {r:fr,c:fc}=facingTile();
   if(world.tiles[fr]&&(world.tiles[fr][fc]===T.WELL||world.tiles[fr][fc]===T.WATER)){
-    if(justPressed('KeyE'))GS.waterCan=GS.maxWater;
+    if(justPressed('KeyE')){GS.waterCan=GS.maxWater;notify('물통을 채웠습니다! 💧','#6BC4FF');}
   }
 
-  // Copy just pressed
-  Object.assign(JUST_PREV,JUST);
-  Object.keys(JUST).forEach(k=>delete JUST[k]);
+  clearJust();
 }
 
 function canWalk(px,py,m){
