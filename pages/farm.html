@@ -343,6 +343,7 @@ function initGS(){
     waveTriggeredToday:false,
     gameOver:false,
     buildMenuOpen:false,buildSelected:null,
+    statueHit:0,
     _buildBtns:[],_closeBuildBtn:null,_gameOverRestartBtn:null,
   };
 }
@@ -1086,11 +1087,20 @@ function drawDefense(d){
       for(let i=0;i<4;i++){const a=animFrame*0.06+i*Math.PI/2;circ(Math.cos(a)*8,-24+Math.sin(a)*8,1.5,'rgba(255,255,255,0.7)')}
       break;
   }
-  // HP bar when damaged
-  if(d.hp<def.maxHp){
+  // HP bar (always show during wave, otherwise when damaged)
+  const effMaxHp=def.maxHp*(d.level||1);
+  if(GS.waveActive||d.hp<effMaxHp){
     const bw=34,bh=4,by2=18;
     ctx.fillStyle='rgba(0,0,0,0.45)';ctx.beginPath();ctx.roundRect(-bw/2,by2,bw,bh,2);ctx.fill();
-    ctx.fillStyle='#60e060';ctx.beginPath();ctx.roundRect(-bw/2,by2,bw*(d.hp/def.maxHp),bh,2);ctx.fill();
+    const hr2=Math.min(1,d.hp/effMaxHp);
+    ctx.fillStyle=hr2>0.5?'#60e060':hr2>0.25?'#e0c030':'#e03030';
+    ctx.beginPath();ctx.roundRect(-bw/2,by2,bw*hr2,bh,2);ctx.fill();
+  }
+  // Level badge
+  if((d.level||1)>1){
+    ctx.fillStyle='rgba(30,10,60,0.82)';ctx.beginPath();ctx.roundRect(8,-40,22,14,5);ctx.fill();
+    ctx.fillStyle='#c0e0ff';ctx.font='bold 9px sans-serif';ctx.textAlign='center';
+    ctx.fillText(`Lv.${d.level}`,20,-29);
   }
   ctx.restore();
 }
@@ -1369,6 +1379,13 @@ function buildWave(n){
   return q;
 }
 
+function wavePreview(n){
+  const q=buildWave(n);
+  const counts={};
+  for(const m of q)counts[m.type]=(counts[m.type]||0)+1;
+  return Object.entries(counts).map(([t,c])=>`${MONSTER_TYPES[t].name}×${c}`).join('  ');
+}
+
 function startWave(){
   if(GS.waveActive||GS.waveTriggeredToday)return;
   GS.waveNum++;
@@ -1433,7 +1450,29 @@ function updateWave(dt){
     }
     if(!blockedByWall&&dist>2){
       const spd=m.spd*(m.slowed>0?0.45:1)*dt;
-      m.x+=dx/dist*spd;m.y+=dy/dist*spd;
+      // Steer around walls (repulsion from nearby wall defenses)
+      let steerX=0,steerY=0;
+      for(const wd of GS.defenses){
+        if(wd.type!=='wall')continue;
+        const wdx=m.x-wd.x,wdy=m.y-wd.y,wdist=Math.hypot(wdx,wdy);
+        if(wdist>0&&wdist<TILE*2.4){
+          const push=(TILE*2.4-wdist)/(TILE*2.4);
+          steerX+=wdx/wdist*push*2.5;
+          steerY+=wdy/wdist*push*2.5;
+        }
+      }
+      m.x+=(dx/dist+steerX)*spd;
+      m.y+=(dy/dist+steerY)*spd;
+      // Trample crops
+      m.trampleCd=(m.trampleCd||0)-dt;
+      if(m.trampleCd<=0){
+        const cr2=Math.floor(m.y/TILE),cc2=Math.floor(m.x/TILE);
+        if(cr2>=0&&cr2<WH&&cc2>=0&&cc2<WW&&world.cd[cr2]&&world.cd[cr2][cc2]){
+          world.cd[cr2][cc2]=null;
+          m.trampleCd=0.6;
+          notify('작물이 짓밟혔습니다! 🌾','#FF8040');
+        }else{m.trampleCd=0.2;}
+      }
     }
     if(m.slowed>0)m.slowed-=dt;
     if(m.atkAnim>0)m.atkAnim-=dt;
@@ -1441,7 +1480,7 @@ function updateWave(dt){
     if(dist<TILE*1.6){
       GS.farmHP=Math.max(0,GS.farmHP-m.dmg*dt);
       m.houseAtkCd-=dt;
-      if(m.houseAtkCd<=0){m.houseAtkCd=0.7;m.atkAnim=0.45;}
+      if(m.houseAtkCd<=0){m.houseAtkCd=0.7;m.atkAnim=0.45;GS.statueHit=Math.min(1,GS.statueHit+0.35);}
       if(GS.farmHP<=0&&!GS.gameOver){
         GS.gameOver=true;
         notify('💎 석상이 파괴되었습니다!','#FF0000');
@@ -1458,16 +1497,19 @@ function updateWave(dt){
     if(d.type==='scarecrow'){
       for(const m of GS.monsters){if(Math.hypot(d.x-m.x,d.y-m.y)<def.range)m.slowed=0.6}
     } else if(def.atk>0&&d.atkCd<=0){
+      const lvl=d.level||1;
+      const effRange=def.range*(1+(lvl-1)*0.12);
+      const effAtk=def.atk*(1+(lvl-1)*0.4)*(1+GS.waveNum*0.05);
       let nearest=null,nearDist=Infinity;
-      for(const m of GS.monsters){const md=Math.hypot(d.x-m.x,d.y-m.y);if(md<def.range&&md<nearDist){nearest=m;nearDist=md}}
+      for(const m of GS.monsters){const md=Math.hypot(d.x-m.x,d.y-m.y);if(md<effRange&&md<nearDist){nearest=m;nearDist=md}}
       if(nearest){
-        d.atkCd=def.delay;
+        d.atkCd=Math.max(0.4,def.delay*(1-(lvl-1)*0.1));
         const isAoE=(d.type==='cannon'||d.type==='magetower');
         if(isAoE){
-          const aoeR=TILE*(d.type==='cannon'?1.8:2.5);
-          GS.monsters.forEach(m=>{if(Math.hypot(nearest.x-m.x,nearest.y-m.y)<aoeR)m.hp-=def.atk*(1+GS.waveNum*0.05)});
+          const aoeR=TILE*(d.type==='cannon'?1.8:2.5)*(1+(lvl-1)*0.15);
+          GS.monsters.forEach(m=>{if(Math.hypot(nearest.x-m.x,nearest.y-m.y)<aoeR)m.hp-=effAtk});
         } else {
-          nearest.hp-=def.atk*(1+GS.waveNum*0.05);
+          nearest.hp-=effAtk;
         }
         GS.projectiles.push({x:d.x,y:d.y,tx:nearest.x,ty:nearest.y,type:d.type,life:1,spd:d.type==='archer'?9:6});
       }
@@ -2177,16 +2219,28 @@ function renderWaveHUD(){
   ctx.font='11px "Malgun Gothic"';ctx.textAlign='left';ctx.fillStyle='#980030';
   ctx.fillText(`💎 석상 ${Math.ceil(GS.farmHP)}/${GS.farmMaxHP}`,bx+bw+6,by+11);
 
-  // Wave status
+  // Wave status + Z-key hint after clear
   if(GS.waveNum>0||GS.waveActive){
-    const ws=GS.waveActive?`⚔️ 웨이브 ${GS.waveNum} (👾×${GS.monsters.length})`:
-                           GS.waveTriggeredToday?`✅ ${GS.waveNum}웨이브 클리어`:``;
+    const cleared=!GS.waveActive&&GS.waveTriggeredToday;
+    const ws=GS.waveActive?`⚔️ 웨이브 ${GS.waveNum}  👾×${GS.monsters.length}`:
+                           cleared?`✅ ${GS.waveNum}웨이브 클리어!  Z — 다음날로`:``;
     if(ws){
       ctx.font='11px "Malgun Gothic"';
       const sw=ctx.measureText(ws).width+16;
-      ctx.fillStyle='rgba(50,20,70,0.82)';ctx.beginPath();ctx.roundRect(bx,by+20,sw,20,10);ctx.fill();
-      ctx.fillStyle='#ffe090';ctx.textAlign='left';ctx.fillText(ws,bx+8,by+34);
+      ctx.fillStyle=cleared?'rgba(20,60,20,0.88)':'rgba(50,20,70,0.82)';
+      ctx.beginPath();ctx.roundRect(bx,by+20,sw,20,10);ctx.fill();
+      ctx.fillStyle=cleared?'#a0ffb0':'#ffe090';ctx.textAlign='left';ctx.fillText(ws,bx+8,by+34);
     }
+  }
+
+  // Next wave preview (when wave not active and before wave starts today)
+  if(!GS.waveActive&&!GS.waveTriggeredToday&&GS.day>=1){
+    const nextN=GS.waveNum+1;
+    const preview=wavePreview(nextN);
+    const pw2=ctx.measureText(preview).width+110;
+    ctx.fillStyle='rgba(60,20,20,0.82)';ctx.beginPath();ctx.roundRect(bx,by+44,pw2,20,10);ctx.fill();
+    ctx.font='11px "Malgun Gothic"';ctx.textAlign='left';ctx.fillStyle='#ffb0b0';
+    ctx.fillText(`⚔️ ${nextN}웨이브 예고:  ${preview}`,bx+8,by+58);
   }
 
   // B / N key hints
@@ -2400,9 +2454,40 @@ function render(){
   // Draw particles
   drawParticles();
 
-  // Placement preview
+  // Defense placement: range preview circle
   if(GS.buildSelected&&!GS.buildMenuOpen){
-    // highlight cursor tile
+    const selDef=DEFENSE_DEFS[GS.buildSelected];
+    const ppx=GS.px-camX(),ppy=GS.py-camY();
+    // Selected defense range at player pos
+    if(selDef.range>0){
+      ctx.save();
+      ctx.strokeStyle='rgba(100,210,255,0.7)';ctx.lineWidth=2;ctx.setLineDash([8,6]);
+      ctx.beginPath();ctx.arc(ppx,ppy,selDef.range,0,Math.PI*2);ctx.stroke();
+      ctx.fillStyle='rgba(100,210,255,0.07)';ctx.fill();
+      ctx.setLineDash([]);ctx.restore();
+    }
+    // Existing defense ranges for comparison
+    ctx.save();
+    ctx.setLineDash([5,5]);ctx.lineWidth=1.5;
+    for(const edef of GS.defenses){
+      const edefDef=DEFENSE_DEFS[edef.type];
+      if(edefDef.range<=0)continue;
+      const ex=edef.x-camX(),ey=edef.y-camY();
+      const lvl=edef.level||1;
+      const er=edefDef.range*(1+(lvl-1)*0.12);
+      ctx.strokeStyle='rgba(180,180,255,0.35)';
+      ctx.beginPath();ctx.arc(ex,ey,er,0,Math.PI*2);ctx.stroke();
+    }
+    ctx.setLineDash([]);ctx.restore();
+  }
+
+  // Statue hit vignette
+  if(GS.statueHit>0){
+    const vg=ctx.createRadialGradient(W/2,H/2,H*0.25,W/2,H/2,H*0.82);
+    vg.addColorStop(0,'rgba(180,0,0,0)');
+    vg.addColorStop(1,`rgba(200,0,0,${GS.statueHit*0.72})`);
+    ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
+    GS.statueHit=Math.max(0,GS.statueHit-0.025);
   }
 
   // Facing tile highlight
@@ -2575,7 +2660,7 @@ function update(dt){
         const def=DEFENSE_DEFS[GS.buildSelected];
         if(GS.money>=def.cost){
           GS.money-=def.cost;
-          GS.defenses.push({type:GS.buildSelected,x:GS.px,y:GS.py,hp:def.maxHp,atkCd:0});
+          GS.defenses.push({type:GS.buildSelected,x:GS.px,y:GS.py,hp:def.maxHp,atkCd:0,level:1});
           notify(`${def.name} 건설! (-${def.cost}G)`,'#80c0ff');
           spawnParticles(GS.px,GS.py,'#80c0ff',8);
           GS.buildSelected=null;
@@ -2646,13 +2731,36 @@ CV.addEventListener('click',e=>{
     return;
   }
 
+  // Defense upgrade (click existing defense when not in build mode)
+  if(!GS.buildSelected&&!GS.buildMenuOpen&&!GS.shopOpen&&!GS.invOpen&&!GS.dialog){
+    const wx=x+camX(),wy=y+camY();
+    for(const d of GS.defenses){
+      if(Math.hypot(wx-d.x,wy-d.y)<TILE*0.75){
+        const def=DEFENSE_DEFS[d.type];
+        const lvl=d.level||1;
+        if(lvl>=5){notify('최대 레벨입니다! (Lv.5)','#FFD700');return;}
+        const upgCost=Math.floor(def.cost*1.4*lvl);
+        if(GS.money>=upgCost){
+          GS.money-=upgCost;
+          d.level=lvl+1;
+          d.hp=Math.min(d.hp+Math.floor(def.maxHp*0.6),def.maxHp*d.level);
+          notify(`${def.name} Lv.${d.level} 업그레이드! (-${upgCost}G)`,'#80ffff');
+          spawnParticles(d.x,d.y,'#80ffff',10);
+        }else{
+          notify(`업그레이드 비용: ${upgCost}G (${d.level}→${lvl+1}레벨)  부족!`,'#FF8040');
+        }
+        return;
+      }
+    }
+  }
+
   // Defense placement (build selected, menu closed)
   if(GS.buildSelected){
     const wx=x+camX(),wy=y+camY();
     const def=DEFENSE_DEFS[GS.buildSelected];
     if(canPlaceDefense(wx,wy)){
       GS.money-=def.cost;
-      GS.defenses.push({type:GS.buildSelected,x:wx,y:wy,hp:def.maxHp,atkCd:0});
+      GS.defenses.push({type:GS.buildSelected,x:wx,y:wy,hp:def.maxHp,atkCd:0,level:1});
       notify(`${def.name} 건설! (-${def.cost}G)`,'#80c0ff');
       spawnParticles(wx,wy,'#80c0ff',8);
       GS.buildSelected=null;
