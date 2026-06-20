@@ -35,7 +35,7 @@ body{background:#1a2e10;display:flex;align-items:center;justify-content:center;w
   <div class="t-sub">Farm Story — 씨앗을 심고, 꿈을 키워요</div>
   <button class="t-btn" onclick="startGame()">🌱 게임 시작</button>
   <div class="t-ctrl">
-    <span>WASD / 방향키</span> 이동 &nbsp;|&nbsp; <span>E / Space</span> 도구 사용 &nbsp;|&nbsp; <span>Enter</span> 상호작용<br>
+    <span>방향키</span> 이동 &nbsp;|&nbsp; <span>E</span> 도구 사용 &nbsp;|&nbsp; <span>Space</span> 상호작용<br>
     <span>1~7</span> 도구 선택 &nbsp;|&nbsp; <span>I</span> 인벤토리 &nbsp;|&nbsp; <span>Z</span> 수면 (하루 넘기기) &nbsp;|&nbsp; <span>Esc</span> 닫기
   </div>
 </div>
@@ -1189,7 +1189,7 @@ function renderDialog(){
   rr(dpx+2,dpy+2,pw-4,ph-4,12,'rgba(45,25,10,0.95)');
   rr(dpx,dpy,pw,40,12,outfit.body);
   txtShadow(npc.name,dpx+16,dpy+28,17,'#fff','rgba(0,0,0,0.4)');
-  txt('[ E / Space / Enter = 다음 ]',dpx+pw-12,dpy+28,12,'rgba(255,255,255,0.5)','right');
+  txt('[ Space / Enter = 다음 ]',dpx+pw-12,dpy+28,12,'rgba(255,255,255,0.5)','right');
   const line=d.lines[d.page]||'';
   txt(line,dpx+16,dpy+72,15,'#FFE0C0');
   if(d.page<d.lines.length-1){
@@ -1494,8 +1494,8 @@ function update(dt){
   GS.py=Math.max(TILE,Math.min((WH-1)*TILE-TILE/2,GS.py));
 
   // Just-pressed keys
-  if(justPressed('KeyE')||justPressed('Space'))useTool();
-  if(justPressed('Enter'))interact();
+  if(justPressed('KeyE'))useTool();
+  if(justPressed('Space')||justPressed('Enter'))interact();
   if(justPressed('KeyZ')&&GS.hour>=20)advanceDay();
   if(justPressed('KeyI'))GS.invOpen=!GS.invOpen;
   if(justPressed('Escape')){GS.shopOpen=false;GS.invOpen=false;GS.dialog=null}
