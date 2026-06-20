@@ -181,13 +181,15 @@
   /* ── Init canvas ─────────────────────────────────────────── */
   function initCanvas() {
     canvas = document.getElementById('gameCanvas');
+    if (!canvas) throw new Error('gameCanvas not found');
     DPR = window.devicePixelRatio || 1;
-    W = Math.min(400, window.innerWidth - 32);
+    W = Math.max(200, Math.min(400, (window.innerWidth || 400) - 32));
     canvas.style.width  = W + 'px';
     canvas.style.height = CANVAS_H + 'px';
     canvas.width  = Math.round(W * DPR);
     canvas.height = Math.round(CANVAS_H * DPR);
     ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('2d context unavailable');
     ctx.scale(DPR, DPR);
     generateStars();
   }
@@ -782,7 +784,8 @@
 
   /* ── Window resize ──────────────────────────────────────── */
   window.addEventListener('resize', function() {
-    const newW = Math.min(400, window.innerWidth - 32);
+    if (!canvas || !ctx) return;
+    const newW = Math.max(200, Math.min(400, (window.innerWidth || 400) - 32));
     if (Math.abs(newW - W) > 4) {
       W = newW;
       canvas.style.width  = W + 'px';
@@ -792,13 +795,26 @@
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.scale(DPR, DPR);
       generateStars();
-      // Rescale stack block widths proportionally is complex; just keep as-is
     }
   });
 
   /* ── Bootstrap ──────────────────────────────────────────── */
-  initCanvas();
-  init();
+  function _bootstrap() {
+    try {
+      initCanvas();
+      init();
+    } catch (e) {
+      console.error('[Stack] init error:', e);
+      // Show error on page so it's visible without DevTools
+      const el = document.getElementById('scoreDisp') || document.body;
+      el.textContent = '오류: ' + e.message;
+    }
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', _bootstrap);
+  } else {
+    _bootstrap();
+  }
 
 })();
 </script>
