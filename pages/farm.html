@@ -1,0 +1,1615 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>농장이야기 🌾 | 퇴근각</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#1a2e10;display:flex;align-items:center;justify-content:center;width:100vw;height:100vh;overflow:hidden;font-family:'Malgun Gothic','맑은 고딕',sans-serif}
+#c{display:block;cursor:none}
+#title{position:fixed;inset:0;background:linear-gradient(135deg,#1a3a0a 0%,#0d2206 50%,#1a3a0a 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100}
+.t-logo{font-size:72px;margin-bottom:8px;filter:drop-shadow(0 4px 8px rgba(0,0,0,0.5));animation:float 3s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.t-title{font-size:52px;font-weight:900;color:#FFE08A;text-shadow:3px 4px 0 #5A3000,0 0 40px rgba(255,200,50,0.4);margin-bottom:6px;letter-spacing:-1px}
+.t-sub{color:#8BC97A;font-size:16px;margin-bottom:44px;letter-spacing:1px}
+.t-btn{background:linear-gradient(to bottom,#6EC44E,#3D8B3D);color:#fff;border:none;padding:16px 56px;font-size:22px;border-radius:50px;cursor:pointer;font-family:inherit;font-weight:700;box-shadow:0 6px 0 #1E5C1E,0 10px 30px rgba(0,0,0,0.5);transition:transform .1s,box-shadow .1s;letter-spacing:2px}
+.t-btn:hover{background:linear-gradient(to bottom,#7ED45E,#4E9B4E);transform:translateY(-2px);box-shadow:0 8px 0 #1E5C1E,0 14px 34px rgba(0,0,0,0.5)}
+.t-btn:active{transform:translateY(4px);box-shadow:0 2px 0 #1E5C1E}
+.t-ctrl{margin-top:28px;color:#5a7a4a;font-size:13px;line-height:2;text-align:center}
+.t-ctrl span{color:#8BC97A}
+.t-deco{position:absolute;font-size:28px;opacity:0.15;pointer-events:none}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="title">
+  <div class="t-deco" style="top:8%;left:6%">🌻</div>
+  <div class="t-deco" style="top:12%;right:8%">🍓</div>
+  <div class="t-deco" style="bottom:15%;left:10%">🥕</div>
+  <div class="t-deco" style="bottom:10%;right:12%">🌽</div>
+  <div class="t-deco" style="top:40%;left:3%">🐔</div>
+  <div class="t-deco" style="top:45%;right:4%">🐄</div>
+  <div class="t-logo">🌾</div>
+  <div class="t-title">농장이야기</div>
+  <div class="t-sub">Farm Story — 씨앗을 심고, 꿈을 키워요</div>
+  <button class="t-btn" onclick="startGame()">🌱 게임 시작</button>
+  <div class="t-ctrl">
+    <span>WASD / 방향키</span> 이동 &nbsp;|&nbsp; <span>E / Space</span> 도구 사용 &nbsp;|&nbsp; <span>Enter</span> 상호작용<br>
+    <span>1~7</span> 도구 선택 &nbsp;|&nbsp; <span>I</span> 인벤토리 &nbsp;|&nbsp; <span>Z</span> 수면 (하루 넘기기) &nbsp;|&nbsp; <span>Esc</span> 닫기
+  </div>
+</div>
+<script>
+// ═══════════════════════════════════════════════
+//  농장이야기 — Farm Story
+// ═══════════════════════════════════════════════
+const CV = document.getElementById('c');
+const ctx = CV.getContext('2d');
+let W=0,H=0;
+function resize(){W=CV.width=window.innerWidth;H=CV.height=window.innerHeight}
+window.addEventListener('resize',resize);resize();
+
+// ── CONSTANTS ──────────────────────────────────
+const TILE=48, WW=80, WH=60;
+const SPEED=2.8;
+const MAX_E=100;
+const HOUR_SECS=12; // real seconds per game hour (12s × 16h = 192s/day)
+
+// Tile types
+const T={VOID:0,GRASS:1,DIRT:2,TILLED:3,WET:4,PATH:5,WATER:6,FENCE:7,GATE:8,
+  TREE:9,ROCK:10,FLOWER:11,BUILDING:12,DOOR:13,FLOOR:14,WELL:15,CHEST:16,
+  SAND:17,TALL:18,STUMP:19,BRIDGE:20,DEEP:21};
+const WALK=new Set([T.GRASS,T.DIRT,T.TILLED,T.WET,T.PATH,T.GATE,T.FLOWER,
+  T.TALL,T.FLOOR,T.DOOR,T.BRIDGE,T.SAND,T.STUMP]);
+
+// ── SEASONS ────────────────────────────────────
+const SEASONS=['봄','여름','가을','겨울'];
+const SPAL=[
+  {sky:'#C8E6FF',sky2:'#FFE0E8',grass:'#6EC44E',grass2:'#5AB03A',tree:'#3A8C2A',tree2:'#2D7020',path:'#C4A882',path2:'#B09060',water:'#5BB8FF',water2:'#3A9AEE',flower:'#FF69B4',ui:'#5AB03A'},
+  {sky:'#4AA8E8',sky2:'#FFF3B0',grass:'#3EA040',grass2:'#2D8030',tree:'#2D7024',tree2:'#1E5018',path:'#B8965A',path2:'#A07840',water:'#2E99DD',water2:'#1A7FBB',flower:'#FFB300',ui:'#3EA040'},
+  {sky:'#E8A460',sky2:'#FFD5A0',grass:'#8B7B45',grass2:'#7A6A35',tree:'#C4520A',tree2:'#A44008',path:'#B09060',path2:'#9A7A50',water:'#4A88AA',water2:'#3A6888',flower:'#FF6030',ui:'#C4520A'},
+  {sky:'#A8C4E0',sky2:'#F0F4FF',grass:'#C8D8E8',grass2:'#B0C4D8',tree:'#607080',tree2:'#485860',path:'#C8C0B8',path2:'#B0A898',water:'#88AACC',water2:'#6888AA',flower:'#88CCEE',ui:'#607080'},
+];
+
+// ── CROPS ──────────────────────────────────────
+const CROPS={
+  parsnip:    {name:'파스닙',   icon:'🌿',days:4, sell:35, seed:10, seasons:[0],   color:'#F5CBA7'},
+  turnip:     {name:'순무',     icon:'🫛',days:4, sell:60, seed:15, seasons:[0],   color:'#9B59B6'},
+  potato:     {name:'감자',     icon:'🥔',days:6, sell:80, seed:25, seasons:[0],   color:'#8B7355'},
+  strawberry: {name:'딸기',     icon:'🍓',days:8, sell:120,seed:50, seasons:[0],   color:'#E74C3C'},
+  cauliflower:{name:'콜리플라워',icon:'🥦',days:12,sell:175,seed:80, seasons:[0],   color:'#D5DBDB'},
+  melon:      {name:'멜론',     icon:'🍈',days:12,sell:250,seed:80, seasons:[1],   color:'#A8D8A8'},
+  blueberry:  {name:'블루베리', icon:'🫐',days:14,sell:50, seed:80, seasons:[1],   color:'#3498DB'},
+  corn:       {name:'옥수수',   icon:'🌽',days:14,sell:150,seed:75, seasons:[1,2], color:'#F1C40F'},
+  tomato:     {name:'토마토',   icon:'🍅',days:11,sell:60, seed:50, seasons:[1],   color:'#C0392B'},
+  pumpkin:    {name:'호박',     icon:'🎃',days:13,sell:320,seed:100,seasons:[2],   color:'#E67E22'},
+  yam:        {name:'얌',       icon:'🍠',days:10,sell:160,seed:60, seasons:[2],   color:'#8B4513'},
+  bokchoy:    {name:'청경채',   icon:'🥬',days:4, sell:50, seed:25, seasons:[2],   color:'#2ECC71'},
+  grape:      {name:'포도',     icon:'🍇',days:10,sell:80, seed:60, seasons:[2],   color:'#8E44AD'},
+  sunflower:  {name:'해바라기', icon:'🌻',days:8, sell:80, seed:40, seasons:[1,2], color:'#F39C12'},
+  eggplant:   {name:'가지',     icon:'🍆',days:5, sell:60, seed:20, seasons:[2],   color:'#6C3483'},
+};
+
+// ── SHOP STOCK ─────────────────────────────────
+const SHOP_SEASONS=[
+  ['parsnip','turnip','potato','strawberry','cauliflower'],
+  ['melon','blueberry','corn','tomato','sunflower'],
+  ['pumpkin','yam','bokchoy','grape','eggplant','corn','sunflower'],
+  [],
+];
+
+// ── NPC DATA ───────────────────────────────────
+const NPC_DEFS=[
+  {id:'mj',name:'민지',role:'상점 주인',color:'#E91E8C',ox:48,oy:7,isShop:true,
+   lines:['어서오세요! 씨앗이나 도구 필요하면 말해요~','오늘도 좋은 하루 되세요! 수확한 건 저한테 파세요.','봄 씨앗이 싸게 나왔어요! 얼른 사세요~']},
+  {id:'mayor',name:'이장님',role:'마을 이장',color:'#8B6914',ox:58,oy:8,
+   lines:['마을에 온 걸 환영해요! 열심히 농사지어보세요.','계절이 바뀌면 새 작물을 심을 수 있어요.','마을 사람들이 응원하고 있답니다!']},
+  {id:'halmeo',name:'김 할머니',role:'농업 전문가',color:'#795548',ox:48,oy:18,
+   lines:['이런이런, 젊은이가 농사를 짓다니 기특하구나.','작물은 매일 물을 주어야 잘 자란단다.','비가 오면 물 안 줘도 된단다. 하늘이 도와주니까!'],
+   quest:{id:'q1',title:'할머니의 부탁',desc:'순무 3개를 가져다 드리세요.',need:{turnip:3},reward:{money:300},done:false,given:false}},
+  {id:'smith',name:'철수',role:'대장장이',color:'#455A64',ox:56,oy:18,
+   lines:['도구 업그레이드하고 싶으면 나한테 와!','좋은 도구가 있어야 좋은 농사를 짓는 법이지.','재료 모아오면 더 좋은 도구 만들어줄게.']},
+  {id:'doc',name:'선생님',role:'마을 의사',color:'#1565C0',ox:64,oy:8,
+   lines:['에너지가 다 떨어지면 집에서 쉬세요.','잘 먹고 잘 자야 농사도 잘 됩니다.','밤이 되기 전에 꼭 집으로 돌아가야 해요.']},
+];
+
+// ── WORLD GENERATION ───────────────────────────
+function makeWorld(){
+  const tiles=Array.from({length:WH},()=>new Uint8Array(WW).fill(T.GRASS));
+  const cd=Array.from({length:WH},()=>Array(WW).fill(null)); // crop data
+
+  const set=(r,c,v)=>{if(r>=0&&r<WH&&c>=0&&c<WW)tiles[r][c]=v};
+  const fill=(r1,c1,r2,c2,v)=>{for(let r=r1;r<=r2;r++)for(let c=c1;c<=c2;c++)set(r,c,v)};
+
+  // === FARM ZONE (cols 1-36, rows 1-28) ===
+  // Perimeter fence
+  for(let r=3;r<=27;r++){set(r,2,T.FENCE);set(r,36,T.FENCE)}
+  for(let c=2;c<=36;c++){set(3,c,T.FENCE);set(27,c,T.FENCE)}
+  set(14,2,T.GATE);set(15,2,T.GATE); // left gate
+
+  // Farmland
+  fill(7,4,23,26,T.DIRT);
+
+  // Farm paths
+  for(let r=4;r<=26;r++)set(r,3,T.PATH);
+  for(let c=3;c<=35;c++)set(6,c,T.PATH);
+  for(let c=3;c<=35;c++)set(24,c,T.PATH);
+  for(let r=6;r<=24;r++)set(r,27,T.PATH);
+
+  // Player house (top-right of farm)
+  fill(4,28,10,35,T.BUILDING);
+  fill(10,28,12,35,T.FLOOR);
+  set(12,31,T.DOOR);set(12,32,T.DOOR);
+
+  // Barn (bottom-right)
+  fill(17,28,23,35,T.BUILDING);
+  fill(23,28,24,35,T.FLOOR);
+  set(24,31,T.DOOR);set(24,32,T.DOOR);
+
+  // Well
+  set(5,4,T.WELL);set(5,5,T.WELL);
+
+  // Decorative farm trees
+  [[5,25],[5,26],[25,4],[25,5]].forEach(([r,c])=>set(r,c,T.TREE));
+  [[5,28],[5,29],[25,28]].forEach(([r,c])=>set(r,c,T.FLOWER));
+
+  // === PATH TO TOWN (rows 13-16, cols 36-44) ===
+  for(let c=36;c<=44;c++){set(13,c,T.PATH);set(14,c,T.PATH);set(15,c,T.PATH)}
+
+  // === TOWN ZONE (cols 44-75, rows 2-30) ===
+  // Main roads
+  for(let r=2;r<=30;r++){
+    set(r,44,T.PATH);set(r,45,T.PATH);
+    set(r,66,T.PATH);set(r,67,T.PATH);
+  }
+  for(let c=44;c<=68;c++){
+    set(2,c,T.PATH);set(3,c,T.PATH);
+    set(29,c,T.PATH);set(30,c,T.PATH);
+  }
+  // Town cross paths
+  for(let r=2;r<=30;r++){set(r,54,T.PATH);set(r,55,T.PATH)}
+  for(let c=44;c<=68;c++){set(15,c,T.PATH);set(16,c,T.PATH)}
+
+  // Town grass blocks
+  fill(4,46,13,53,T.GRASS);
+  fill(4,56,13,65,T.GRASS);
+  fill(17,46,28,53,T.GRASS);
+  fill(17,56,28,65,T.GRASS);
+
+  // Shop (top-left town block)
+  fill(4,46,10,53,T.BUILDING);
+  fill(10,46,12,53,T.FLOOR);
+  set(12,49,T.DOOR);set(12,50,T.DOOR);
+
+  // Mayor (top-right town block)
+  fill(4,56,10,65,T.BUILDING);
+  fill(10,56,12,65,T.FLOOR);
+  set(12,60,T.DOOR);set(12,61,T.DOOR);
+
+  // Grandma (bottom-left)
+  fill(17,46,23,53,T.BUILDING);
+  fill(17,46,18,53,T.FLOOR);
+  set(17,49,T.DOOR);set(17,50,T.DOOR);
+
+  // Blacksmith (bottom-right-ish)
+  fill(17,56,23,65,T.BUILDING);
+  fill(17,56,18,65,T.FLOOR);
+  set(17,60,T.DOOR);set(17,61,T.DOOR);
+
+  // Doctor (far right)
+  fill(4,68,10,75,T.BUILDING);
+  fill(10,68,12,75,T.FLOOR);
+  set(12,71,T.DOOR);set(12,72,T.DOOR);
+
+  // Fountain
+  set(13,54,T.WATER);set(13,55,T.WATER);
+  set(14,54,T.WELL);set(14,55,T.WATER);
+  set(15,54,T.WATER);set(15,55,T.WATER);
+
+  // Town flowers/trees
+  [[6,54],[6,55],[27,54],[27,55]].forEach(([r,c])=>set(r,c,T.TREE));
+  [[13,47],[14,47],[13,64],[14,64]].forEach(([r,c])=>set(r,c,T.FLOWER));
+
+  // === PATH TO FOREST ===
+  for(let r=27;r<=32;r++){set(r,14,T.PATH);set(r,15,T.PATH)}
+  for(let r=27;r<=32;r++){set(r,54,T.PATH);set(r,55,T.PATH)}
+
+  // === FOREST ZONE (rows 32-57) ===
+  const rng=mulberry32(42);
+  for(let r=33;r<WH-1;r++){
+    for(let c=1;c<WW-1;c++){
+      const v=rng();
+      if(r===33&&c>=13&&c<=16){tiles[r][c]=T.PATH;continue}
+      if(r===33&&c>=53&&c<=56){tiles[r][c]=T.PATH;continue}
+      if(c===14||c===15||c===54||c===55){tiles[r][c]=T.PATH;continue}
+      if(c>=24&&c<=27){tiles[r][c]=(c===25||c===26)?T.WATER:T.SAND;continue}
+      if(c===38||c===39){tiles[r][c]=T.PATH;continue}
+      if(v<0.32)tiles[r][c]=T.TREE;
+      else if(v<0.37)tiles[r][c]=T.ROCK;
+      else if(v<0.41)tiles[r][c]=T.TALL;
+      else if(v<0.43)tiles[r][c]=T.FLOWER;
+    }
+  }
+  // Forest clearing with chest
+  fill(40,10,44,14,T.GRASS);
+  set(42,12,T.CHEST);
+
+  // Mine area (bottom-right)
+  fill(47,62,57,77,T.GRASS);
+  const rng2=mulberry32(99);
+  for(let r=47;r<57;r++)for(let c=62;c<WW-1;c++)if(rng2()<0.55)set(r,c,T.ROCK);
+
+  // Border
+  for(let r=0;r<WH;r++){tiles[r][0]=T.VOID;tiles[r][WW-1]=T.VOID}
+  for(let c=0;c<WW;c++){tiles[0][c]=T.VOID;tiles[WH-1][c]=T.VOID}
+
+  return {tiles,cd};
+}
+
+function mulberry32(a){
+  return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);
+    t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+
+// ── GAME STATE ─────────────────────────────────
+let GS=null;
+let world=null;
+let gameRunning=false;
+let animFrame=0;
+let lastTime=0;
+let timeAcc=0; // seconds accumulator for game time
+
+function initGS(){
+  world=makeWorld();
+  GS={
+    // Time
+    hour:6,minute:0,day:1,season:0,year:1,
+    // Player
+    px:(11*TILE+24),py:(11*TILE+24),
+    dir:2,moving:false,
+    energy:MAX_E,money:500,
+    waterCan:10,maxWater:10,
+    // Inventory: itemKey -> count
+    inv:{parsnip_seed:9,turnip_seed:3,hoe:1,watering_can:1,sickle:1,axe:1,pickaxe:1,fishing_rod:1},
+    // Hotbar
+    bar:['hoe','watering_can','parsnip_seed','sickle','axe','pickaxe','fishing_rod'],
+    slot:0,
+    seedSlot:2, // which hotbar slot is "seeds"
+    // NPCs
+    npcs:NPC_DEFS.map(n=>({...n,quest:n.quest?{...n.quest}:null,lineIdx:0})),
+    // UI State
+    dialog:null,     // {lines,page,npcIdx}
+    shopOpen:false,
+    shopTab:'buy',   // 'buy'|'sell'
+    invOpen:false,
+    // Notifications
+    notes:[],        // {txt,timer,col}
+    // Particles
+    parts:[],
+    // Stats
+    harvested:0,watered:0,earned:0,days:0,
+    // Quests
+    quests:QUEST_DEFS.map(q=>({...q,prog:0})),
+    // Weather
+    weather:'sunny', // 'sunny'|'rain'
+    rainTimer:0,
+    // Sleep
+    sleeping:false,sleepT:0,
+    // Chest
+    chestOpen:false,chestLooted:false,
+    // Animals (in barn)
+    animals:[
+      {type:'chicken',fed:false,product:null,daysToProduct:1,dayTimer:1},
+    ],
+    // Day flag
+    wakedUp:true,
+  };
+}
+
+// ── QUESTS ─────────────────────────────────────
+const QUEST_DEFS=[
+  {id:'q_first',title:'첫 수확',desc:'작물을 처음으로 수확하세요.',type:'harvest',target:1,reward:{money:100}},
+  {id:'q_water',title:'성실한 농부',desc:'작물에 물을 10번 주세요.',type:'water',target:10,reward:{money:150}},
+  {id:'q_money',title:'부자 농부',desc:'1,000G를 모으세요.',type:'money',target:1000,reward:{money:200}},
+  {id:'q_harvest5',title:'풍성한 수확',desc:'작물을 20개 수확하세요.',type:'harvest',target:20,reward:{money:500}},
+];
+
+// ── INPUT ──────────────────────────────────────
+const KEYS={};
+const JUST={};
+const JUST_PREV={};
+window.addEventListener('keydown',e=>{
+  if(!KEYS[e.code]){JUST[e.code]=true}
+  KEYS[e.code]=true;
+  if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();
+});
+window.addEventListener('keyup',e=>delete KEYS[e.code]);
+
+function justPressed(k){return JUST[k]&&!JUST_PREV[k]}
+
+// ── DRAWING UTILITIES ──────────────────────────
+function rr(x,y,w,h,r,col){
+  ctx.fillStyle=col;ctx.beginPath();
+  ctx.roundRect(x,y,w,h,r);ctx.fill();
+}
+function circ(x,y,r,col){
+  ctx.fillStyle=col;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();
+}
+function txt(s,x,y,size,col,align='left',font='Malgun Gothic'){
+  ctx.font=`${size}px "${font}"`;ctx.fillStyle=col;ctx.textAlign=align;
+  ctx.fillText(s,x,y);
+}
+function txtShadow(s,x,y,size,col,sha='rgba(0,0,0,0.7)',align='left'){
+  ctx.font=`bold ${size}px "Malgun Gothic"`;
+  ctx.textAlign=align;
+  ctx.fillStyle=sha;ctx.fillText(s,x+1,y+2);
+  ctx.fillStyle=col;ctx.fillText(s,x,y);
+}
+function icon(s,x,y,size){
+  ctx.font=`${size}px serif`;ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText(s,x,y);ctx.textBaseline='alphabetic';
+}
+
+// ── TILE RENDERING ─────────────────────────────
+function drawTile(r,c,sx,sy,season){
+  const p=SPAL[season];
+  const t=world.tiles[r][c];
+  const A=animFrame;
+
+  switch(t){
+    case T.VOID:
+      ctx.fillStyle='#050A00';ctx.fillRect(sx,sy,TILE,TILE);break;
+    case T.GRASS:{
+      const g=ctx.createLinearGradient(sx,sy,sx+TILE,sy+TILE);
+      g.addColorStop(0,p.grass);g.addColorStop(1,p.grass2);
+      ctx.fillStyle=g;ctx.fillRect(sx,sy,TILE,TILE);
+      // tiny grass tufts
+      const h=((r*73+c*37)%5);
+      if(h<2){ctx.fillStyle=p.grass2;ctx.fillRect(sx+8+h*12,sy+30,3,8);ctx.fillRect(sx+12+h*12,sy+28,3,10)}
+      break;}
+    case T.DIRT:
+      ctx.fillStyle='#7B5435';ctx.fillRect(sx,sy,TILE,TILE);
+      ctx.fillStyle='#6A4428';
+      for(let i=0;i<3;i++)ctx.fillRect(sx+5+i*14,sy+8+i*10,10,4);
+      break;
+    case T.TILLED:
+      ctx.fillStyle='#5C3D22';ctx.fillRect(sx,sy,TILE,TILE);
+      ctx.fillStyle='#4A2E14';
+      for(let i=0;i<3;i++){ctx.fillRect(sx+2,sy+8+i*14,TILE-4,3)}
+      break;
+    case T.WET:
+      ctx.fillStyle='#3A2410';ctx.fillRect(sx,sy,TILE,TILE);
+      ctx.fillStyle='#4A2E14';
+      for(let i=0;i<3;i++){ctx.fillRect(sx+2,sy+8+i*14,TILE-4,3)}
+      ctx.fillStyle='rgba(80,140,200,0.3)';ctx.fillRect(sx,sy,TILE,TILE);
+      break;
+    case T.PATH:
+      ctx.fillStyle=p.path;ctx.fillRect(sx,sy,TILE,TILE);
+      ctx.fillStyle=p.path2;
+      ctx.fillRect(sx+1,sy+1,TILE-2,8);
+      ctx.fillRect(sx+1,sy+TILE-9,TILE-2,8);
+      break;
+    case T.WATER:{
+      const wg=ctx.createLinearGradient(sx,sy,sx,sy+TILE);
+      wg.addColorStop(0,p.water);wg.addColorStop(1,p.water2);
+      ctx.fillStyle=wg;ctx.fillRect(sx,sy,TILE,TILE);
+      const sh=Math.sin(A*0.05+(r+c)*0.5)*4;
+      ctx.fillStyle='rgba(255,255,255,0.25)';
+      ctx.fillRect(sx+4+sh,sy+14,20,3);ctx.fillRect(sx+22-sh,sy+26,18,3);
+      ctx.fillRect(sx+6+sh*0.5,sy+36,14,3);
+      break;}
+    case T.DEEP:
+      ctx.fillStyle=p.water2;ctx.fillRect(sx,sy,TILE,TILE);break;
+    case T.SAND:
+      ctx.fillStyle='#D4B483';ctx.fillRect(sx,sy,TILE,TILE);break;
+    case T.FENCE:
+      ctx.fillStyle=p.grass;ctx.fillRect(sx,sy,TILE,TILE);
+      ctx.fillStyle='#7B5435';ctx.fillRect(sx+TILE/2-4,sy+2,8,TILE-4);
+      ctx.fillStyle='#9B7355';ctx.fillRect(sx+2,sy+10,TILE-4,6);
+      ctx.fillRect(sx+2,sy+30,TILE-4,6);
+      break;
+    case T.GATE:
+      ctx.fillStyle=p.grass;ctx.fillRect(sx,sy,TILE,TILE);
+      ctx.fillStyle='#9B7355';ctx.fillRect(sx+4,sy+10,16,6);
+      ctx.fillRect(sx+4,sy+30,16,6);
+      break;
+    case T.BUILDING:
+      ctx.fillStyle='#B8724A';ctx.fillRect(sx,sy,TILE,TILE);
+      ctx.fillStyle='#9A5A35';ctx.fillRect(sx,sy,TILE,8);
+      ctx.fillStyle='rgba(255,255,255,0.07)';ctx.fillRect(sx+2,sy+2,TILE-4,TILE-4);
+      break;
+    case T.FLOOR:
+      ctx.fillStyle='#C8A870';ctx.fillRect(sx,sy,TILE,TILE);
+      ctx.fillStyle='#B89860';
+      ctx.fillRect(sx,sy,TILE,2);ctx.fillRect(sx,sy,2,TILE);
+      break;
+    case T.DOOR:
+      ctx.fillStyle='#C8A870';ctx.fillRect(sx,sy,TILE,TILE);
+      ctx.fillStyle='#7B4020';ctx.fillRect(sx+6,sy,TILE-12,TILE);
+      ctx.fillStyle='#8B5030';ctx.fillRect(sx+8,sy+4,TILE-16,TILE-8);
+      ctx.fillStyle='#F0C040';circ(sx+TILE/2+6,sy+TILE/2,3,'#F0C040');
+      break;
+    case T.TREE:{
+      ctx.fillStyle=p.grass;ctx.fillRect(sx,sy,TILE,TILE);
+      // trunk
+      ctx.fillStyle='#6B4226';ctx.fillRect(sx+TILE/2-5,sy+24,10,TILE-24);
+      // crown
+      const tc1=p.tree,tc2=p.tree2;
+      circ(sx+TILE/2,sy+20,16,tc1);
+      circ(sx+TILE/2-10,sy+26,12,tc2);
+      circ(sx+TILE/2+10,sy+26,12,tc2);
+      circ(sx+TILE/2,sy+14,12,tc1);
+      break;}
+    case T.STUMP:
+      ctx.fillStyle=p.grass;ctx.fillRect(sx,sy,TILE,TILE);
+      ctx.fillStyle='#7B5230';ctx.fillRect(sx+10,sy+24,28,18);
+      ctx.fillStyle='#9B7250';ctx.beginPath();ctx.ellipse(sx+24,sy+24,14,6,0,0,Math.PI*2);ctx.fill();
+      break;
+    case T.ROCK:{
+      ctx.fillStyle=p.grass;ctx.fillRect(sx,sy,TILE,TILE);
+      ctx.fillStyle='#8090A0';
+      ctx.beginPath();ctx.ellipse(sx+TILE/2,sy+TILE/2+4,16,11,0,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#A0B0C0';
+      ctx.beginPath();ctx.ellipse(sx+TILE/2-2,sy+TILE/2,14,9,0,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='rgba(255,255,255,0.2)';ctx.beginPath();ctx.ellipse(sx+TILE/2-4,sy+TILE/2-4,6,4,0.5,0,Math.PI*2);ctx.fill();
+      break;}
+    case T.FLOWER:{
+      ctx.fillStyle=p.grass;ctx.fillRect(sx,sy,TILE,TILE);
+      const fc=p.flower;
+      const fx=sx+TILE/2,fy=sy+TILE/2;
+      ctx.fillStyle='#5A8C3A';ctx.fillRect(fx-2,fy+2,4,12);
+      for(let a=0;a<5;a++){
+        const ang=a*Math.PI*2/5;
+        circ(fx+Math.cos(ang)*8,fy+Math.sin(ang)*8,5,fc);
+      }
+      circ(fx,fy,5,'#FFE040');
+      break;}
+    case T.TALL:
+      ctx.fillStyle=p.grass;ctx.fillRect(sx,sy,TILE,TILE);
+      ctx.fillStyle=p.tree2;
+      ctx.fillRect(sx+4,sy+10,6,TILE-10);
+      ctx.fillRect(sx+14,sy+6,6,TILE-6);
+      ctx.fillRect(sx+24,sy+12,6,TILE-12);
+      ctx.fillRect(sx+34,sy+8,6,TILE-8);
+      break;
+    case T.WELL:
+      ctx.fillStyle=p.grass;ctx.fillRect(sx,sy,TILE,TILE);
+      ctx.fillStyle='#8090A0';ctx.beginPath();ctx.arc(sx+TILE/2,sy+TILE/2+4,14,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#60707E';ctx.beginPath();ctx.arc(sx+TILE/2,sy+TILE/2+4,10,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle=p.water;ctx.beginPath();ctx.arc(sx+TILE/2,sy+TILE/2+4,8,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#6B4226';ctx.fillRect(sx+TILE/2-2,sy+2,4,TILE/2);
+      ctx.fillStyle='#8B6246';ctx.fillRect(sx+4,sy+8,TILE-8,6);
+      break;
+    case T.CHEST:
+      ctx.fillStyle=p.grass;ctx.fillRect(sx,sy,TILE,TILE);
+      ctx.fillStyle='#8B5E3C';ctx.fillRect(sx+8,sy+16,TILE-16,TILE-20);
+      ctx.fillStyle='#6B3E1C';ctx.fillRect(sx+8,sy+16,TILE-16,6);
+      ctx.fillStyle='#FFD700';ctx.fillRect(sx+TILE/2-4,sy+TILE/2-2,8,6);
+      ctx.fillStyle='#FFA000';ctx.beginPath();ctx.arc(sx+TILE/2,sy+TILE/2+1,3,0,Math.PI*2);ctx.fill();
+      break;
+  }
+
+  // Crop overlay
+  const cr=world.cd[r][c];
+  if(cr){drawCropOnTile(cr,sx,sy)}
+}
+
+function drawCropOnTile(cr,sx,sy){
+  const def=CROPS[cr.key];
+  const progress=cr.stage/def.days;
+  const cy=sy+TILE-10;
+  if(progress>=1){
+    // Fully grown — show icon + sparkle glow
+    ctx.fillStyle='rgba(255,255,100,0.15)';ctx.fillRect(sx,sy,TILE,TILE);
+    icon(def.icon,sx+TILE/2,cy-8,28);
+    ctx.fillStyle='rgba(255,255,100,0.6)';
+    circ(sx+TILE/2,cy-8,16,'rgba(255,255,100,0.1)');
+  } else if(progress>0.6){
+    // Mid growth
+    ctx.fillStyle=def.color;
+    ctx.fillRect(sx+TILE/2-3,cy-18,6,18);
+    ctx.beginPath();ctx.arc(sx+TILE/2,cy-22,7,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,0.5)';
+    ctx.beginPath();ctx.arc(sx+TILE/2-2,cy-25,3,0,Math.PI*2);ctx.fill();
+  } else if(progress>0.3){
+    // Small plant
+    ctx.fillStyle='#4A9A2A';
+    ctx.fillRect(sx+TILE/2-2,cy-10,4,10);
+    ctx.beginPath();ctx.ellipse(sx+TILE/2-4,cy-10,6,4,-0.5,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(sx+TILE/2+4,cy-8,6,4,0.5,0,Math.PI*2);ctx.fill();
+  } else {
+    // Sprout
+    ctx.fillStyle='#5ABF30';
+    ctx.fillRect(sx+TILE/2-1,cy-6,3,6);
+    ctx.beginPath();ctx.ellipse(sx+TILE/2+2,cy-6,4,3,0.3,0,Math.PI*2);ctx.fill();
+  }
+  // Watered indicator
+  if(cr.watered){
+    ctx.fillStyle='rgba(60,120,220,0.5)';
+    ctx.beginPath();ctx.arc(sx+6,sy+6,4,0,Math.PI*2);ctx.fill();
+  }
+}
+
+// ── PLAYER RENDERING ───────────────────────────
+function drawPlayer(px,py,dir,moving,frame){
+  const x=Math.round(px),y=Math.round(py);
+  const bob=moving?Math.sin(frame*0.22)*3:0;
+  const S=GS;
+
+  ctx.save();
+  ctx.translate(x,y+bob);
+
+  // Shadow
+  ctx.fillStyle='rgba(0,0,0,0.2)';ctx.beginPath();ctx.ellipse(0,14,12,5,0,0,Math.PI*2);ctx.fill();
+
+  // Legs
+  const legOff=moving?Math.sin(frame*0.25)*5:0;
+  ctx.fillStyle='#4A6FA5';
+  rr(-7,8,8,12,3,'#4A6FA5');  // left leg
+  rr(0,8,8,12,3,'#3A5F95');   // right leg
+  // Shoes
+  ctx.fillStyle='#2C1810';
+  rr(-9+legOff,17,8,6,2,'#2C1810');
+  rr(2-legOff,17,8,6,2,'#2C1810');
+
+  // Body (overalls)
+  rr(-10,-4,20,16,6,'#4A6FA5');
+  // Shirt
+  rr(-7,2,14,8,4,'#FFFFFF');
+  // Suspenders
+  ctx.fillStyle='#2A4F85';
+  ctx.fillRect(-6,-4,3,10);ctx.fillRect(3,-4,3,10);
+
+  // Arms
+  const armAng=moving?Math.sin(frame*0.25)*0.3:0;
+  ctx.save();ctx.translate(-12,0);ctx.rotate(-armAng);
+  rr(-4,-2,8,14,4,'#FDBCB4');ctx.restore();
+  ctx.save();ctx.translate(12,0);ctx.rotate(armAng);
+  rr(-4,-2,8,14,4,'#FDBCB4');ctx.restore();
+
+  // Tool in right hand
+  const tool=S.bar[S.slot];
+  if(tool){
+    const icons={'hoe':'⛏️','watering_can':'🚿','sickle':'🌾','axe':'🪓','pickaxe':'⛏','fishing_rod':'🎣'};
+    const ti=icons[tool]||'🌱';
+    ctx.save();ctx.translate(16,2);
+    icon(ti,0,0,16);ctx.restore();
+  }
+
+  // Head
+  circ(0,-18,13,'#FDBCB4');
+  // Eyes
+  if(dir!==0){
+    ctx.fillStyle='#2C1810';
+    if(dir===3){circ(-5,-19,2.5,'#2C1810');circ(2,-19,2.5,'#2C1810')}
+    else if(dir===1){circ(-2,-19,2.5,'#2C1810');circ(5,-19,2.5,'#2C1810')}
+    else{circ(-4,-20,2.5,'#2C1810');circ(4,-20,2.5,'#2C1810')}
+    // Blush
+    ctx.fillStyle='rgba(255,150,150,0.55)';
+    if(dir===3){circ(-8,-17,4,'rgba(255,150,150,0.55)');circ(-1,-17,4,'rgba(255,150,150,0.55)')}
+    else if(dir===1){circ(1,-17,4,'rgba(255,150,150,0.55)');circ(8,-17,4,'rgba(255,150,150,0.55)')}
+    else{circ(-6,-17,4,'rgba(255,150,150,0.55)');circ(6,-17,4,'rgba(255,150,150,0.55)')}
+    // Smile
+    ctx.strokeStyle='#2C1810';ctx.lineWidth=1.5;
+    ctx.beginPath();
+    if(dir===3){ctx.arc(-3,-16,4,0.2,Math.PI-0.2)}
+    else if(dir===1){ctx.arc(3,-16,4,0.2,Math.PI-0.2)}
+    else{ctx.arc(0,-16,4,0.2,Math.PI-0.2)}
+    ctx.stroke();
+  } else {
+    // Back of head — just hair
+  }
+
+  // Hat
+  const hc=dir===0?'#6B3210':'#7B4220';
+  rr(-12,-32,24,8,3,hc);
+  rr(-9,-40,18,12,4,'#8B5230');
+  // Hat band
+  ctx.fillStyle='#FF8C00';ctx.fillRect(-12,-32,24,3);
+
+  ctx.restore();
+}
+
+// ── NPC RENDERING ──────────────────────────────
+const NPC_OUTFITS=[
+  {body:'#E91E8C',shirt:'#FF80AB',hat:'#880E4F'},   // mj — pink
+  {body:'#8B6914',shirt:'#FFCC02',hat:'#5D4037'},   // mayor — gold
+  {body:'#795548',shirt:'#A1887F',hat:'#4E342E'},   // grandma — brown
+  {body:'#455A64',shirt:'#78909C',hat:'#263238'},   // smith — steel
+  {body:'#1565C0',shirt:'#90CAF9',hat:'#0D47A1'},   // doc — blue
+];
+
+function drawNPC(npc,outfit,frame){
+  const x=Math.round(npc.ox*TILE+24-camX());
+  const y=Math.round(npc.oy*TILE+24-camY());
+  if(x<-60||x>W+60||y<-60||y>H+60)return;
+
+  const bob=Math.sin(frame*0.06)*2;
+  ctx.save();ctx.translate(x,y+bob);
+
+  // Shadow
+  ctx.fillStyle='rgba(0,0,0,0.2)';ctx.beginPath();ctx.ellipse(0,14,10,4,0,0,Math.PI*2);ctx.fill();
+
+  // Legs
+  rr(-6,8,6,10,3,outfit.body);rr(1,8,6,10,3,outfit.body);
+  // Body
+  rr(-9,-2,18,14,5,outfit.body);
+  // Shirt
+  rr(-6,2,12,8,3,outfit.shirt);
+  // Head
+  circ(0,-16,11,'#FDBCB4');
+  // Eyes
+  circ(-3,-18,2,'#333');circ(3,-18,2,'#333');
+  // Blush
+  circ(-6,-14,3,'rgba(255,150,150,0.5)');circ(6,-14,3,'rgba(255,150,150,0.5)');
+  // Smile
+  ctx.strokeStyle='#333';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.arc(0,-14,3,0.2,Math.PI-0.2);ctx.stroke();
+  // Hat/hair
+  rr(-11,-28,22,7,2,outfit.hat);
+  rr(-8,-34,16,9,4,outfit.hat);
+  // Name tag
+  const nm=npc.name;
+  ctx.font='bold 11px "Malgun Gothic"';ctx.textAlign='center';
+  const nw=ctx.measureText(nm).width+12;
+  rr(-nw/2,-54,nw,18,6,'rgba(0,0,0,0.65)');
+  ctx.fillStyle='#fff';ctx.fillText(nm,0,-41);
+
+  ctx.restore();
+}
+
+// ── ANIMAL RENDERING ───────────────────────────
+function drawAnimal(a,frame){
+  // Animals are in the barn area
+  const bx=30*TILE, by=18*TILE;
+  const idx=GS.animals.indexOf(a);
+  const x=bx+idx*TILE*2+TILE-camX();
+  const y=by+TILE-camY();
+  if(x<-60||x>W+60||y<-60||y>H+60)return;
+
+  const bob=Math.sin(frame*0.08+idx)*2;
+  ctx.save();ctx.translate(x,y+bob);
+
+  if(a.type==='chicken'){
+    // White body
+    ctx.fillStyle='#F5F5F5';ctx.beginPath();ctx.ellipse(0,0,14,12,0,0,Math.PI*2);ctx.fill();
+    // Head
+    circ(12,-10,8,'#F5F5F5');
+    // Comb
+    ctx.fillStyle='#E53935';ctx.fillRect(10,-20,4,10);ctx.fillRect(6,-18,4,8);
+    // Beak
+    ctx.fillStyle='#FFB300';ctx.beginPath();ctx.moveTo(18,-10);ctx.lineTo(24,-8);ctx.lineTo(18,-6);ctx.fill();
+    // Eye
+    circ(14,-12,2,'#333');
+    // Wing
+    ctx.fillStyle='#E0E0E0';ctx.beginPath();ctx.ellipse(-4,0,10,7,0.3,0,Math.PI*2);ctx.fill();
+    // Feet
+    ctx.fillStyle='#FFB300';ctx.fillRect(-8,10,4,8);ctx.fillRect(0,10,4,8);
+  } else if(a.type==='cow'){
+    // Body
+    ctx.fillStyle='#F5F5F5';ctx.beginPath();ctx.ellipse(0,0,20,14,0,0,Math.PI*2);ctx.fill();
+    // Spots
+    ctx.fillStyle='#5D4037';ctx.beginPath();ctx.ellipse(8,4,6,5,0.3,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(-10,-2,5,4,0,0,Math.PI*2);ctx.fill();
+    // Head
+    circ(20,-8,11,'#F5F5F5');
+    // Pink nose
+    ctx.fillStyle='#FFCDD2';ctx.beginPath();ctx.ellipse(26,-6,5,4,0,0,Math.PI*2);ctx.fill();
+    circ(24,-6,1.5,'#888');circ(28,-6,1.5,'#888');
+    // Eyes
+    circ(18,-12,2.5,'#333');
+    // Horns
+    ctx.fillStyle='#F0E0A0';ctx.fillRect(16,-22,3,8);ctx.fillRect(22,-22,3,8);
+    // Legs
+    ctx.fillStyle='#E0E0E0';[[-14,12],[-6,12],[6,12],[14,12]].forEach(([lx])=>ctx.fillRect(lx-2,12,5,12));
+    // Udder
+    ctx.fillStyle='#FFB3BA';ctx.beginPath();ctx.ellipse(0,14,8,5,0,0,Math.PI*2);ctx.fill();
+  } else if(a.type==='sheep'){
+    // Fluffy body (multiple circles)
+    const wool='#F0F0F0';
+    [[-10,-4],[0,-8],[10,-4],[14,4],[-14,4],[0,4]].forEach(([wx,wy])=>circ(wx,wy,10,wool));
+    ctx.fillStyle='#E0E0E0';ctx.beginPath();ctx.ellipse(0,0,18,12,0,0,Math.PI*2);ctx.fill();
+    // Black face
+    circ(18,-4,8,'#333');
+    circ(22,0,2,'#555');
+    circ(22,-6,2,'#FFF');
+    // Legs
+    ctx.fillStyle='#333';[[-10,10],[-4,10],[6,10],[12,10]].forEach(([lx])=>ctx.fillRect(lx-2,10,4,10));
+  }
+
+  // Product indicator
+  if(a.product){
+    const ico={chicken:'🥚',cow:'🥛',sheep:'🧶'}[a.type];
+    ctx.save();ctx.translate(16,-24);
+    rr(-12,-12,24,20,6,'rgba(255,240,0,0.9)');
+    ctx.font='14px serif';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(ico,0,-2);
+    ctx.restore();
+  }
+
+  // Name
+  ctx.font='10px "Malgun Gothic"';ctx.textAlign='center';
+  const an={chicken:'닭',cow:'소',sheep:'양'}[a.type];
+  ctx.fillStyle='rgba(0,0,0,0.6)';ctx.fillRect(-15,18,30,14);
+  ctx.fillStyle='#fff';ctx.fillText(an,0,29);
+
+  ctx.restore();
+}
+
+// ── PARTICLE SYSTEM ────────────────────────────
+function spawnParticles(wx,wy,col,n=8){
+  for(let i=0;i<n;i++){
+    const ang=Math.random()*Math.PI*2;
+    const spd=1+Math.random()*3;
+    GS.parts.push({x:wx,y:wy,vx:Math.cos(ang)*spd,vy:Math.sin(ang)*spd-2,life:1,col,size:3+Math.random()*4});
+  }
+}
+function updateParticles(dt){
+  GS.parts=GS.parts.filter(p=>{
+    p.x+=p.vx;p.y+=p.vy;p.vy+=0.1;p.life-=dt*2;return p.life>0;
+  });
+}
+function drawParticles(){
+  GS.parts.forEach(p=>{
+    ctx.globalAlpha=p.life;
+    circ(p.x-camX(),p.y-camY(),p.size,p.col);
+    ctx.globalAlpha=1;
+  });
+}
+
+// ── RAIN PARTICLES ─────────────────────────────
+const RAIN=[];
+function updateRain(){
+  if(GS.weather!=='rain')return;
+  while(RAIN.length<120)RAIN.push({x:Math.random()*W,y:Math.random()*H,s:2+Math.random()*3});
+  RAIN.forEach(r=>{r.x-=0.5;r.y+=6+r.s;if(r.y>H){r.y=0;r.x=Math.random()*W}});
+}
+function drawRain(){
+  if(GS.weather!=='rain')return;
+  ctx.strokeStyle='rgba(150,200,255,0.4)';ctx.lineWidth=1.2;
+  RAIN.forEach(r=>{ctx.beginPath();ctx.moveTo(r.x,r.y);ctx.lineTo(r.x-3,r.y-10);ctx.stroke()});
+}
+
+// ── CAMERA ─────────────────────────────────────
+let camTX=0,camTY=0,camCX=0,camCY=0;
+function camX(){return camCX}
+function camY(){return camCY}
+function updateCam(){
+  const tx=GS.px-W/2,ty=GS.py-H/2;
+  const maxX=WW*TILE-W,maxY=WH*TILE-H;
+  camTX=Math.max(0,Math.min(maxX,tx));
+  camTY=Math.max(0,Math.min(maxY,ty));
+  camCX+=(camTX-camCX)*0.12;
+  camCY+=(camTY-camCY)*0.12;
+}
+
+// ── FACING TILE ────────────────────────────────
+function facingTile(){
+  const tc=Math.floor(GS.px/TILE),tr=Math.floor(GS.py/TILE);
+  const D=[[0,-1],[1,0],[0,1],[-1,0]]; // up right down left
+  const [dc,dr]=D[GS.dir]||[0,1];
+  return {r:tr+dr,c:tc+dc};
+}
+
+// ── TOOLS ──────────────────────────────────────
+function useTool(){
+  if(GS.energy<=0){notify('에너지가 부족합니다!','#FF6B6B');return}
+  const tool=GS.bar[GS.slot];
+  if(!tool)return;
+  const {r,c}=facingTile();
+  if(r<0||r>=WH||c<0||c>=WW)return;
+  const t=world.tiles[r][c];
+  const cr=world.cd[r][c];
+
+  if(tool==='hoe'){
+    if(t===T.DIRT){
+      world.tiles[r][c]=T.TILLED;
+      costEnergy(2);spawnHoeEffect(c,r);
+      notify('땅을 갈았습니다.','#A0C870');
+    } else if(t===T.GRASS){
+      world.tiles[r][c]=T.DIRT;
+      costEnergy(2);spawnHoeEffect(c,r);
+    }
+  } else if(tool==='watering_can'){
+    if(GS.waterCan<=0){notify('물통이 비었습니다! 우물에서 채우세요.','#6BC4FF');return}
+    if(t===T.TILLED&&!cr){
+      world.tiles[r][c]=T.WET;
+      GS.waterCan--;costEnergy(2);
+      notify('물을 주었습니다.','#6BC4FF');
+      GS.watered++;checkQuestProgress();
+    } else if(cr&&!cr.watered){
+      cr.watered=true;GS.waterCan--;costEnergy(2);
+      notify('작물에 물을 주었습니다.','#6BC4FF');
+      GS.watered++;checkQuestProgress();
+    } else if(t===T.WELL||t===T.WATER){
+      GS.waterCan=GS.maxWater;
+      notify('물통을 채웠습니다! 💧','#6BC4FF');
+    }
+  } else if(tool==='sickle'){
+    if(cr&&cr.stage>=CROPS[cr.key].days){
+      const def=CROPS[cr.key];
+      const qty=1+(GS.energy>50?Math.random()<0.3?1:0:0);
+      addItem(cr.key,qty);
+      spawnParticles(c*TILE+TILE/2,r*TILE+TILE/2,def.color,10);
+      world.cd[r][c]=null;
+      const wet=world.tiles[r][c]===T.TILLED||world.tiles[r][c]===T.WET;
+      world.tiles[r][c]=wet?T.TILLED:T.DIRT;
+      costEnergy(1);
+      notify(`${def.name} 수확! +${qty}개 🌾`,'#FFD700');
+      GS.harvested+=qty;checkQuestProgress();
+    } else if(!cr){
+      notify('수확할 작물이 없습니다.','#999');
+    } else {
+      notify('아직 다 자라지 않았습니다.','#FFB300');
+    }
+  } else if(tool==='axe'){
+    if(t===T.TREE){
+      world.tiles[r][c]=T.STUMP;
+      addItem('wood',2+Math.floor(Math.random()*3));
+      costEnergy(5);spawnParticles(c*TILE+TILE/2,r*TILE+TILE/2,'#8B5230',6);
+      notify('나무를 베었습니다. 🪵','#8B5230');
+    } else if(t===T.STUMP){
+      world.tiles[r][c]=T.GRASS;
+      addItem('wood',1);costEnergy(3);
+    }
+  } else if(tool==='pickaxe'){
+    if(t===T.ROCK){
+      world.tiles[r][c]=T.GRASS;
+      addItem('stone',2+Math.floor(Math.random()*3));
+      costEnergy(5);spawnParticles(c*TILE+TILE/2,r*TILE+TILE/2,'#A0B0C0',6);
+      notify('돌을 캤습니다. 🪨','#A0B0C0');
+    }
+  } else if(tool==='fishing_rod'){
+    if(t===T.WATER||t===T.DEEP){
+      doFish();
+    } else {
+      notify('물가에서 사용하세요. 🎣','#6BC4FF');
+    }
+  } else if(tool.endsWith('_seed')){
+    const key=tool.replace('_seed','');
+    if(!CROPS[key]){return}
+    if((GS.inv[tool]||0)<=0){notify('씨앗이 없습니다!','#FF9800');return}
+    if(t===T.TILLED||t===T.WET){
+      if(cr){notify('이미 작물이 있습니다.','#FF9800');return}
+      const def=CROPS[key];
+      if(!def.seasons.includes(GS.season)){
+        notify(`${SEASONS[GS.season]}에는 심을 수 없는 작물입니다.`,'#FF6B6B');return}
+      world.cd[r][c]={key,stage:0,watered:t===T.WET};
+      world.tiles[r][c]=T.TILLED;
+      removeItem(tool,1);costEnergy(1);
+      notify(`${def.name} 씨앗을 심었습니다! 🌱`,'#8BC34A');
+    } else {
+      notify('갈아놓은 땅에 심으세요.','#FFB300');
+    }
+  }
+}
+
+function spawnHoeEffect(c,r){
+  spawnParticles(c*TILE+TILE/2,r*TILE+TILE/2,'#8B6914',6);
+}
+
+const FISH_TABLE=[
+  {name:'잉어',icon:'🐟',weight:0.5,sell:30},{name:'붕어',icon:'🐡',weight:0.25,sell:70},
+  {name:'메기',icon:'🦈',weight:0.1,sell:200},{name:'뱀장어',icon:'🐍',weight:0.1,sell:85},
+  {name:'송어',icon:'🐠',weight:0.05,sell:300},
+];
+function doFish(){
+  costEnergy(5);
+  setTimeout(()=>{
+    const r=Math.random();let sum=0;
+    for(const f of FISH_TABLE){sum+=f.weight;if(r<sum){addItem('fish_'+f.name,1,{icon:f.icon,sell:f.sell});
+      notify(`${f.icon} ${f.name} 낚았다! (${f.sell}G)`,'#6BC4FF');
+      spawnParticles(GS.px,GS.py,'#6BC4FF',6);return}}
+    notify('이번엔 놓쳤어요...','#999');
+  },800);
+  notify('낚시 중... 🎣','#6BC4FF');
+}
+
+// ── INVENTORY ──────────────────────────────────
+const ITEM_META={
+  hoe:{name:'괭이',icon:'⛏️'},watering_can:{name:'물뿌리개',icon:'🚿'},
+  sickle:{name:'낫',icon:'🌾'},axe:{name:'도끼',icon:'🪓'},
+  pickaxe:{name:'곡괭이',icon:'⛏'},fishing_rod:{name:'낚싯대',icon:'🎣'},
+  wood:{name:'나무',icon:'🪵',sell:10},stone:{name:'돌',icon:'🪨',sell:8},
+  fiber:{name:'섬유',icon:'🧵',sell:5},
+  egg:{name:'달걀',icon:'🥚',sell:50},milk:{name:'우유',icon:'🥛',sell:125},wool:{name:'양털',icon:'🧶',sell:80},
+};
+Object.entries(CROPS).forEach(([k,v])=>{
+  ITEM_META[k]={name:v.name,icon:v.icon,sell:v.sell};
+  ITEM_META[k+'_seed']={name:v.name+' 씨앗',icon:'🌱',buy:v.seed,sell:Math.floor(v.seed*0.5)};
+});
+
+function addItem(key,qty=1,meta=null){
+  if(meta&&!ITEM_META[key])ITEM_META[key]=meta;
+  GS.inv[key]=(GS.inv[key]||0)+qty;
+}
+function removeItem(key,qty=1){
+  GS.inv[key]=Math.max(0,(GS.inv[key]||0)-qty);
+  if(GS.inv[key]===0)delete GS.inv[key];
+}
+function costEnergy(n){
+  GS.energy=Math.max(0,GS.energy-n);
+}
+function notify(txt,col='#FFE08A'){
+  GS.notes.push({txt,timer:3,col});
+  if(GS.notes.length>4)GS.notes.shift();
+}
+
+// ── INTERACTION ────────────────────────────────
+function interact(){
+  // Check NPC proximity
+  for(let i=0;i<GS.npcs.length;i++){
+    const npc=GS.npcs[i];
+    const nx=npc.ox*TILE+24,ny=npc.oy*TILE+24;
+    const dist=Math.hypot(GS.px-nx,GS.py-ny);
+    if(dist<TILE*1.5){
+      if(npc.isShop){openShop(i);return}
+      openDialog(i);return;
+    }
+  }
+  // Check barn door
+  const barnDoor=Math.hypot(GS.px-31*TILE,GS.py-24*TILE);
+  if(barnDoor<TILE*2){openBarn();return}
+  // Check chest
+  const {r,c}=facingTile();
+  if(world.tiles[r][c]===T.CHEST&&!GS.chestLooted){
+    GS.chestLooted=true;
+    addItem('parsnip_seed',5);addItem('turnip_seed',3);addItem('wood',8);
+    notify('상자를 열었습니다! 씨앗과 나무를 얻었습니다. 🎁','#FFD700');
+    spawnParticles(c*TILE+24,r*TILE+24,'#FFD700',14);
+    world.tiles[r][c]=T.GRASS;
+  }
+}
+
+function openDialog(i){
+  const npc=GS.npcs[i];
+  const lines=[npc.lines[npc.lineIdx%npc.lines.length]];
+  npc.lineIdx++;
+  // Quest dialog
+  if(npc.quest&&!npc.quest.given){
+    npc.quest.given=true;
+    lines.push(npc.quest.desc);
+    lines.push('도와줄 수 있겠니?');
+  } else if(npc.quest&&npc.quest.given&&!npc.quest.done){
+    const need=npc.quest.need;
+    const canDo=Object.entries(need).every(([k,v])=>(GS.inv[k]||0)>=v);
+    if(canDo){
+      Object.entries(need).forEach(([k,v])=>removeItem(k,v));
+      GS.money+=npc.quest.reward.money;
+      npc.quest.done=true;
+      lines.push(`고맙구나! 보상으로 ${npc.quest.reward.money}G를 드릴게!`);
+      spawnParticles(npc.ox*TILE+24,npc.oy*TILE+24,'#FFD700',12);
+    }
+  }
+  GS.dialog={lines,page:0,npcIdx:i};
+}
+
+function openShop(i){GS.shopOpen=true;GS.shopTab='buy';GS.dialog=null}
+
+function openBarn(){
+  // Collect animal products
+  let collected=0;
+  GS.animals.forEach(a=>{
+    if(a.product){addItem(a.type==='chicken'?'egg':a.type==='cow'?'milk':'wool',1);a.product=false;collected++}
+  });
+  if(collected>0)notify(`동물 산물 ${collected}개를 얻었습니다! 🐾`,'#FFD700');
+  else notify('헛간에 왔습니다. 동물들이 건강해요!','#8BC34A');
+}
+
+// ── QUEST PROGRESS ─────────────────────────────
+function checkQuestProgress(){
+  GS.quests.forEach(q=>{
+    if(q.done)return;
+    let prog=0;
+    if(q.type==='harvest')prog=GS.harvested;
+    if(q.type==='water')prog=GS.watered;
+    if(q.type==='money')prog=GS.money;
+    q.prog=prog;
+    if(prog>=q.target){
+      q.done=true;GS.money+=q.reward.money;
+      notify(`퀘스트 완료: ${q.title}! +${q.reward.money}G 🏆`,'#FFD700');
+      spawnParticles(GS.px,GS.py,'#FFD700',16);
+    }
+  });
+}
+
+// ── DAY SYSTEM ─────────────────────────────────
+function advanceDay(){
+  GS.sleeping=true;GS.sleepT=0;
+}
+
+function doSleep(){
+  // Grow crops
+  for(let r=0;r<WH;r++){
+    for(let c=0;c<WW;c++){
+      const cr=world.cd[r][c];
+      if(!cr)continue;
+      if(cr.watered){cr.stage++;cr.watered=false}
+      // Reset wet tile to tilled
+      if(world.tiles[r][c]===T.WET)world.tiles[r][c]=T.TILLED;
+    }
+  }
+  // Animals produce
+  GS.animals.forEach(a=>{
+    a.dayTimer--;
+    if(a.dayTimer<=0){
+      a.product=true;
+      const t={chicken:1,cow:1,sheep:3}[a.type];
+      a.dayTimer=t;
+    }
+  });
+  // Advance time
+  GS.day++;
+  if(GS.day>28){
+    GS.day=1;GS.season=(GS.season+1)%4;
+    if(GS.season===0)GS.year++;
+    // Kill out-of-season crops
+    for(let r=0;r<WH;r++){
+      for(let c=0;c<WW;c++){
+        const cr=world.cd[r][c];
+        if(cr&&!CROPS[cr.key].seasons.includes(GS.season)){
+          world.cd[r][c]=null;world.tiles[r][c]=T.DIRT;
+        }
+      }
+    }
+    notify(`${SEASONS[GS.season]}이 시작되었습니다! 🌿`,'#FFE08A');
+  }
+  // Weather
+  GS.weather=Math.random()<0.3?'rain':'sunny';
+  // Restore
+  GS.energy=MAX_E;GS.waterCan=GS.maxWater;
+  GS.hour=6;GS.minute=0;GS.days++;
+  checkQuestProgress();
+}
+
+// ── SHOP UI ────────────────────────────────────
+function renderShop(){
+  const W2=W,H2=H;
+  const pw=580,ph=460;
+  const px=(W2-pw)/2,py=(H2-ph)/2;
+
+  // Backdrop
+  ctx.fillStyle='rgba(0,0,0,0.6)';ctx.fillRect(0,0,W2,H2);
+  // Panel
+  rr(px,py,pw,ph,16,'#2C1A0E');
+  rr(px+2,py+2,pw-4,ph-4,14,'#3D2518');
+  // Title
+  rr(px,py,pw,48,14,'#7B4220');
+  txtShadow('🏪 민지네 상점',px+pw/2,py+32,22,'#FFE08A','rgba(0,0,0,0.5)','center');
+
+  // Tabs
+  const tabs=['buy','sell'];
+  const tl=['구매','판매'];
+  tabs.forEach((tab,i)=>{
+    const active=GS.shopTab===tab;
+    rr(px+20+i*100,py+54,90,34,8,active?'#7B4220':'#1E0E06');
+    txt(tl[i],px+65+i*100,py+76,15,active?'#FFE08A':'#888','center');
+  });
+
+  if(GS.shopTab==='buy'){
+    const stock=[...SHOP_SEASONS[GS.season],...['parsnip_seed','turnip_seed']];
+    const unique=[...new Set(stock)];
+    txt('현재 계절 판매 씨앗:',px+20,py+106,13,'#A09070');
+    unique.forEach((key,i)=>{
+      const meta=ITEM_META[key];if(!meta)return;
+      const ix=i%3,iy=Math.floor(i/3);
+      const bx=px+20+ix*180,by=py+118+iy*72;
+      const hover=false;
+      rr(bx,by,168,62,10,'#1E0E06');
+      rr(bx+2,by+2,164,58,8,'#2E1A0E');
+      ctx.font='24px serif';ctx.textAlign='left';ctx.fillText(meta.icon||'🌱',bx+10,by+38);
+      txt(meta.name,bx+46,by+26,13,'#FFE08A');
+      txt(`${meta.buy||CROPS[key.replace('_seed','')]?.seed||'?'}G`,bx+46,by+46,13,'#4CAF50');
+      // Buy button
+      rr(bx+118,by+14,44,30,8,'#4CAF50');
+      txt('구매',bx+140,by+34,13,'#fff','center');
+      // Click handler stored
+      if(!GS._shopBtns)GS._shopBtns=[];
+      GS._shopBtns.push({x:bx+118,y:by+14,w:44,h:30,key});
+    });
+  } else {
+    // Sell tab — list sellable items
+    txt('보유 중인 판매 가능 아이템:',px+20,py+106,13,'#A09070');
+    let row=0;
+    Object.entries(GS.inv).forEach(([key,qty])=>{
+      const meta=ITEM_META[key];
+      if(!meta||!meta.sell||qty<=0)return;
+      const bx=px+20,by=py+118+row*60;
+      if(by>py+ph-60)return;
+      rr(bx,by,pw-40,52,10,'#1E0E06');
+      ctx.font='22px serif';ctx.textAlign='left';ctx.fillText(meta.icon||'📦',bx+10,by+35);
+      txt(meta.name,bx+44,by+24,13,'#FFE08A');
+      txt(`보유: ${qty}개`,bx+44,by+42,12,'#A09070');
+      txt(`${meta.sell}G/개`,bx+200,by+33,13,'#4CAF50');
+      // Sell buttons
+      rr(bx+pw-120,by+8,48,34,8,'#E67E22');
+      txt('1개',bx+pw-96,by+30,13,'#fff','center');
+      rr(bx+pw-68,by+8,48,34,8,'#C0392B');
+      txt('전부',bx+pw-44,by+30,13,'#fff','center');
+      if(!GS._sellBtns)GS._sellBtns=[];
+      GS._sellBtns.push({x:bx+pw-120,y:by+8,w:48,h:34,key,qty:1});
+      GS._sellBtns.push({x:bx+pw-68,y:by+8,w:48,h:34,key,qty});
+      row++;
+    });
+    if(row===0)txt('판매할 수 있는 아이템이 없습니다.',px+pw/2,py+200,15,'#666','center');
+  }
+
+  // Close button
+  rr(px+pw-44,py+8,32,32,8,'#C0392B');
+  txtShadow('✕',px+pw-28,py+30,18,'#fff','rgba(0,0,0,0.4)','center');
+  GS._closeShopBtn={x:px+pw-44,y:py+8,w:32,h:32};
+
+  // Money display
+  rr(px+pw-200,py+ph-44,190,36,10,'#1E0E06');
+  txt(`💰 보유: ${GS.money.toLocaleString()}G`,px+pw-105,py+ph-20,15,'#FFD700','center');
+}
+
+// ── INVENTORY UI ───────────────────────────────
+function renderInventory(){
+  const pw=500,ph=420;
+  const ipx=(W-pw)/2,ipy=(H-ph)/2;
+  ctx.fillStyle='rgba(0,0,0,0.6)';ctx.fillRect(0,0,W,H);
+  rr(ipx,ipy,pw,ph,16,'#2C1A0E');
+  rr(ipx+2,ipy+2,pw-4,ph-4,14,'#3D2518');
+  rr(ipx,ipy,pw,48,14,'#7B4220');
+  txtShadow('🎒 인벤토리',ipx+pw/2,ipy+32,22,'#FFE08A','rgba(0,0,0,0.5)','center');
+
+  let idx=0;
+  Object.entries(GS.inv).forEach(([key,qty])=>{
+    if(qty<=0)return;
+    const meta=ITEM_META[key];if(!meta)return;
+    const cx=idx%6,cy=Math.floor(idx/6);
+    const bx=ipx+16+cx*78,by=ipy+58+cy*78;
+    if(by>ipy+ph-60){idx++;return}
+    rr(bx,by,70,70,10,'#1E0E06');
+    rr(bx+2,by+2,66,66,8,'#2A1408');
+    ctx.font='28px serif';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(meta.icon||'📦',bx+35,by+30);
+    ctx.textBaseline='alphabetic';
+    rr(bx+34,by+46,32,18,6,'rgba(0,0,0,0.7)');
+    txt(`x${qty}`,bx+50,by+60,12,'#FFE08A','center');
+    // Tooltip on hover handled separately
+    idx++;
+  });
+  if(idx===0)txt('아직 아이템이 없습니다.',ipx+pw/2,ipy+200,15,'#666','center');
+
+  rr(ipx+pw-44,ipy+8,32,32,8,'#C0392B');
+  txtShadow('✕',ipx+pw-28,ipy+30,18,'#fff','rgba(0,0,0,0.4)','center');
+  GS._closeInvBtn={x:ipx+pw-44,y:ipy+8,w:32,h:32};
+}
+
+// ── DIALOG UI ──────────────────────────────────
+function renderDialog(){
+  const d=GS.dialog;if(!d)return;
+  const npc=GS.npcs[d.npcIdx];
+  const outfit=NPC_OUTFITS[d.npcIdx];
+  const pw=W*0.55,ph=130;
+  const dpx=(W-pw)/2,dpy=H-ph-16;
+
+  rr(dpx,dpy,pw,ph,14,'rgba(20,10,5,0.92)');
+  rr(dpx+2,dpy+2,pw-4,ph-4,12,'rgba(45,25,10,0.95)');
+  rr(dpx,dpy,pw,40,12,outfit.body);
+  txtShadow(npc.name,dpx+16,dpy+28,17,'#fff','rgba(0,0,0,0.4)');
+  txt('[ E / Space / Enter = 다음 ]',dpx+pw-12,dpy+28,12,'rgba(255,255,255,0.5)','right');
+  const line=d.lines[d.page]||'';
+  txt(line,dpx+16,dpy+72,15,'#FFE0C0');
+  if(d.page<d.lines.length-1){
+    ctx.fillStyle='#FFE08A';ctx.font='20px serif';ctx.textAlign='right';
+    ctx.fillText('▶',dpx+pw-16,dpy+ph-14);
+  }
+}
+
+// ── HUD ────────────────────────────────────────
+function renderHUD(){
+  const p=SPAL[GS.season];
+  // Top bar
+  rr(0,0,W,48,0,'rgba(0,0,0,0.55)');
+
+  // Day/Season/Year
+  txt(`${GS.year}년 ${SEASONS[GS.season]} ${GS.day}일`,12,32,17,'#FFE08A');
+
+  // Time
+  const h=GS.hour,m=GS.minute;
+  const ts=`${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}`;
+  txt(ts,180,32,17,'#C8E0FF');
+
+  // Weather
+  const wi={sunny:'☀️',rain:'🌧️'}[GS.weather];
+  txt(wi,240,30,22);
+
+  // Money
+  txt(`💰 ${GS.money.toLocaleString()}G`,W/2-60,32,17,'#FFD700','center');
+
+  // Energy bar
+  const eW=140,eH=16;
+  const ex=W-eW-160,ey=14;
+  rr(ex-2,ey-2,eW+4,eH+4,8,'rgba(0,0,0,0.5)');
+  rr(ex,ey,eW,eH,6,'#1A0A00');
+  const ep=GS.energy/MAX_E;
+  const ec=ep>0.6?'#4CAF50':ep>0.3?'#FF9800':'#E53935';
+  rr(ex,ey,eW*ep,eH,6,ec);
+  txt(`⚡ ${GS.energy}`,ex+eW+6,ey+13,13,'#C8E0C8');
+
+  // Water can
+  const wx2=W-eW-160,wy=34;
+  rr(wx2-2,wy-2,eW+4,12,6,'rgba(0,0,0,0.5)');
+  rr(wx2,wy,eW,8,4,'#1A0A00');
+  const wp=GS.waterCan/GS.maxWater;
+  rr(wx2,wy,eW*wp,8,4,'#2196F3');
+  txt(`💧 ${GS.waterCan}/${GS.maxWater}`,wx2+eW+6,wy+8,12,'#88C8FF');
+
+  // Hotbar
+  const slotSize=56,gap=4;
+  const total=GS.bar.length;
+  const hbW=total*(slotSize+gap)-gap;
+  const hbX=(W-hbW)/2,hbY=H-slotSize-12;
+
+  rr(hbX-8,hbY-8,hbW+16,slotSize+16,12,'rgba(0,0,0,0.65)');
+
+  GS.bar.forEach((key,i)=>{
+    const bx=hbX+i*(slotSize+gap),by=hbY;
+    const sel=i===GS.slot;
+    rr(bx,by,slotSize,slotSize,10,sel?'#7B4220':'#1A0A00');
+    rr(bx+2,by+2,slotSize-4,slotSize-4,8,sel?'#3D2010':'#100600');
+    if(sel){
+      ctx.strokeStyle='#FFD700';ctx.lineWidth=2.5;
+      ctx.beginPath();ctx.roundRect(bx,by,slotSize,slotSize,10);ctx.stroke();
+    }
+    if(key){
+      const meta=ITEM_META[key];
+      const ic=meta?.icon||'📦';
+      ctx.font='26px serif';ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillText(ic,bx+slotSize/2,by+slotSize/2-4);
+      ctx.textBaseline='alphabetic';
+      if(GS.inv[key]!==undefined){
+        rr(bx+32,by+36,20,16,4,'rgba(0,0,0,0.7)');
+        txt(`${GS.inv[key]||0}`,bx+42,by+49,11,'#FFE08A','center');
+      }
+    }
+    // Number key
+    txt(`${i+1}`,bx+4,by+14,11,'rgba(255,255,255,0.3)');
+  });
+
+  // Notifications
+  GS.notes.forEach((n,i)=>{
+    const ny=H-slotSize-44-i*34;
+    const nw=ctx.measureText(n.txt).width+32;
+    ctx.font='15px "Malgun Gothic"';
+    const opacity=Math.min(1,n.timer);
+    ctx.globalAlpha=opacity;
+    rr(W/2-nw/2,ny-22,nw,28,10,'rgba(0,0,0,0.75)');
+    ctx.strokeStyle=n.col;ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.roundRect(W/2-nw/2,ny-22,nw,28,10);ctx.stroke();
+    txt(n.txt,W/2,ny,15,n.col,'center');
+    ctx.globalAlpha=1;
+  });
+
+  // Sleep button hint
+  if(GS.hour>=20&&!GS.sleeping){
+    const sw=180;
+    rr(W-sw-12,H-60,sw,36,10,'rgba(0,0,0,0.7)');
+    ctx.strokeStyle='#A0C4FF';ctx.lineWidth=1;
+    ctx.beginPath();ctx.roundRect(W-sw-12,H-60,sw,36,10);ctx.stroke();
+    txt('Z — 수면하기 💤',W-sw/2-12,H-36,14,'#A0C4FF','center');
+  }
+
+  // Quest indicator
+  const activeQ=GS.quests.find(q=>!q.done);
+  if(activeQ){
+    const qw=240;
+    rr(W-qw-12,56,qw,56,10,'rgba(0,0,0,0.65)');
+    txt('📋 현재 퀘스트',W-qw-12+8,74,12,'#FFD700');
+    txt(activeQ.title,W-qw-12+8,90,13,'#FFE08A');
+    const prog=Math.min(activeQ.prog,activeQ.target);
+    txt(`${prog}/${activeQ.target}`,W-qw-12+8,106,12,'#A0C8A0');
+    // Progress bar
+    const qpW=qw-16;
+    rr(W-qw-4,110,qpW,8,4,'#1A0A00');
+    rr(W-qw-4,110,qpW*(prog/activeQ.target),8,4,'#4CAF50');
+  }
+
+  // Season decorations (corner)
+  const sdi=['🌸','🌻','🍂','❄️'][GS.season];
+  ctx.font='22px serif';ctx.textAlign='left';ctx.fillText(sdi,W-46,32);
+}
+
+// ── SLEEP SCREEN ───────────────────────────────
+function renderSleep(){
+  const t=GS.sleepT;
+  const fade=Math.min(1,t*2);
+  ctx.fillStyle=`rgba(0,0,15,${fade})`;ctx.fillRect(0,0,W,H);
+  if(t>0.4){
+    ctx.globalAlpha=Math.min(1,(t-0.4)*3);
+    txtShadow('💤 수면 중...',W/2,H/2-20,28,'#A0C4FF','rgba(0,0,0,0.5)','center');
+    txtShadow(`${GS.year}년 ${SEASONS[GS.season]} ${GS.day}일`,W/2,H/2+20,20,'#8090A0','rgba(0,0,0,0.5)','center');
+    ctx.globalAlpha=1;
+  }
+}
+
+// ── WORLD RENDERER ─────────────────────────────
+function renderWorld(){
+  const cx=camX(),cy=camY();
+  const startC=Math.max(0,Math.floor(cx/TILE)-1);
+  const endC=Math.min(WW-1,startC+Math.ceil(W/TILE)+2);
+  const startR=Math.max(0,Math.floor(cy/TILE)-1);
+  const endR=Math.min(WH-1,startR+Math.ceil(H/TILE)+2);
+
+  for(let r=startR;r<=endR;r++){
+    for(let c=startC;c<=endC;c++){
+      const sx=c*TILE-cx,sy=r*TILE-cy;
+      drawTile(r,c,sx,sy,GS.season);
+    }
+  }
+}
+
+// ── SKY BACKGROUND ─────────────────────────────
+function renderSky(){
+  const p=SPAL[GS.season];
+  const h=GS.hour;
+  // Color based on time
+  let t;
+  if(h>=6&&h<=8)t=(h-6)/2;
+  else if(h>8&&h<=17)t=1;
+  else if(h>17&&h<=20)t=1-(h-17)/3;
+  else t=0;
+
+  const dawn=`#1a0020`,day=p.sky,dusk='#FF8C42';
+  // Simple: use sky color based on time
+  const skyC=h<7?'#1a0020':h<9?p.sky2:h<18?p.sky:h<20?'#FF8C42':'#1a0020';
+  ctx.fillStyle=skyC;ctx.fillRect(0,0,W,H);
+
+  // Stars at night
+  if(h<6||h>=21){
+    ctx.fillStyle='rgba(255,255,255,0.7)';
+    for(let i=0;i<80;i++){
+      const sx=(i*173)%W,sy=(i*97)%H*0.6;
+      const sz=Math.sin(animFrame*0.03+i)*0.4+0.6;
+      ctx.globalAlpha=sz*0.8;
+      ctx.fillRect(sx,sy,1.5,1.5);
+    }
+    ctx.globalAlpha=1;
+  }
+
+  // Sun/Moon
+  if(h>=7&&h<=19){
+    const sunX=W*(h-7)/12,sunY=H*0.15-Math.sin(Math.PI*(h-7)/12)*H*0.08;
+    const sunG=ctx.createRadialGradient(sunX,sunY,4,sunX,sunY,22);
+    sunG.addColorStop(0,'#FFF176');sunG.addColorStop(1,'rgba(255,200,50,0)');
+    ctx.fillStyle=sunG;ctx.beginPath();ctx.arc(sunX,sunY,22,0,Math.PI*2);ctx.fill();
+    circ(sunX,sunY,12,'#FFD740');
+  } else {
+    const moonX=W*0.8,moonY=H*0.12;
+    circ(moonX,moonY,14,'#E8E0C8');
+    circ(moonX+4,moonY-2,11,'#1a0020'); // crescent
+  }
+
+  // Clouds
+  if(GS.weather==='rain'||GS.weather==='cloudy'||h<20){
+    const nc=GS.weather==='rain'?6:3;
+    for(let i=0;i<nc;i++){
+      const cx2=(i*300+animFrame*0.3*(i%2===0?1:-0.5))%W;
+      const cy2=40+i*25;
+      const cc=GS.weather==='rain'?'rgba(100,120,140,0.7)':'rgba(255,255,255,0.5)';
+      [0,20,36,50,64,78].forEach((ox,j)=>{
+        circ(cx2+ox,cy2+[0,10,5,-2,8,2][j],18+j%3*4,cc);
+      });
+    }
+  }
+}
+
+// ── MAIN RENDER ────────────────────────────────
+function render(){
+  ctx.clearRect(0,0,W,H);
+  renderSky();
+  renderWorld();
+
+  // Draw animals
+  GS.animals.forEach(a=>drawAnimal(a,animFrame));
+
+  // Draw NPCs
+  GS.npcs.forEach((n,i)=>drawNPC(n,NPC_OUTFITS[i],animFrame));
+
+  // Draw player
+  drawPlayer(GS.px-camX(),GS.py-camY(),GS.dir,GS.moving,animFrame);
+
+  // Draw particles
+  drawParticles();
+  drawRain();
+
+  // Facing tile highlight
+  if(!GS.dialog&&!GS.shopOpen&&!GS.invOpen){
+    const {r,c}=facingTile();
+    const fx=c*TILE-camX(),fy=r*TILE-camY();
+    ctx.strokeStyle='rgba(255,255,255,0.5)';ctx.lineWidth=2;
+    ctx.beginPath();ctx.roundRect(fx+2,fy+2,TILE-4,TILE-4,4);ctx.stroke();
+  }
+
+  // UI
+  if(GS.shopOpen){renderShop()}
+  else if(GS.invOpen){renderInventory()}
+  else if(GS.dialog){renderDialog()}
+  else{renderHUD()}
+
+  if(GS.sleeping)renderSleep();
+}
+
+// ── UPDATE ─────────────────────────────────────
+function update(dt){
+  animFrame++;
+  if(GS.sleeping){
+    GS.sleepT+=dt;
+    if(GS.sleepT>=1.5){doSleep();GS.sleeping=false;GS.sleepT=0}
+    return;
+  }
+
+  // Time
+  timeAcc+=dt;
+  if(timeAcc>=1/10){
+    GS.minute+=6;timeAcc-=1/10;
+    if(GS.minute>=60){GS.minute=0;GS.hour++}
+    if(GS.hour>=2&&GS.day>0){GS.hour=2} // cap at 2 AM
+    if(GS.hour>=22&&GS.minute>=0&&!GS.sleeping){
+      if(GS.minute===0)notify('밤이 깊었습니다. Z키로 수면하세요. 💤','#A0C4FF');
+    }
+  }
+
+  // Notifications
+  GS.notes=GS.notes.filter(n=>{n.timer-=dt;return n.timer>0});
+
+  // Particles
+  updateParticles(dt);
+  updateRain();
+  updateCam();
+
+  // Dialog dismiss advance
+  if(GS.dialog){
+    return; // no movement during dialog
+  }
+  if(GS.shopOpen||GS.invOpen)return;
+
+  // Movement
+  let dx=0,dy=0;
+  if(KEYS['ArrowUp']||KEYS['KeyW'])dy=-SPEED;
+  if(KEYS['ArrowDown']||KEYS['KeyS'])dy=SPEED;
+  if(KEYS['ArrowLeft']||KEYS['KeyA'])dx=-SPEED;
+  if(KEYS['ArrowRight']||KEYS['KeyD'])dx=SPEED;
+
+  if(dx!==0&&dy!==0){dx*=0.707;dy*=0.707}
+
+  GS.moving=dx!==0||dy!==0;
+
+  if(dx<0)GS.dir=3;
+  else if(dx>0)GS.dir=1;
+  else if(dy<0)GS.dir=0;
+  else if(dy>0)GS.dir=2;
+
+  // Collision
+  const margin=10;
+  const nx=GS.px+dx,ny=GS.py;
+  if(dx!==0&&canWalk(nx,ny,margin))GS.px=nx;
+  const nx2=GS.px,ny2=GS.py+dy;
+  if(dy!==0&&canWalk(nx2,ny2,margin))GS.py=ny2;
+
+  // Clamp to world
+  GS.px=Math.max(TILE,Math.min((WW-1)*TILE-TILE/2,GS.px));
+  GS.py=Math.max(TILE,Math.min((WH-1)*TILE-TILE/2,GS.py));
+
+  // Just-pressed keys
+  if(justPressed('KeyE')||justPressed('Space'))useTool();
+  if(justPressed('Enter'))interact();
+  if(justPressed('KeyZ')&&GS.hour>=20)advanceDay();
+  if(justPressed('KeyI'))GS.invOpen=!GS.invOpen;
+  if(justPressed('Escape')){GS.shopOpen=false;GS.invOpen=false;GS.dialog=null}
+
+  // Hotbar selection
+  for(let i=0;i<GS.bar.length;i++){
+    if(justPressed(`Digit${i+1}`))GS.slot=i;
+  }
+
+  // Well auto-refill
+  const {r:fr,c:fc}=facingTile();
+  if(world.tiles[fr]&&(world.tiles[fr][fc]===T.WELL||world.tiles[fr][fc]===T.WATER)){
+    if(justPressed('KeyE'))GS.waterCan=GS.maxWater;
+  }
+
+  // Copy just pressed
+  Object.assign(JUST_PREV,JUST);
+  Object.keys(JUST).forEach(k=>delete JUST[k]);
+}
+
+function canWalk(px,py,m){
+  const corners=[
+    [px-m,py-m],[px+m,py-m],
+    [px-m,py+m],[px+m,py+m]
+  ];
+  return corners.every(([cx,cy])=>{
+    const c=Math.floor(cx/TILE),r=Math.floor(cy/TILE);
+    if(r<0||r>=WH||c<0||c>=WW)return false;
+    return WALK.has(world.tiles[r][c]);
+  });
+}
+
+// ── CLICK HANDLING ─────────────────────────────
+CV.addEventListener('click',e=>{
+  if(!gameRunning||!GS)return;
+  const x=e.clientX,y=e.clientY;
+
+  // Dialog advance
+  if(GS.dialog){
+    const d=GS.dialog;
+    if(d.page<d.lines.length-1)d.page++;
+    else GS.dialog=null;
+    return;
+  }
+
+  // Close buttons
+  if(GS.shopOpen){
+    if(GS._closeShopBtn&&inRect(x,y,GS._closeShopBtn)){GS.shopOpen=false;return}
+    // Tab clicks
+    const p=SPAL[GS.season];
+    const pw=580,ph=460,dpx=(W-pw)/2,dpy=(H-ph)/2;
+    if(inBox(x,y,dpx+20,dpy+54,90,34)){GS.shopTab='buy';return}
+    if(inBox(x,y,dpx+120,dpy+54,90,34)){GS.shopTab='sell';return}
+    // Buy buttons
+    if(GS._shopBtns){
+      for(const b of GS._shopBtns){
+        if(inRect(x,y,b)){
+          const key=b.key,meta=ITEM_META[key];
+          const cost=meta?.buy||0;
+          if(GS.money>=cost){GS.money-=cost;addItem(key,1);notify(`${meta?.name} 구매! (-${cost}G)`,'#4CAF50')}
+          else notify('돈이 부족합니다!','#E53935');
+          return;
+        }
+      }
+    }
+    // Sell buttons
+    if(GS._sellBtns){
+      for(const b of GS._sellBtns){
+        if(inRect(x,y,b)){
+          const meta=ITEM_META[b.key];
+          const qty=Math.min(b.qty,GS.inv[b.key]||0);
+          if(qty>0){
+            const earn=(meta?.sell||0)*qty;GS.money+=earn;removeItem(b.key,qty);
+            notify(`${meta?.name} ${qty}개 판매! +${earn}G`,'#FFD700');
+            GS.earned+=earn;checkQuestProgress();
+          }
+          return;
+        }
+      }
+    }
+    GS._shopBtns=[];GS._sellBtns=[];
+    return;
+  }
+  if(GS.invOpen){
+    if(GS._closeInvBtn&&inRect(x,y,GS._closeInvBtn)){GS.invOpen=false;return}
+    return;
+  }
+  GS._shopBtns=[];GS._sellBtns=[];
+});
+
+function inRect(x,y,r){return x>=r.x&&x<=r.x+r.w&&y>=r.y&&y<=r.y+r.h}
+function inBox(x,y,bx,by,bw,bh){return x>=bx&&x<=bx+bw&&y>=by&&y<=by+bh}
+
+// ── GAME LOOP ──────────────────────────────────
+function loop(ts){
+  const dt=Math.min((ts-lastTime)/1000,0.05);
+  lastTime=ts;
+  if(gameRunning&&GS){update(dt);render()}
+  requestAnimationFrame(loop);
+}
+
+// ── START ──────────────────────────────────────
+function startGame(){
+  document.getElementById('title').style.display='none';
+  initGS();
+  gameRunning=true;
+  lastTime=performance.now();
+  // Hotbar: add seeds to slot 2 display
+  GS.bar[2]='parsnip_seed';
+  // Refill sell btns
+  GS._shopBtns=[];GS._sellBtns=[];
+}
+
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
