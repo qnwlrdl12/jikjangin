@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <script>if(localStorage.getItem('theme')==='light')document.documentElement.classList.add('light')</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>마인드맵 - 퇴근각</title>
+  <meta name="description" content="브라우저에서 바로 쓰는 인터랙티브 마인드맵. 아이디어를 시각적으로 정리하고 PNG로 내보내세요.">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9410871181012126" crossorigin="anonymous"></script>
+  <style>
+    /* ── Page layout ── */
+    .mm-page { max-width:1200px; margin:0 auto; }
+
+    /* ── Wrap + Canvas ── */
+    #mmWrap {
+      background:#080818;
+      border-radius:16px;
+      height:calc(100vh - 220px);
+      min-height:500px;
+      overflow:hidden;
+      position:relative;
+      border:1px solid rgba(255,255,255,0.07);
+      box-shadow:0 8px 40px rgba(0,0,0,0.5);
+      cursor:grab;
+      user-select:none;
+    }
+    #mmWrap.panning { cursor:grabbing; }
+
+    #mmCanvas {
+      position:absolute;
+      top:0; left:0;
+      width:8000px; height:8000px;
+      transform-origin:0 0;
+    }
+
+    #mmSvg {
+      position:absolute;
+      top:0; left:0;
+      width:8000px; height:8000px;
+      pointer-events:none;
+      overflow:visible;
+    }
+
+    /* ── Nodes ── */
+    .mm-node {
+      position:absolute;
+      transform:translate(-50%,-50%);
+      min-width:110px;
+      max-width:200px;
+      background:rgba(15,25,60,.95);
+      border:2px solid #FF6B35;
+      border-radius:999px;
+      padding:8px 14px 8px 10px;
+      display:flex;
+      align-items:center;
+      gap:7px;
+      cursor:grab;
+      transition:box-shadow 0.18s, border-color 0.18s;
+      white-space:nowrap;
+      z-index:2;
+    }
+    .mm-node:hover { box-shadow:0 0 0 3px rgba(255,107,53,0.25); }
+    .mm-node.selected {
+      box-shadow:0 0 0 3px rgba(255,107,53,0.7), 0 0 16px rgba(255,107,53,0.35);
+    }
+    .mm-node.dragging { cursor:grabbing; z-index:20; }
+
+    .mm-node.root {
+      font-size:.95rem;
+      font-weight:900;
+      padding:11px 18px 11px 12px;
+      min-width:140px;
+    }
+
+    .mm-color-dot {
+      width:11px; height:11px;
+      border-radius:50%;
+      flex-shrink:0;
+      cursor:pointer;
+      border:1.5px solid rgba(255,255,255,0.3);
+      transition:transform 0.15s;
+    }
+    .mm-color-dot:hover { transform:scale(1.35); }
+
+    .mm-node-text {
+      flex:1;
+      color:#fff;
+      font-size:.82rem;
+      font-weight:600;
+      line-height:1.3;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      outline:none;
+      cursor:grab;
+      min-width:40px;
+    }
+    .mm-node.root .mm-node-text { font-size:.92rem; font-weight:900; }
+    .mm-node-text[contenteditable="true"] {
+      cursor:text;
+      white-space:pre;
+      overflow:visible;
+      text-overflow:unset;
+      border-bottom:1px solid rgba(255,255,255,0.35);
+      padding-bottom:1px;
+    }
+
+    .mm-node-add, .mm-node-del {
+      background:none;
+      border:none;
+      color:rgba(255,255,255,0.45);
+      font-size:.75rem;
+      cursor:pointer;
+      padding:0 2px;
+      line-height:1;
+      transition:color 0.15s;
+      flex-shrink:0;
+    }
+    .mm-node-add:hover { color:#4ECDC4; }
+    .mm-node-del:hover { color:#ff4444; }
+    .mm-node.root .mm-node-del { display:none; }
+
+    /* ── Toolbar ── */
+    #mmToolbar {
+      position:absolute;
+      top:14px;
+      left:50%;
+      transform:translateX(-50%);
+      z-index:30;
+      display:flex;
+      align-items:center;
+      gap:6px;
+      background:rgba(8,8,24,0.82);
+      backdrop-filter:blur(14px);
+      -webkit-backdrop-filter:blur(14px);
+      border:1px solid rgba(255,255,255,0.1);
+      border-radius:40px;
+      padding:7px 14px;
+      white-space:nowrap;
+    }
+    .tb-btn {
+      background:rgba(255,255,255,0.06);
+      border:1px solid rgba(255,255,255,0.1);
+      border-radius:20px;
+      color:var(--text);
+      font-size:.78rem;
+      font-weight:700;
+      font-family:inherit;
+      padding:5px 12px;
+      cursor:pointer;
+      transition:all 0.15s;
+      white-space:nowrap;
+    }
+    .tb-btn:hover { background:rgba(255,255,255,0.13); color:#fff; }
+    .tb-btn.primary { background:rgba(255,107,53,0.18); border-color:rgba(255,107,53,0.4); color:#FF6B35; }
+    .tb-btn.primary:hover { background:rgba(255,107,53,0.32); color:#fff; }
+    .tb-btn.danger { background:rgba(255,68,68,0.12); border-color:rgba(255,68,68,0.3); color:#ff7070; }
+    .tb-btn.danger:hover { background:rgba(255,68,68,0.25); color:#fff; }
+    .tb-divider { width:1px; height:22px; background:rgba(255,255,255,0.1); flex-shrink:0; }
+
+    /* ── Zoom buttons ── */
+    #mmZoomBtns {
+      position:absolute;
+      bottom:16px;
+      right:16px;
+      z-index:30;
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+    .zoom-btn {
+      width:36px; height:36px;
+      background:rgba(8,8,24,0.82);
+      backdrop-filter:blur(10px);
+      border:1px solid rgba(255,255,255,0.1);
+      border-radius:10px;
+      color:#fff;
+      font-size:1.1rem;
+      font-weight:700;
+      cursor:pointer;
+      display:flex; align-items:center; justify-content:center;
+      transition:all 0.15s;
+    }
+    .zoom-btn:hover { background:rgba(255,107,53,0.3); border-color:var(--primary); }
+
+    /* ── Hint ── */
+    #mmHint {
+      position:absolute;
+      bottom:16px;
+      left:50%;
+      transform:translateX(-50%);
+      z-index:30;
+      font-size:.7rem;
+      color:rgba(160,160,176,0.6);
+      pointer-events:none;
+      white-space:nowrap;
+      background:rgba(8,8,24,0.6);
+      backdrop-filter:blur(6px);
+      border-radius:20px;
+      padding:5px 14px;
+    }
+
+    /* ── Zoom label ── */
+    #zoomLabel {
+      position:absolute;
+      top:14px;
+      right:14px;
+      z-index:30;
+      font-size:.7rem;
+      color:rgba(160,160,176,0.5);
+      pointer-events:none;
+      background:rgba(8,8,24,0.55);
+      border-radius:8px;
+      padding:3px 9px;
+    }
+
+    @media(max-width:600px) {
+      #mmHint { display:none; }
+      #mmToolbar { padding:5px 10px; gap:4px; }
+      .tb-btn { padding:4px 9px; font-size:.72rem; }
+    }
+  </style>
+</head>
+<body>
+<nav>
+  <a href="../index.html" class="logo">🚪 퇴근<span>각</span></a>
+  <ul class="nav-links">
+    <li><a href="../index.html#calculators">계산기</a></li>
+    <li><a href="../index.html#tools" class="active">업무도구</a></li>
+    <li><a href="../index.html#games">루팡게임</a></li>
+    <li><a href="../index.html#tests">테스트</a></li>
+    <li><a href="../index.html#info">정보</a></li>
+  </ul>
+</nav>
+
+<div class="page-header">
+  <div class="breadcrumb"><a href="../index.html">홈</a> › 업무도구</div>
+  <h1>🧠 마인드맵</h1>
+  <p>아이디어를 시각화하고, Tab·Enter로 노드를 추가해 생각을 정리하세요</p>
+</div>
+
+<main>
+  <div class="ad-banner">광고 영역 (Google AdSense)</div>
+
+  <div class="mm-page">
+    <div id="mmWrap">
+      <!-- Canvas (panned/zoomed) -->
+      <div id="mmCanvas">
+        <svg id="mmSvg"></svg>
+        <!-- nodes injected here -->
+      </div>
+
+      <!-- Toolbar -->
+      <div id="mmToolbar">
+        <button class="tb-btn primary" id="btnAddChild">+ 자식 노드</button>
+        <button class="tb-btn" id="btnAddSibling">+ 형제 노드</button>
+        <button class="tb-btn danger" id="btnDel">✕ 삭제</button>
+        <div class="tb-divider"></div>
+        <button class="tb-btn" id="btnFit">🔲 전체보기</button>
+        <button class="tb-btn" id="btnPng">⬇ PNG</button>
+        <button class="tb-btn danger" id="btnClear">🗑 초기화</button>
+      </div>
+
+      <!-- Zoom -->
+      <div id="mmZoomBtns">
+        <button class="zoom-btn" id="btnZoomIn" title="확대">+</button>
+        <button class="zoom-btn" id="btnZoomOut" title="축소">−</button>
+      </div>
+
+      <!-- Zoom label -->
+      <div id="zoomLabel">100%</div>
+
+      <!-- Hint -->
+      <div id="mmHint">스크롤: 줌 &middot; 배경 드래그: 이동 &middot; 더블클릭: 텍스트 편집 &middot; 색상 점 클릭: 색상 변경</div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <p><strong>퇴근각</strong></p>
+</footer>
+
+<script src="../js/theme.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  /* ── Constants ── */
+  const LS_KEY   = 'tg-mindmap-v1';
+  const COLORS   = ['#FF6B35','#4ECDC4','#a855f7','#22c55e','#FFD700','#ff4444','#3b82f6','#f97316'];
+
+  /* ── State ── */
+  let nodes   = [];   // [{id, x, y, text, color, parentId}]
+  let nextId  = 1;
+  let selId   = null; // selected node id
+  let vx = 0, vy = 0, vs = 1; // pan/zoom
+
+  /* ── DOM refs ── */
+  const wrap   = document.getElementById('mmWrap');
+  const canvas = document.getElementById('mmCanvas');
+  const svg    = document.getElementById('mmSvg');
+  const zoomLbl= document.getElementById('zoomLabel');
+
+  /* ── Helpers ── */
+  function getNode(id) { return nodes.find(n => n.id === id); }
+  function children(id){ return nodes.filter(n => n.parentId === id); }
+  function descendants(id) {
+    const out = [];
+    const q = [id];
+    while (q.length) {
+      const cur = q.shift();
+      const ch = children(cur);
+      ch.forEach(c => { out.push(c.id); q.push(c.id); });
+    }
+    return out;
+  }
+
+  function screenToCanvas(sx, sy) {
+    const r = wrap.getBoundingClientRect();
+    return { x: (sx - r.left - vx) / vs, y: (sy - r.top - vy) / vs };
+  }
+
+  function applyTransform() {
+    canvas.style.transform = `translate(${vx}px,${vy}px) scale(${vs})`;
+    zoomLbl.textContent = Math.round(vs * 100) + '%';
+  }
+
+  function clampZoom(z) { return Math.min(3, Math.max(0.2, z)); }
+
+  /* ── LocalStorage ── */
+  function save() {
+    localStorage.setItem(LS_KEY, JSON.stringify({ nodes, nextId }));
+  }
+
+  function load() {
+    try {
+      const raw = localStorage.getItem(LS_KEY);
+      if (raw) {
+        const d = JSON.parse(raw);
+        nodes  = d.nodes  || [];
+        nextId = d.nextId || 1;
+        return true;
+      }
+    } catch(e) {}
+    return false;
+  }
+
+  /* ── Default graph ── */
+  function defaultGraph() {
+    const cx = 4000, cy = 3800;
+    nodes = [
+      { id:1, x:cx,       y:cy,       text:'아이디어',   color:'#FF6B35', parentId:null },
+      { id:2, x:cx+260,   y:cy-150,   text:'전략',       color:'#4ECDC4', parentId:1 },
+      { id:3, x:cx+260,   y:cy,       text:'실행',       color:'#a855f7', parentId:1 },
+      { id:4, x:cx+260,   y:cy+150,   text:'검토',       color:'#22c55e', parentId:1 },
+      { id:5, x:cx+520,   y:cy-220,   text:'시장 분석',  color:'#FFD700', parentId:2 },
+    ];
+    nextId = 6;
+    selId = 1;
+  }
+
+  /* ── Node element management ── */
+  const nodeEls = {}; // id → DOM element
+
+  function colorFor(node) { return node.color || COLORS[0]; }
+
+  function createNodeEl(node) {
+    const el = document.createElement('div');
+    el.className = 'mm-node' + (node.parentId === null ? ' root' : '');
+    el.dataset.id = node.id;
+    el.style.left  = node.x + 'px';
+    el.style.top   = node.y + 'px';
+    el.style.borderColor = colorFor(node);
+
+    const dot = document.createElement('div');
+    dot.className = 'mm-color-dot';
+    dot.style.background = colorFor(node);
+
+    const txt = document.createElement('div');
+    txt.className = 'mm-node-text';
+    txt.textContent = node.text;
+
+    const addBtn = document.createElement('button');
+    addBtn.className = 'mm-node-add';
+    addBtn.textContent = '+';
+    addBtn.title = '자식 노드 추가 (Tab)';
+
+    const delBtn = document.createElement('button');
+    delBtn.className = 'mm-node-del';
+    delBtn.textContent = '✕';
+    delBtn.title = '노드 삭제 (Delete)';
+
+    el.appendChild(dot);
+    el.appendChild(txt);
+    el.appendChild(addBtn);
+    el.appendChild(delBtn);
+    canvas.appendChild(el);
+    nodeEls[node.id] = el;
+
+    // ── Events on element ──
+
+    // Select on mousedown (before drag logic)
+    el.addEventListener('mousedown', e => {
+      if (e.target === dot || e.target === addBtn || e.target === delBtn) return;
+      if (e.target === txt && txt.getAttribute('contenteditable') === 'true') return;
+      e.stopPropagation();
+      selectNode(node.id);
+      startNodeDrag(e, node);
+    });
+
+    // Touch on node body
+    el.addEventListener('touchstart', e => {
+      if (e.target === dot || e.target === addBtn || e.target === delBtn) return;
+      if (e.target === txt && txt.getAttribute('contenteditable') === 'true') return;
+      e.stopPropagation();
+      selectNode(node.id);
+      startNodeDragTouch(e, node);
+    }, { passive: false });
+
+    // Color cycle
+    dot.addEventListener('click', e => {
+      e.stopPropagation();
+      const idx = (COLORS.indexOf(node.color) + 1) % COLORS.length;
+      node.color = COLORS[idx];
+      dot.style.background = node.color;
+      el.style.borderColor  = node.color;
+      drawEdges();
+      save();
+    });
+
+    // Add child
+    addBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      selectNode(node.id);
+      addChildToSelected();
+    });
+
+    // Delete
+    delBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      deleteNode(node.id);
+    });
+
+    // Double-click → edit text
+    el.addEventListener('dblclick', e => {
+      if (e.target === dot || e.target === addBtn || e.target === delBtn) return;
+      e.stopPropagation();
+      selectNode(node.id);
+      startEdit(node, txt);
+    });
+
+    return el;
+  }
+
+  function startEdit(node, txtEl) {
+    txtEl.setAttribute('contenteditable', 'true');
+    txtEl.focus();
+    // select all
+    const range = document.createRange();
+    range.selectNodeContents(txtEl);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+
+    function finish() {
+      txtEl.removeAttribute('contenteditable');
+      const t = txtEl.textContent.trim() || node.text;
+      node.text = t;
+      txtEl.textContent = t;
+      save();
+    }
+
+    txtEl.addEventListener('blur', finish, { once: true });
+    txtEl.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); txtEl.blur(); }
+      e.stopPropagation(); // don't trigger global key handlers
+    });
+  }
+
+  function updateNodeEl(node) {
+    const el = nodeEls[node.id];
+    if (!el) return;
+    el.style.left = node.x + 'px';
+    el.style.top  = node.y + 'px';
+    el.style.borderColor = colorFor(node);
+    const dot = el.querySelector('.mm-color-dot');
+    if (dot) { dot.style.background = colorFor(node); }
+    const txt = el.querySelector('.mm-node-text');
+    if (txt && txt.getAttribute('contenteditable') !== 'true') txt.textContent = node.text;
+  }
+
+  function removeNodeEl(id) {
+    const el = nodeEls[id];
+    if (el) { el.remove(); delete nodeEls[id]; }
+  }
+
+  /* ── Select ── */
+  function selectNode(id) {
+    // deselect old
+    if (selId !== null && nodeEls[selId]) {
+      nodeEls[selId].classList.remove('selected');
+    }
+    selId = id;
+    if (id !== null && nodeEls[id]) {
+      nodeEls[id].classList.add('selected');
+    }
+  }
+
+  /* ── Edges ── */
+  function drawEdges() {
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    nodes.forEach(n => {
+      if (n.parentId === null) return;
+      const p = getNode(n.parentId);
+      if (!p) return;
+      const x1 = p.x, y1 = p.y;
+      const x2 = n.x, y2 = n.y;
+      const midX = (x1 + x2) / 2;
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', `M${x1},${y1} C${midX},${y1} ${midX},${y2} ${x2},${y2}`);
+      path.setAttribute('fill', 'none');
+      path.setAttribute('stroke', n.color || '#FF6B35');
+      path.setAttribute('stroke-width', '2');
+      path.setAttribute('stroke-opacity', '0.55');
+      svg.appendChild(path);
+    });
+  }
+
+  /* ── Full render ── */
+  function renderAll() {
+    // Remove elements for deleted nodes
+    Object.keys(nodeEls).forEach(id => {
+      if (!getNode(parseInt(id))) removeNodeEl(parseInt(id));
+    });
+    // Create/update elements
+    nodes.forEach(n => {
+      if (!nodeEls[n.id]) createNodeEl(n);
+      else updateNodeEl(n);
+    });
+    // Apply selection class
+    Object.keys(nodeEls).forEach(id => {
+      nodeEls[id].classList.toggle('selected', parseInt(id) === selId);
+    });
+    drawEdges();
+  }
+
+  /* ── Add child ── */
+  function addChildToSelected() {
+    if (selId === null) return;
+    const parent = getNode(selId);
+    if (!parent) return;
+
+    // Direction: away from grandparent
+    const gp = parent.parentId !== null ? getNode(parent.parentId) : null;
+    let dx = 260, dy = 0;
+    if (gp) {
+      const vvx = parent.x - gp.x;
+      const vvy = parent.y - gp.y;
+      const len = Math.sqrt(vvx*vvx + vvy*vvy) || 1;
+      dx = (vvx / len) * 260;
+      dy = (vvy / len) * 260;
+    }
+
+    // Perpendicular offset for siblings
+    const sibs = children(selId);
+    const pLen = Math.sqrt(dx*dx + dy*dy) || 1;
+    const perpX = -dy / pLen;
+    const perpY =  dx / pLen;
+    const spread = 130;
+    const offset = sibs.length === 0 ? 0 :
+      (sibs.length % 2 === 1 ? Math.ceil(sibs.length / 2) : -Math.ceil(sibs.length / 2)) * spread;
+
+    const colIdx = nextId % COLORS.length;
+    const newNode = {
+      id: nextId++,
+      x: parent.x + dx + perpX * offset,
+      y: parent.y + dy + perpY * offset,
+      text: '새 노드',
+      color: COLORS[colIdx],
+      parentId: selId,
+    };
+    nodes.push(newNode);
+    createNodeEl(newNode);
+    drawEdges();
+    selectNode(newNode.id);
+    save();
+
+    // Auto-focus text edit
+    const el = nodeEls[newNode.id];
+    if (el) {
+      const txt = el.querySelector('.mm-node-text');
+      if (txt) { setTimeout(() => startEdit(newNode, txt), 30); }
+    }
+  }
+
+  /* ── Add sibling ── */
+  function addSiblingToSelected() {
+    if (selId === null) return;
+    const sel = getNode(selId);
+    if (!sel || sel.parentId === null) {
+      addChildToSelected(); // root has no sibling
+      return;
+    }
+    // Select parent, then add child
+    selectNode(sel.parentId);
+    addChildToSelected();
+  }
+
+  /* ── Delete node ── */
+  function deleteNode(id) {
+    const n = getNode(id);
+    if (!n || n.parentId === null) return; // can't delete root
+    const toDelete = [id, ...descendants(id)];
+    // Re-select parent
+    const parentId = n.parentId;
+    toDelete.forEach(did => {
+      nodes = nodes.filter(nn => nn.id !== did);
+      removeNodeEl(did);
+    });
+    drawEdges();
+    selectNode(parentId);
+    save();
+  }
+
+  /* ── Fit all ── */
+  function fitAll() {
+    if (!nodes.length) return;
+    const r = wrap.getBoundingClientRect();
+    const W = r.width, H = r.height;
+    const xs = nodes.map(n => n.x);
+    const ys = nodes.map(n => n.y);
+    const minX = Math.min(...xs) - 100;
+    const maxX = Math.max(...xs) + 100;
+    const minY = Math.min(...ys) - 80;
+    const maxY = Math.max(...ys) + 80;
+    const gw = maxX - minX, gh = maxY - minY;
+    const newScale = clampZoom(Math.min(W / gw, H / gh) * 0.88);
+    const cx = (minX + maxX) / 2;
+    const cy = (minY + maxY) / 2;
+    vs = newScale;
+    vx = W / 2 - cx * vs;
+    vy = H / 2 - cy * vs;
+    applyTransform();
+  }
+
+  /* ── Zoom ── */
+  function zoomAt(factor, sx, sy) {
+    const r = wrap.getBoundingClientRect();
+    const ox = sx - r.left, oy = sy - r.top;
+    const newScale = clampZoom(vs * factor);
+    const scaleDelta = newScale / vs;
+    vx = ox - scaleDelta * (ox - vx);
+    vy = oy - scaleDelta * (oy - vy);
+    vs = newScale;
+    applyTransform();
+  }
+
+  /* ── Pan ── */
+  let panActive = false, panStart = null;
+
+  wrap.addEventListener('mousedown', e => {
+    if (e.target !== wrap && e.target !== canvas && e.target !== svg) return;
+    panActive = true;
+    panStart = { x: e.clientX - vx, y: e.clientY - vy };
+    wrap.classList.add('panning');
+    selectNode(null);
+  });
+
+  window.addEventListener('mousemove', e => {
+    if (!panActive) return;
+    vx = e.clientX - panStart.x;
+    vy = e.clientY - panStart.y;
+    applyTransform();
+  });
+
+  window.addEventListener('mouseup', () => {
+    panActive = false;
+    wrap.classList.remove('panning');
+  });
+
+  wrap.addEventListener('wheel', e => {
+    e.preventDefault();
+    const factor = e.deltaY < 0 ? 1.12 : 1 / 1.12;
+    zoomAt(factor, e.clientX, e.clientY);
+  }, { passive: false });
+
+  /* ── Node drag ── */
+  function startNodeDrag(e, node) {
+    e.preventDefault();
+    const startX = e.clientX, startY = e.clientY;
+    const origX = node.x, origY = node.y;
+    let dragged = false;
+    const el = nodeEls[node.id];
+
+    function onMove(ev) {
+      dragged = true;
+      el.classList.add('dragging');
+      const dx = (ev.clientX - startX) / vs;
+      const dy = (ev.clientY - startY) / vs;
+      node.x = origX + dx;
+      node.y = origY + dy;
+      el.style.left = node.x + 'px';
+      el.style.top  = node.y + 'px';
+      drawEdges();
+    }
+
+    function onUp() {
+      el.classList.remove('dragging');
+      if (dragged) save();
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+    }
+
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+  }
+
+  /* ── Node drag (touch) ── */
+  function startNodeDragTouch(e, node) {
+    if (e.touches.length !== 1) return;
+    const t0   = e.touches[0];
+    const startX = t0.clientX, startY = t0.clientY;
+    const origX = node.x, origY = node.y;
+    const el = nodeEls[node.id];
+
+    function onMove(ev) {
+      if (ev.touches.length !== 1) return;
+      ev.preventDefault();
+      const t = ev.touches[0];
+      el.classList.add('dragging');
+      const dx = (t.clientX - startX) / vs;
+      const dy = (t.clientY - startY) / vs;
+      node.x = origX + dx;
+      node.y = origY + dy;
+      el.style.left = node.x + 'px';
+      el.style.top  = node.y + 'px';
+      drawEdges();
+    }
+
+    function onEnd() {
+      el.classList.remove('dragging');
+      save();
+      el.removeEventListener('touchmove', onMove);
+      el.removeEventListener('touchend', onEnd);
+    }
+
+    el.addEventListener('touchmove', onMove, { passive: false });
+    el.addEventListener('touchend', onEnd);
+  }
+
+  /* ── Touch pan & pinch-zoom on wrap ── */
+  let touchPanStart = null;
+  let pinchStart = null;
+
+  wrap.addEventListener('touchstart', e => {
+    if (e.target !== wrap && e.target !== canvas && e.target !== svg) return;
+    if (e.touches.length === 1) {
+      touchPanStart = { x: e.touches[0].clientX - vx, y: e.touches[0].clientY - vy };
+      selectNode(null);
+    } else if (e.touches.length === 2) {
+      const dx = e.touches[1].clientX - e.touches[0].clientX;
+      const dy = e.touches[1].clientY - e.touches[0].clientY;
+      pinchStart = { dist: Math.hypot(dx, dy), vs, vx, vy,
+        cx: (e.touches[0].clientX + e.touches[1].clientX) / 2,
+        cy: (e.touches[0].clientY + e.touches[1].clientY) / 2 };
+      touchPanStart = null;
+    }
+  }, { passive: true });
+
+  wrap.addEventListener('touchmove', e => {
+    e.preventDefault();
+    if (e.touches.length === 1 && touchPanStart) {
+      vx = e.touches[0].clientX - touchPanStart.x;
+      vy = e.touches[0].clientY - touchPanStart.y;
+      applyTransform();
+    } else if (e.touches.length === 2 && pinchStart) {
+      const dx = e.touches[1].clientX - e.touches[0].clientX;
+      const dy = e.touches[1].clientY - e.touches[0].clientY;
+      const dist = Math.hypot(dx, dy);
+      const factor = dist / pinchStart.dist;
+      const r = wrap.getBoundingClientRect();
+      const ox = pinchStart.cx - r.left;
+      const oy = pinchStart.cy - r.top;
+      const newScale = clampZoom(pinchStart.vs * factor);
+      const sd = newScale / pinchStart.vs;
+      vx = ox - sd * (ox - pinchStart.vx);
+      vy = oy - sd * (oy - pinchStart.vy);
+      vs = newScale;
+      applyTransform();
+    }
+  }, { passive: false });
+
+  wrap.addEventListener('touchend', () => {
+    touchPanStart = null;
+    pinchStart = null;
+  });
+
+  /* ── Keyboard ── */
+  document.addEventListener('keydown', e => {
+    // Don't intercept if editing text
+    const ae = document.activeElement;
+    if (ae && ae.getAttribute('contenteditable') === 'true') return;
+    if (ae && (ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA')) return;
+
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      addChildToSelected();
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      addSiblingToSelected();
+    } else if (e.key === 'Delete' || e.key === 'Backspace') {
+      if (selId !== null) { e.preventDefault(); deleteNode(selId); }
+    }
+  });
+
+  /* ── Toolbar buttons ── */
+  document.getElementById('btnAddChild').addEventListener('click', addChildToSelected);
+  document.getElementById('btnAddSibling').addEventListener('click', addSiblingToSelected);
+  document.getElementById('btnDel').addEventListener('click', () => { if (selId !== null) deleteNode(selId); });
+  document.getElementById('btnFit').addEventListener('click', fitAll);
+  document.getElementById('btnClear').addEventListener('click', () => {
+    if (!confirm('마인드맵을 초기화할까요?')) return;
+    // Remove all node elements
+    Object.keys(nodeEls).forEach(id => removeNodeEl(parseInt(id)));
+    defaultGraph();
+    renderAll();
+    save();
+    fitAll();
+  });
+
+  document.getElementById('btnZoomIn').addEventListener('click', () => {
+    const r = wrap.getBoundingClientRect();
+    zoomAt(1.2, r.left + r.width / 2, r.top + r.height / 2);
+  });
+  document.getElementById('btnZoomOut').addEventListener('click', () => {
+    const r = wrap.getBoundingClientRect();
+    zoomAt(1 / 1.2, r.left + r.width / 2, r.top + r.height / 2);
+  });
+
+  /* ── Export PNG ── */
+  document.getElementById('btnPng').addEventListener('click', exportPng);
+
+  function exportPng() {
+    const SCALE = 2;
+    const PAD   = 80;
+    const xs = nodes.map(n => n.x);
+    const ys = nodes.map(n => n.y);
+    const minX = Math.min(...xs) - PAD;
+    const maxX = Math.max(...xs) + PAD;
+    const minY = Math.min(...ys) - PAD;
+    const maxY = Math.max(...ys) + PAD;
+    const W = (maxX - minX) * SCALE;
+    const H = (maxY - minY) * SCALE;
+
+    const oc = document.createElement('canvas');
+    oc.width  = W;
+    oc.height = H;
+    const ctx = oc.getContext('2d');
+    ctx.scale(SCALE, SCALE);
+
+    // Background
+    ctx.fillStyle = '#080818';
+    ctx.fillRect(0, 0, maxX - minX, maxY - minY);
+    ctx.save();
+    ctx.translate(-minX, -minY);
+
+    // Draw edges
+    nodes.forEach(n => {
+      if (n.parentId === null) return;
+      const p = getNode(n.parentId);
+      if (!p) return;
+      ctx.beginPath();
+      ctx.moveTo(p.x, p.y);
+      const mx = (p.x + n.x) / 2;
+      ctx.bezierCurveTo(mx, p.y, mx, n.y, n.x, n.y);
+      ctx.strokeStyle = n.color || '#FF6B35';
+      ctx.globalAlpha = 0.55;
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    });
+
+    // Draw nodes
+    ctx.font = '600 12px "Noto Sans KR", sans-serif';
+    ctx.textBaseline = 'middle';
+    nodes.forEach(n => {
+      const isRoot = n.parentId === null;
+      const text = n.text;
+      const tw   = ctx.measureText(text).width;
+      const dotR = 5.5;
+      const gap  = 6;
+      const padH = isRoot ? 11 : 8;
+      const padV = isRoot ? 9  : 7;
+      const boxW = dotR*2 + gap + tw + padH * 2 + 4;
+      const boxH = (isRoot ? 36 : 30);
+      const rx   = n.x - boxW / 2;
+      const ry   = n.y - boxH / 2;
+      const r    = boxH / 2;
+
+      // Pill shape
+      ctx.beginPath();
+      ctx.moveTo(rx + r, ry);
+      ctx.lineTo(rx + boxW - r, ry);
+      ctx.arcTo(rx + boxW, ry, rx + boxW, ry + r, r);
+      ctx.lineTo(rx + boxW, ry + boxH - r);
+      ctx.arcTo(rx + boxW, ry + boxH, rx + boxW - r, ry + boxH, r);
+      ctx.lineTo(rx + r, ry + boxH);
+      ctx.arcTo(rx, ry + boxH, rx, ry + boxH - r, r);
+      ctx.lineTo(rx, ry + r);
+      ctx.arcTo(rx, ry, rx + r, ry, r);
+      ctx.closePath();
+      ctx.fillStyle = 'rgba(15,25,60,0.95)';
+      ctx.fill();
+      ctx.strokeStyle = n.color || '#FF6B35';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Color dot
+      const dotX = rx + padH + dotR;
+      const dotY = n.y;
+      ctx.beginPath();
+      ctx.arc(dotX, dotY, dotR, 0, Math.PI * 2);
+      ctx.fillStyle = n.color || '#FF6B35';
+      ctx.fill();
+
+      // Text
+      ctx.fillStyle = '#ffffff';
+      if (isRoot) { ctx.font = '900 14px "Noto Sans KR", sans-serif'; }
+      else        { ctx.font = '600 12px "Noto Sans KR", sans-serif'; }
+      ctx.fillText(text, dotX + dotR + gap, n.y);
+    });
+
+    ctx.restore();
+
+    // Download
+    const a = document.createElement('a');
+    a.download = '마인드맵.png';
+    a.href = oc.toDataURL('image/png');
+    a.click();
+  }
+
+  /* ── Init ── */
+  function init() {
+    const loaded = load();
+    if (!loaded || !nodes.length) {
+      defaultGraph();
+      save();
+    }
+    if (selId === null && nodes.length) selId = nodes[0].id;
+    renderAll();
+    // Center view after layout settles
+    requestAnimationFrame(() => {
+      fitAll();
+    });
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>

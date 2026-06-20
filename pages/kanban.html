@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <script>if(localStorage.getItem('theme')=='light')document.documentElement.classList.add('light')</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>칸반 보드 - 퇴근각</title>
+  <meta name="description" content="업무를 할 일 / 진행 중 / 완료로 나눠 관리하는 칸반 태스크 보드. 드래그&드롭으로 쉽게 이동하세요.">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9410871181012126" crossorigin="anonymous"></script>
+  <style>
+    /* ── Board layout ── */
+    .board-wrap { max-width: 1100px; margin: 0 auto; }
+
+    .board-meta {
+      display: flex; align-items: center; gap: 24px;
+      background: var(--card); border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 14px; padding: 16px 22px; margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .board-stat { text-align: center; }
+    .board-stat .sv { font-size: 1.4rem; font-weight: 900; color: var(--white); }
+    .board-stat .sl { font-size: 0.72rem; color: var(--text-muted); }
+    .board-stat-sep { width: 1px; height: 32px; background: rgba(255,255,255,0.08); }
+
+    .progress-wrap { flex: 1; min-width: 180px; }
+    .progress-label { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--text-muted); margin-bottom: 6px; }
+    .progress-track { background: rgba(255,255,255,0.07); border-radius: 99px; height: 8px; overflow: hidden; }
+    .progress-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, #22c55e, #4ade80); transition: width 0.4s ease; }
+
+    /* ── 3-column grid ── */
+    .kanban-board {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      align-items: start;
+    }
+
+    /* ── Column ── */
+    .kanban-col {
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 14px;
+      overflow: hidden;
+      transition: box-shadow 0.2s, border-color 0.2s;
+      min-height: 260px;
+    }
+    .kanban-col[data-col="todo"]   { border-top: 3px solid #a855f7; }
+    .kanban-col[data-col="doing"]  { border-top: 3px solid #FF6B35; }
+    .kanban-col[data-col="done"]   { border-top: 3px solid #22c55e; }
+
+    /* drag-over glow */
+    .kanban-col.drag-over[data-col="todo"]  { box-shadow: 0 0 0 2px #a855f7; border-color: #a855f7; }
+    .kanban-col.drag-over[data-col="doing"] { box-shadow: 0 0 0 2px #FF6B35; border-color: #FF6B35; }
+    .kanban-col.drag-over[data-col="done"]  { box-shadow: 0 0 0 2px #22c55e; border-color: #22c55e; }
+
+    .col-header {
+      display: flex; align-items: center; gap: 8px;
+      padding: 14px 16px 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .col-emoji { font-size: 1.1rem; }
+    .col-title { font-weight: 700; font-size: 0.95rem; color: var(--white); flex: 1; }
+    .col-count {
+      font-size: 0.72rem; font-weight: 700;
+      padding: 2px 8px; border-radius: 99px; color: #fff;
+    }
+    .kanban-col[data-col="todo"]  .col-count { background: #a855f7; }
+    .kanban-col[data-col="doing"] .col-count { background: #FF6B35; }
+    .kanban-col[data-col="done"]  .col-count { background: #22c55e; }
+
+    /* ── Card list ── */
+    .card-list {
+      padding: 10px 10px 0;
+      min-height: 60px;
+    }
+
+    /* ── Card ── */
+    .kanban-card {
+      position: relative;
+      background: rgba(255,255,255,0.06);
+      border-radius: 10px;
+      border-left: 3px solid transparent;
+      padding: 11px 34px 11px 13px;
+      margin-bottom: 8px;
+      cursor: grab;
+      transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+      user-select: none;
+    }
+    .kanban-card:active { cursor: grabbing; }
+    .kanban-card:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,0.3); }
+    .kanban-card.dragging { opacity: 0.45; }
+
+    .kanban-card[data-priority="high"]   { border-left-color: #ff4444; }
+    .kanban-card[data-priority="medium"] { border-left-color: #FF6B35; }
+    .kanban-card[data-priority="low"]    { border-left-color: #4ECDC4; }
+
+    .card-title {
+      font-weight: 700; font-size: 0.88rem; color: var(--white);
+      margin-bottom: 4px; outline: none; cursor: text;
+      word-break: break-all;
+    }
+    .card-title[contenteditable="true"] {
+      background: rgba(255,255,255,0.08); border-radius: 4px;
+      padding: 1px 4px; cursor: text;
+    }
+    .card-desc {
+      font-size: 0.78rem; color: var(--text-muted);
+      line-height: 1.45;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+      overflow: hidden;
+      margin-bottom: 6px;
+    }
+    .card-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .card-priority {
+      font-size: 0.68rem; font-weight: 700; border-radius: 99px;
+      padding: 2px 7px; color: #fff;
+    }
+    .card-priority.high   { background: #ff4444; }
+    .card-priority.medium { background: #FF6B35; }
+    .card-priority.low    { background: #4ECDC4; }
+    .card-due { font-size: 0.72rem; color: var(--text-muted); }
+    .card-due.overdue { color: #ff4444; font-weight: 600; }
+
+    .card-del {
+      position: absolute; top: 8px; right: 8px;
+      background: none; border: none; color: var(--text-muted);
+      font-size: 1rem; line-height: 1; cursor: pointer;
+      padding: 2px 5px; border-radius: 4px;
+      transition: background 0.15s, color 0.15s;
+      opacity: 0;
+    }
+    .kanban-card:hover .card-del { opacity: 1; }
+    .card-del:hover { background: rgba(255,68,68,0.2); color: #ff4444; }
+
+    /* ── Add button ── */
+    .col-add-btn {
+      display: block; width: calc(100% - 20px); margin: 8px 10px 10px;
+      background: rgba(255,255,255,0.04); border: 1px dashed rgba(255,255,255,0.12);
+      border-radius: 9px; color: var(--text-muted); font-size: 0.82rem;
+      font-weight: 600; font-family: inherit; padding: 9px;
+      cursor: pointer; transition: background 0.15s, color 0.15s, border-color 0.15s;
+      text-align: center;
+    }
+    .col-add-btn:hover { background: rgba(255,255,255,0.08); color: var(--white); border-color: rgba(255,255,255,0.25); }
+
+    /* ── Inline add form ── */
+    .add-form {
+      margin: 0 10px 10px;
+      background: rgba(255,255,255,0.07);
+      border-radius: 10px;
+      padding: 12px;
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+      animation: slideDown 0.18s ease;
+    }
+    .add-form.open { display: flex; }
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .add-form input,
+    .add-form textarea,
+    .add-form select {
+      background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 7px; color: var(--white); font-family: inherit;
+      font-size: 0.82rem; padding: 7px 10px; outline: none; width: 100%; box-sizing: border-box;
+      transition: border-color 0.15s;
+    }
+    .add-form input:focus,
+    .add-form textarea:focus,
+    .add-form select:focus { border-color: var(--primary); }
+    .add-form textarea { resize: vertical; min-height: 56px; }
+    .add-form select option { background: #1a1a2e; }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .form-btns { display: flex; gap: 7px; }
+    .btn-add-submit {
+      flex: 1; background: var(--primary); color: #fff; border: none;
+      border-radius: 7px; padding: 8px; font-size: 0.82rem; font-weight: 700;
+      font-family: inherit; cursor: pointer; transition: opacity 0.15s;
+    }
+    .btn-add-submit:hover { opacity: 0.85; }
+    .btn-add-cancel {
+      background: rgba(255,255,255,0.07); color: var(--text-muted); border: none;
+      border-radius: 7px; padding: 8px 14px; font-size: 0.82rem; font-weight: 600;
+      font-family: inherit; cursor: pointer; transition: background 0.15s, color 0.15s;
+    }
+    .btn-add-cancel:hover { background: rgba(255,255,255,0.12); color: var(--white); }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      .kanban-board { grid-template-columns: 1fr; }
+      .board-meta { gap: 14px; }
+    }
+  </style>
+</head>
+<body>
+<nav>
+  <a href="../index.html" class="logo">🚪 퇴근<span>각</span></a>
+  <ul class="nav-links">
+    <li><a href="../index.html#calculators">계산기</a></li>
+    <li><a href="../index.html#tools" class="active">업무도구</a></li>
+    <li><a href="../index.html#games">루팡게임</a></li>
+    <li><a href="../index.html#tests">테스트</a></li>
+    <li><a href="../index.html#info">정보</a></li>
+  </ul>
+</nav>
+
+<div class="page-header">
+  <div class="breadcrumb"><a href="../index.html">홈</a> › 업무도구</div>
+  <h1>📌 칸반 보드</h1>
+  <p>할 일 · 진행 중 · 완료 — 드래그&드롭으로 업무를 관리하세요</p>
+</div>
+
+<main>
+  <div class="ad-banner">광고 영역 (Google AdSense)</div>
+
+  <div class="board-wrap">
+    <!-- Progress + Stats -->
+    <div class="board-meta">
+      <div class="board-stat">
+        <div class="sv" id="statTotal">0</div>
+        <div class="sl">전체</div>
+      </div>
+      <div class="board-stat-sep"></div>
+      <div class="board-stat">
+        <div class="sv" id="statTodo" style="color:#a855f7">0</div>
+        <div class="sl">할 일</div>
+      </div>
+      <div class="board-stat-sep"></div>
+      <div class="board-stat">
+        <div class="sv" id="statDoing" style="color:#FF6B35">0</div>
+        <div class="sl">진행 중</div>
+      </div>
+      <div class="board-stat-sep"></div>
+      <div class="board-stat">
+        <div class="sv" id="statDone" style="color:#22c55e">0</div>
+        <div class="sl">완료</div>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-label">
+          <span>완료율</span>
+          <span id="progressPct">0%</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" id="progressFill" style="width:0%"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Board -->
+    <div class="kanban-board">
+      <!-- TODO -->
+      <div class="kanban-col" data-col="todo"
+           ondragover="onDragOver(event,this)" ondragleave="onDragLeave(this)" ondrop="onDrop(event,this)">
+        <div class="col-header">
+          <span class="col-emoji">📋</span>
+          <span class="col-title">할 일</span>
+          <span class="col-count" id="cnt-todo">0</span>
+        </div>
+        <div class="card-list" id="list-todo"></div>
+        <div class="add-form" id="form-todo">
+          <input type="text" id="f-todo-title" placeholder="제목" maxlength="80">
+          <textarea id="f-todo-desc" placeholder="설명 (선택)"></textarea>
+          <div class="form-row">
+            <select id="f-todo-priority">
+              <option value="medium">우선순위</option>
+              <option value="high">🔴 높음</option>
+              <option value="medium">🟠 보통</option>
+              <option value="low">🟢 낮음</option>
+            </select>
+            <input type="date" id="f-todo-due" title="마감일 (선택)">
+          </div>
+          <div class="form-btns">
+            <button class="btn-add-submit" onclick="submitCard('todo')">추가</button>
+            <button class="btn-add-cancel" onclick="closeForm('todo')">취소</button>
+          </div>
+        </div>
+        <button class="col-add-btn" id="addBtn-todo" onclick="openForm('todo')">+ 카드 추가</button>
+      </div>
+
+      <!-- DOING -->
+      <div class="kanban-col" data-col="doing"
+           ondragover="onDragOver(event,this)" ondragleave="onDragLeave(this)" ondrop="onDrop(event,this)">
+        <div class="col-header">
+          <span class="col-emoji">⚡</span>
+          <span class="col-title">진행 중</span>
+          <span class="col-count" id="cnt-doing">0</span>
+        </div>
+        <div class="card-list" id="list-doing"></div>
+        <div class="add-form" id="form-doing">
+          <input type="text" id="f-doing-title" placeholder="제목" maxlength="80">
+          <textarea id="f-doing-desc" placeholder="설명 (선택)"></textarea>
+          <div class="form-row">
+            <select id="f-doing-priority">
+              <option value="medium">우선순위</option>
+              <option value="high">🔴 높음</option>
+              <option value="medium">🟠 보통</option>
+              <option value="low">🟢 낮음</option>
+            </select>
+            <input type="date" id="f-doing-due" title="마감일 (선택)">
+          </div>
+          <div class="form-btns">
+            <button class="btn-add-submit" onclick="submitCard('doing')">추가</button>
+            <button class="btn-add-cancel" onclick="closeForm('doing')">취소</button>
+          </div>
+        </div>
+        <button class="col-add-btn" id="addBtn-doing" onclick="openForm('doing')">+ 카드 추가</button>
+      </div>
+
+      <!-- DONE -->
+      <div class="kanban-col" data-col="done"
+           ondragover="onDragOver(event,this)" ondragleave="onDragLeave(this)" ondrop="onDrop(event,this)">
+        <div class="col-header">
+          <span class="col-emoji">✅</span>
+          <span class="col-title">완료</span>
+          <span class="col-count" id="cnt-done">0</span>
+        </div>
+        <div class="card-list" id="list-done"></div>
+        <div class="add-form" id="form-done">
+          <input type="text" id="f-done-title" placeholder="제목" maxlength="80">
+          <textarea id="f-done-desc" placeholder="설명 (선택)"></textarea>
+          <div class="form-row">
+            <select id="f-done-priority">
+              <option value="medium">우선순위</option>
+              <option value="high">🔴 높음</option>
+              <option value="medium">🟠 보통</option>
+              <option value="low">🟢 낮음</option>
+            </select>
+            <input type="date" id="f-done-due" title="마감일 (선택)">
+          </div>
+          <div class="form-btns">
+            <button class="btn-add-submit" onclick="submitCard('done')">추가</button>
+            <button class="btn-add-cancel" onclick="closeForm('done')">취소</button>
+          </div>
+        </div>
+        <button class="col-add-btn" id="addBtn-done" onclick="openForm('done')">+ 카드 추가</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script src="../js/theme.js"></script>
+<script>
+const LS_KEY = 'tg-kanban-v1';
+const PRIORITY_LABEL = { high: '높음', medium: '보통', low: '낮음' };
+const COLS = ['todo', 'doing', 'done'];
+
+// ── Data ──────────────────────────────────────────────────────────────
+const DEFAULT_CARDS = [
+  { id: 'c1', col: 'todo',  title: '기획서 작성',       desc: '신규 프로젝트 기획서 초안 작성 및 팀장 검토 요청', priority: 'high',   due: '', created: Date.now() - 86400000*3 },
+  { id: 'c2', col: 'todo',  title: '팀 미팅 준비',       desc: '주간 팀 미팅 아젠다 정리 및 자료 준비',           priority: 'medium', due: '', created: Date.now() - 86400000*2 },
+  { id: 'c3', col: 'doing', title: '보고서 검토',        desc: '분기 실적 보고서 수치 검증 및 피드백 작성',        priority: 'high',   due: '', created: Date.now() - 86400000 },
+  { id: 'c4', col: 'done',  title: '지난 회의록 정리',   desc: '지난주 전체 회의 내용 정리 후 공유 폴더에 업로드', priority: 'low',    due: '', created: Date.now() - 86400000*5 },
+];
+
+function load() {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    return raw ? JSON.parse(raw) : DEFAULT_CARDS;
+  } catch { return DEFAULT_CARDS; }
+}
+
+function save(cards) {
+  localStorage.setItem(LS_KEY, JSON.stringify(cards));
+}
+
+let cards = load();
+
+// ── Render ────────────────────────────────────────────────────────────
+function render() {
+  const today = new Date().toISOString().slice(0, 10);
+
+  COLS.forEach(col => {
+    const list = document.getElementById('list-' + col);
+    const colCards = cards.filter(c => c.col === col);
+    document.getElementById('cnt-' + col).textContent = colCards.length;
+
+    list.innerHTML = '';
+    colCards.forEach(card => {
+      const el = document.createElement('div');
+      el.className = 'kanban-card';
+      el.dataset.id = card.id;
+      el.dataset.priority = card.priority;
+      el.draggable = true;
+
+      const isOverdue = card.due && card.due < today;
+      const dueHtml = card.due
+        ? `<span class="card-due${isOverdue ? ' overdue' : ''}">⏰ ${card.due}</span>`
+        : '';
+
+      el.innerHTML = `
+        <div class="card-title" title="더블클릭으로 수정">${escHtml(card.title)}</div>
+        ${card.desc ? `<div class="card-desc">${escHtml(card.desc)}</div>` : ''}
+        <div class="card-meta">
+          <span class="card-priority ${card.priority}">${PRIORITY_LABEL[card.priority] || card.priority}</span>
+          ${dueHtml}
+        </div>
+        <button class="card-del" title="삭제" onclick="deleteCard('${card.id}')">×</button>
+      `;
+
+      // Drag events
+      el.addEventListener('dragstart', e => {
+        e.dataTransfer.setData('text/plain', card.id);
+        setTimeout(() => el.classList.add('dragging'), 0);
+      });
+      el.addEventListener('dragend', () => el.classList.remove('dragging'));
+
+      // Double-click title to edit
+      const titleEl = el.querySelector('.card-title');
+      titleEl.addEventListener('dblclick', () => startEditTitle(card.id, titleEl));
+
+      list.appendChild(el);
+    });
+  });
+
+  updateStats();
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function updateStats() {
+  const total = cards.length;
+  const todo  = cards.filter(c => c.col === 'todo').length;
+  const doing = cards.filter(c => c.col === 'doing').length;
+  const done  = cards.filter(c => c.col === 'done').length;
+  const pct   = total > 0 ? Math.round(done / total * 100) : 0;
+
+  document.getElementById('statTotal').textContent = total;
+  document.getElementById('statTodo').textContent  = todo;
+  document.getElementById('statDoing').textContent = doing;
+  document.getElementById('statDone').textContent  = done;
+  document.getElementById('progressPct').textContent = pct + '%';
+  document.getElementById('progressFill').style.width = pct + '%';
+}
+
+// ── Add form ──────────────────────────────────────────────────────────
+function openForm(col) {
+  // Close any other open form
+  COLS.forEach(c => {
+    if (c !== col) closeForm(c);
+  });
+  document.getElementById('form-' + col).classList.add('open');
+  document.getElementById('addBtn-' + col).style.display = 'none';
+  document.getElementById('f-' + col + '-title').focus();
+}
+
+function closeForm(col) {
+  const form = document.getElementById('form-' + col);
+  form.classList.remove('open');
+  document.getElementById('addBtn-' + col).style.display = '';
+  // Reset fields
+  document.getElementById('f-' + col + '-title').value    = '';
+  document.getElementById('f-' + col + '-desc').value     = '';
+  document.getElementById('f-' + col + '-priority').value = 'medium';
+  document.getElementById('f-' + col + '-due').value      = '';
+}
+
+function submitCard(col) {
+  const title = document.getElementById('f-' + col + '-title').value.trim();
+  if (!title) {
+    document.getElementById('f-' + col + '-title').focus();
+    return;
+  }
+  const desc     = document.getElementById('f-' + col + '-desc').value.trim();
+  const priority = document.getElementById('f-' + col + '-priority').value || 'medium';
+  const due      = document.getElementById('f-' + col + '-due').value;
+
+  cards.push({
+    id: 'c' + Date.now(),
+    col,
+    title,
+    desc,
+    priority,
+    due,
+    created: Date.now()
+  });
+
+  save(cards);
+  closeForm(col);
+  render();
+}
+
+// Enter to submit in title field
+COLS.forEach(col => {
+  document.getElementById('f-' + col + '-title')
+    .addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); submitCard(col); } });
+});
+
+// ── Delete ────────────────────────────────────────────────────────────
+function deleteCard(id) {
+  cards = cards.filter(c => c.id !== id);
+  save(cards);
+  render();
+}
+
+// ── Inline title edit ─────────────────────────────────────────────────
+function startEditTitle(id, el) {
+  el.contentEditable = 'true';
+  el.focus();
+  // Move cursor to end
+  const range = document.createRange();
+  range.selectNodeContents(el);
+  range.collapse(false);
+  window.getSelection().removeAllRanges();
+  window.getSelection().addRange(range);
+
+  function finish() {
+    el.contentEditable = 'false';
+    const newTitle = el.textContent.trim();
+    if (newTitle) {
+      const card = cards.find(c => c.id === id);
+      if (card) {
+        card.title = newTitle;
+        save(cards);
+        updateStats();
+      }
+    } else {
+      // Restore original title if empty
+      const card = cards.find(c => c.id === id);
+      if (card) el.textContent = card.title;
+    }
+    el.removeEventListener('blur', finish);
+    el.removeEventListener('keydown', onKey);
+  }
+
+  function onKey(e) {
+    if (e.key === 'Enter') { e.preventDefault(); el.blur(); }
+    if (e.key === 'Escape') {
+      const card = cards.find(c => c.id === id);
+      if (card) el.textContent = card.title;
+      el.contentEditable = 'false';
+      el.removeEventListener('blur', finish);
+      el.removeEventListener('keydown', onKey);
+    }
+  }
+
+  el.addEventListener('blur', finish);
+  el.addEventListener('keydown', onKey);
+}
+
+// ── Drag & Drop ───────────────────────────────────────────────────────
+function onDragOver(e, col) {
+  e.preventDefault();
+  col.classList.add('drag-over');
+}
+
+function onDragLeave(col) {
+  col.classList.remove('drag-over');
+}
+
+function onDrop(e, colEl) {
+  e.preventDefault();
+  colEl.classList.remove('drag-over');
+  const id  = e.dataTransfer.getData('text/plain');
+  const col = colEl.dataset.col;
+  const card = cards.find(c => c.id === id);
+  if (card && card.col !== col) {
+    card.col = col;
+    save(cards);
+    render();
+  }
+}
+
+// ── Init ──────────────────────────────────────────────────────────────
+render();
+</script>
+
+<footer>
+  <p><strong>퇴근각</strong></p>
+</footer>
+</body>
+</html>

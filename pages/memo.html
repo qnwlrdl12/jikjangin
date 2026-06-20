@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <script>if(localStorage.getItem('theme')==='light')document.documentElement.classList.add('light')</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>스마트 메모장 — 퇴근각</title>
+  <meta name="description" content="마크다운 지원 스마트 메모장. 자동저장, 여러 노트 관리, .md 내보내기까지. 퇴근각의 무료 온라인 메모 도구.">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9410871181012126" crossorigin="anonymous"></script>
+  <style>
+    /* ── Layout ─────────────────────────────────── */
+    .memo-shell {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      gap: 0;
+      height: calc(100vh - 200px);
+      min-height: 520px;
+      max-width: 1400px;
+      margin: 0 auto 0;
+      padding: 0 16px 16px;
+    }
+
+    /* ── Sidebar ─────────────────────────────────── */
+    .sidebar {
+      background: var(--dark2);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-right: none;
+      border-radius: var(--radius) 0 0 var(--radius);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .sidebar-head {
+      padding: 14px 14px 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      flex-shrink: 0;
+    }
+
+    .btn-new {
+      width: 100%;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      transition: opacity 0.2s;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .btn-new:hover { opacity: 0.85; }
+
+    .search-box {
+      position: relative;
+    }
+    .search-box input {
+      width: 100%;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      padding: 8px 10px 8px 32px;
+      color: var(--text);
+      font-size: 0.82rem;
+      outline: none;
+      font-family: inherit;
+      transition: border-color 0.2s;
+    }
+    .search-box input:focus { border-color: var(--accent); }
+    .search-box input::placeholder { color: var(--text-muted); }
+    .search-icon {
+      position: absolute;
+      left: 9px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+
+    .note-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 8px;
+    }
+    .note-list::-webkit-scrollbar { width: 4px; }
+    .note-list::-webkit-scrollbar-track { background: transparent; }
+    .note-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+
+    .note-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+      padding: 10px 10px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.15s;
+      margin-bottom: 2px;
+      border: 1px solid transparent;
+    }
+    .note-item:hover { background: rgba(255,255,255,0.05); }
+    .note-item.active {
+      background: rgba(255,107,53,0.12);
+      border-color: rgba(255,107,53,0.3);
+    }
+    .note-item-body { flex: 1; min-width: 0; }
+    .note-item-title {
+      font-size: 0.84rem;
+      font-weight: 700;
+      color: var(--white);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 3px;
+    }
+    .note-item.active .note-item-title { color: var(--primary); }
+    .note-item-preview {
+      font-size: 0.74rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .note-item-date {
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .btn-del {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 0.85rem;
+      padding: 2px 4px;
+      border-radius: 5px;
+      opacity: 0;
+      transition: all 0.15s;
+      flex-shrink: 0;
+    }
+    .note-item:hover .btn-del { opacity: 1; }
+    .btn-del:hover { background: rgba(255,107,53,0.2); color: var(--primary); }
+
+    .sidebar-empty {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.82rem;
+      padding: 30px 14px;
+    }
+
+    .sidebar-count {
+      padding: 8px 14px;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      border-top: 1px solid rgba(255,255,255,0.07);
+      flex-shrink: 0;
+    }
+
+    /* ── Main editor area ────────────────────────── */
+    .editor-main {
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .editor-topbar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      flex-shrink: 0;
+      flex-wrap: wrap;
+    }
+
+    /* Markdown toolbar */
+    .md-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      flex: 1;
+      flex-wrap: wrap;
+    }
+    .md-btn {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: var(--text-muted);
+      border-radius: 6px;
+      padding: 5px 9px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.15s;
+      line-height: 1;
+      white-space: nowrap;
+    }
+    .md-btn:hover { background: rgba(255,255,255,0.12); color: var(--white); }
+    .md-btn:active { background: rgba(255,107,53,0.2); color: var(--primary); }
+    .md-sep {
+      width: 1px;
+      height: 18px;
+      background: rgba(255,255,255,0.1);
+      margin: 0 3px;
+      flex-shrink: 0;
+    }
+
+    /* View toggle */
+    .view-toggle {
+      display: flex;
+      gap: 2px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 8px;
+      padding: 3px;
+      flex-shrink: 0;
+    }
+    .view-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      border-radius: 6px;
+      padding: 5px 10px;
+      font-size: 0.76rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.15s;
+    }
+    .view-btn.active { background: var(--primary); color: #fff; }
+    .view-btn:not(.active):hover { color: var(--white); }
+
+    /* Save indicator */
+    .save-indicator {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      flex-shrink: 0;
+    }
+    .save-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--success);
+      transition: background 0.3s;
+      flex-shrink: 0;
+    }
+    .save-dot.saving { background: #FF9500; animation: pulse-dot 0.8s ease-in-out infinite alternate; }
+    @keyframes pulse-dot { from { opacity: 1; } to { opacity: 0.3; } }
+
+    /* Title input */
+    .title-row {
+      padding: 10px 14px 0;
+      flex-shrink: 0;
+    }
+    .title-input {
+      width: 100%;
+      background: none;
+      border: none;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      color: var(--white);
+      font-size: 1.15rem;
+      font-weight: 700;
+      padding: 6px 2px 10px;
+      outline: none;
+      font-family: inherit;
+      transition: border-color 0.2s;
+    }
+    .title-input:focus { border-bottom-color: var(--primary); }
+    .title-input::placeholder { color: var(--text-muted); font-weight: 400; }
+
+    /* Pane area */
+    .pane-area {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      overflow: hidden;
+      position: relative;
+    }
+    .pane-area.edit-only { grid-template-columns: 1fr; }
+    .pane-area.edit-only .preview-pane { display: none; }
+    .pane-area.preview-only { grid-template-columns: 1fr; }
+    .pane-area.preview-only .editor-pane { display: none; }
+
+    .editor-pane {
+      border-right: 1px solid rgba(255,255,255,0.07);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .editor-pane textarea {
+      flex: 1;
+      width: 100%;
+      background: rgba(0,0,0,0.15);
+      border: none;
+      color: var(--text);
+      font-size: 0.88rem;
+      line-height: 1.8;
+      padding: 14px 16px;
+      outline: none;
+      resize: none;
+      font-family: 'Noto Sans KR', 'Courier New', monospace;
+      tab-size: 2;
+    }
+    .editor-pane textarea::placeholder { color: var(--text-muted); }
+
+    .preview-pane {
+      overflow-y: auto;
+      padding: 14px 20px;
+      line-height: 1.8;
+    }
+    .preview-pane::-webkit-scrollbar { width: 5px; }
+    .preview-pane::-webkit-scrollbar-track { background: transparent; }
+    .preview-pane::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+
+    /* Markdown preview styles */
+    .preview-pane h1,
+    .preview-pane h2,
+    .preview-pane h3 { color: var(--white); margin: 0.8em 0 0.4em; font-weight: 900; line-height: 1.3; }
+    .preview-pane h1 { font-size: 1.55rem; border-bottom: 2px solid var(--primary); padding-bottom: 6px; }
+    .preview-pane h2 { font-size: 1.2rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 4px; }
+    .preview-pane h3 { font-size: 1rem; color: var(--accent); }
+    .preview-pane p { margin: 0.5em 0; color: var(--text); }
+    .preview-pane strong { color: var(--white); font-weight: 700; }
+    .preview-pane em { color: var(--secondary); font-style: italic; }
+    .preview-pane del { color: var(--text-muted); text-decoration: line-through; }
+    .preview-pane a { color: var(--accent); text-decoration: none; }
+    .preview-pane a:hover { text-decoration: underline; }
+    .preview-pane img { max-width: 100%; border-radius: 8px; margin: 6px 0; }
+    .preview-pane blockquote {
+      border-left: 3px solid var(--primary);
+      margin: 0.7em 0;
+      padding: 8px 14px;
+      background: rgba(255,107,53,0.06);
+      border-radius: 0 8px 8px 0;
+      color: var(--text-muted);
+    }
+    .preview-pane code {
+      background: rgba(78,205,196,0.12);
+      color: var(--accent);
+      border-radius: 4px;
+      padding: 1px 6px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.85em;
+    }
+    .preview-pane pre {
+      background: rgba(0,0,0,0.3);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      padding: 14px 16px;
+      overflow-x: auto;
+      margin: 0.7em 0;
+    }
+    .preview-pane pre code {
+      background: none;
+      color: var(--text);
+      padding: 0;
+      font-size: 0.83em;
+    }
+    .preview-pane hr {
+      border: none;
+      border-top: 1px solid rgba(255,255,255,0.12);
+      margin: 1.2em 0;
+    }
+    .preview-pane ul,
+    .preview-pane ol { padding-left: 1.6em; margin: 0.5em 0; }
+    .preview-pane li { margin: 0.2em 0; }
+    .preview-pane ul li { list-style-type: disc; }
+    .preview-pane ol li { list-style-type: decimal; }
+    .preview-pane .task-item { list-style: none; display: flex; align-items: flex-start; gap: 7px; margin-left: -1.4em; }
+    .preview-pane .task-item input[type=checkbox] { margin-top: 5px; accent-color: var(--primary); cursor: pointer; }
+    .preview-pane .task-done { color: var(--text-muted); text-decoration: line-through; }
+    .preview-empty {
+      color: var(--text-muted);
+      font-size: 0.84rem;
+      text-align: center;
+      padding-top: 40px;
+      opacity: 0.5;
+    }
+
+    /* Status bar */
+    .status-bar {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 7px 14px;
+      border-top: 1px solid rgba(255,255,255,0.07);
+      flex-shrink: 0;
+      flex-wrap: wrap;
+    }
+    .status-pill {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+    .status-pill span { font-weight: 700; color: var(--text); }
+    .status-bar .spacer { flex: 1; }
+    .btn-export {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: var(--text-muted);
+      border-radius: 7px;
+      padding: 5px 12px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.2s;
+    }
+    .btn-export:hover { background: rgba(78,205,196,0.15); color: var(--accent); border-color: var(--accent); }
+
+    /* No note selected state */
+    .no-note {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      color: var(--text-muted);
+    }
+    .no-note .no-note-icon { font-size: 3rem; opacity: 0.3; }
+    .no-note p { font-size: 0.88rem; opacity: 0.5; }
+
+    /* Page wrapper */
+    .page-header {
+      padding: 24px 16px 14px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    .page-header h1 { font-size: 1.35rem; font-weight: 900; color: var(--white); margin-bottom: 4px; }
+    .page-header p { font-size: 0.85rem; color: var(--text-muted); }
+    .breadcrumb { font-size: 0.78rem; color: var(--text-muted); margin-bottom: 8px; }
+    .breadcrumb a { color: var(--text-muted); text-decoration: none; }
+    .breadcrumb a:hover { color: var(--primary); }
+
+    .ad-wrap { max-width: 1400px; margin: 0 auto; padding: 0 16px 12px; }
+    .ad-banner {
+      background: rgba(255,255,255,0.03);
+      border: 1px dashed rgba(255,255,255,0.08);
+      border-radius: 10px;
+      padding: 12px;
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    /* Pane labels */
+    .pane-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      padding: 5px 14px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      background: rgba(0,0,0,0.1);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      flex-shrink: 0;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .memo-shell { grid-template-columns: 1fr; height: auto; min-height: unset; }
+      .sidebar { border-radius: var(--radius); border-right: 1px solid rgba(255,255,255,0.07); max-height: 240px; }
+      .editor-main { border-radius: var(--radius); min-height: 480px; }
+      .pane-area { grid-template-columns: 1fr !important; }
+      .editor-pane { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.07); }
+      .preview-pane { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="../index.html" class="logo">🚪 퇴근<span>각</span></a>
+  <ul class="nav-links">
+    <li><a href="../index.html#calculators">계산기</a></li>
+    <li><a href="../index.html#tools" class="active">업무도구</a></li>
+    <li><a href="../index.html#games">루팡게임</a></li>
+    <li><a href="../index.html#tests">테스트</a></li>
+    <li><a href="../index.html#info">정보</a></li>
+  </ul>
+</nav>
+
+<div class="page-header">
+  <div class="breadcrumb"><a href="../index.html">홈</a> › 업무도구</div>
+  <h1>📝 스마트 메모장</h1>
+  <p>마크다운 지원 · 자동저장 · 여러 노트 관리 · .md 내보내기</p>
+</div>
+
+<div class="ad-wrap">
+  <div class="ad-banner">광고 영역 (Google AdSense)</div>
+</div>
+
+<div class="memo-shell">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-head">
+      <button class="btn-new" onclick="newNote()">＋ 새 메모</button>
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" placeholder="메모 검색..." oninput="renderList()">
+      </div>
+    </div>
+    <div class="note-list" id="noteList"></div>
+    <div class="sidebar-count" id="noteCount">메모 0개</div>
+  </aside>
+
+  <!-- Main editor -->
+  <div class="editor-main" id="editorMain">
+    <!-- No note state -->
+    <div class="no-note" id="noNoteState">
+      <div class="no-note-icon">📄</div>
+      <p>왼쪽에서 메모를 선택하거나 새 메모를 만드세요</p>
+    </div>
+
+    <!-- Editor content (hidden until note selected) -->
+    <div id="editorContent" style="display:none; flex-direction:column; flex:1; overflow:hidden; display:none;">
+      <!-- Top bar -->
+      <div class="editor-topbar">
+        <div class="md-toolbar" id="mdToolbar">
+          <button class="md-btn" title="굵게 (Ctrl+B)" onclick="insertMd('**','**','굵은 텍스트')"><b>B</b></button>
+          <button class="md-btn" title="기울임 (Ctrl+I)" onclick="insertMd('*','*','기울임 텍스트')"><i>I</i></button>
+          <button class="md-btn" title="취소선" onclick="insertMd('~~','~~','취소선 텍스트')"><s>S</s></button>
+          <div class="md-sep"></div>
+          <button class="md-btn" title="제목 1" onclick="insertLine('# ')">H1</button>
+          <button class="md-btn" title="제목 2" onclick="insertLine('## ')">H2</button>
+          <button class="md-btn" title="제목 3" onclick="insertLine('### ')">H3</button>
+          <div class="md-sep"></div>
+          <button class="md-btn" title="글머리 목록" onclick="insertLine('- ')">•</button>
+          <button class="md-btn" title="번호 목록" onclick="insertLine('1. ')">1.</button>
+          <button class="md-btn" title="체크박스" onclick="insertLine('- [ ] ')">☑</button>
+          <div class="md-sep"></div>
+          <button class="md-btn" title="인용구" onclick="insertLine('> ')">❝</button>
+          <button class="md-btn" title="인라인 코드" onclick="insertMd('`','`','코드')">` `</button>
+          <button class="md-btn" title="코드 블록" onclick="insertCodeBlock()">{ }</button>
+          <button class="md-btn" title="수평선" onclick="insertHr()">—</button>
+          <button class="md-btn" title="링크" onclick="insertLink()">🔗</button>
+        </div>
+
+        <div class="view-toggle">
+          <button class="view-btn" id="vbEdit" onclick="setView('edit')" title="편집만">✏️</button>
+          <button class="view-btn active" id="vbSplit" onclick="setView('split')" title="분할">⊟</button>
+          <button class="view-btn" id="vbPreview" onclick="setView('preview')" title="미리보기">👁</button>
+        </div>
+
+        <div class="save-indicator">
+          <div class="save-dot" id="saveDot"></div>
+          <span id="saveLabel">저장됨</span>
+        </div>
+      </div>
+
+      <!-- Title -->
+      <div class="title-row">
+        <input type="text" class="title-input" id="titleInput" placeholder="제목 없음" oninput="onTitleChange()">
+      </div>
+
+      <!-- Panes -->
+      <div class="pane-area" id="paneArea">
+        <div class="editor-pane">
+          <div class="pane-label">편집</div>
+          <textarea id="mdEditor" placeholder="마크다운으로 메모를 작성하세요...
+
+# 제목
+**굵게**, *기울임*, ~~취소선~~
+
+> 인용구
+
+- 목록 아이템
+- [ ] 할 일 체크박스
+
+```
+코드 블록
+```" oninput="onEditorInput()" onkeydown="handleTabKey(event)"></textarea>
+        </div>
+        <div class="preview-pane" id="previewPane">
+          <div class="pane-label" style="margin:-14px -20px 10px; padding:5px 20px;">미리보기</div>
+          <div id="previewContent"></div>
+        </div>
+      </div>
+
+      <!-- Status bar -->
+      <div class="status-bar">
+        <div class="status-pill">단어 <span id="wordCount">0</span></div>
+        <div class="status-pill">줄 <span id="lineCount">0</span></div>
+        <div class="status-pill">글자 <span id="charCount">0</span></div>
+        <div class="spacer"></div>
+        <button class="btn-export" onclick="exportMd()">⬇ .md 내보내기</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../js/theme.js"></script>
+<script>
+/* ══════════════════════════════════════════════
+   STATE
+══════════════════════════════════════════════ */
+const STORAGE_KEY = 'tg-memo-v1';
+let notes = [];
+let activeId = null;
+let saveTimer = null;
+let currentView = 'split';
+
+/* ══════════════════════════════════════════════
+   PERSISTENCE
+══════════════════════════════════════════════ */
+function loadNotes() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    notes = raw ? JSON.parse(raw) : [];
+  } catch (e) {
+    notes = [];
+  }
+}
+
+function saveNotes() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
+}
+
+/* ══════════════════════════════════════════════
+   NOTE CRUD
+══════════════════════════════════════════════ */
+function genId() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+}
+
+function newNote() {
+  const note = { id: genId(), title: '', content: '', at: Date.now() };
+  notes.unshift(note);
+  saveNotes();
+  renderList();
+  selectNote(note.id);
+  setTimeout(() => document.getElementById('titleInput').focus(), 50);
+}
+
+function deleteNote(id, e) {
+  e.stopPropagation();
+  if (!confirm('이 메모를 삭제할까요?')) return;
+  notes = notes.filter(n => n.id !== id);
+  saveNotes();
+  if (activeId === id) {
+    activeId = null;
+    showNoNote();
+  }
+  renderList();
+}
+
+function selectNote(id) {
+  activeId = id;
+  const note = notes.find(n => n.id === id);
+  if (!note) return;
+  document.getElementById('titleInput').value = note.title;
+  document.getElementById('mdEditor').value = note.content;
+  renderList();
+  showEditor();
+  updatePreview();
+  updateStats();
+  markSaved();
+}
+
+function getNotePreview(content) {
+  return content.replace(/[#*`>~\[\]!]/g, '').trim().slice(0, 50) || '(내용 없음)';
+}
+
+function fmtDate(ts) {
+  const d = new Date(ts);
+  const now = new Date();
+  const diff = now - d;
+  if (diff < 60000) return '방금';
+  if (diff < 3600000) return Math.floor(diff / 60000) + '분 전';
+  if (diff < 86400000) return Math.floor(diff / 3600000) + '시간 전';
+  return (d.getMonth() + 1) + '/' + d.getDate();
+}
+
+/* ══════════════════════════════════════════════
+   RENDER LIST
+══════════════════════════════════════════════ */
+function renderList() {
+  const q = (document.getElementById('searchInput').value || '').toLowerCase();
+  const filtered = notes.filter(n =>
+    !q || n.title.toLowerCase().includes(q) || n.content.toLowerCase().includes(q)
+  );
+
+  const el = document.getElementById('noteList');
+  if (filtered.length === 0) {
+    el.innerHTML = `<div class="sidebar-empty">${q ? '검색 결과 없음' : '메모가 없습니다'}</div>`;
+  } else {
+    el.innerHTML = filtered.map(n => `
+      <div class="note-item${n.id === activeId ? ' active' : ''}" onclick="selectNote('${n.id}')">
+        <div class="note-item-body">
+          <div class="note-item-title">${escHtml(n.title || '제목 없음')}</div>
+          <div class="note-item-preview">${escHtml(getNotePreview(n.content))}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;">
+          <div class="note-item-date">${fmtDate(n.at)}</div>
+          <button class="btn-del" onclick="deleteNote('${n.id}',event)" title="삭제">✕</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  document.getElementById('noteCount').textContent = `메모 ${notes.length}개`;
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* ══════════════════════════════════════════════
+   SHOW / HIDE
+══════════════════════════════════════════════ */
+function showEditor() {
+  document.getElementById('noNoteState').style.display = 'none';
+  const ec = document.getElementById('editorContent');
+  ec.style.display = 'flex';
+  ec.style.flexDirection = 'column';
+  ec.style.flex = '1';
+  ec.style.overflow = 'hidden';
+}
+
+function showNoNote() {
+  document.getElementById('noNoteState').style.display = 'flex';
+  document.getElementById('editorContent').style.display = 'none';
+}
+
+/* ══════════════════════════════════════════════
+   VIEW TOGGLE
+══════════════════════════════════════════════ */
+function setView(v) {
+  currentView = v;
+  const pa = document.getElementById('paneArea');
+  pa.className = 'pane-area';
+  if (v === 'edit') pa.classList.add('edit-only');
+  if (v === 'preview') pa.classList.add('preview-only');
+
+  document.getElementById('vbEdit').classList.toggle('active', v === 'edit');
+  document.getElementById('vbSplit').classList.toggle('active', v === 'split');
+  document.getElementById('vbPreview').classList.toggle('active', v === 'preview');
+}
+
+/* ══════════════════════════════════════════════
+   AUTOSAVE
+══════════════════════════════════════════════ */
+function onEditorInput() {
+  updatePreview();
+  updateStats();
+  scheduleSave();
+}
+
+function onTitleChange() {
+  const note = notes.find(n => n.id === activeId);
+  if (!note) return;
+  note.title = document.getElementById('titleInput').value;
+  note.at = Date.now();
+  scheduleSave();
+  // live update list title
+  renderList();
+}
+
+function scheduleSave() {
+  markSaving();
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(commitSave, 700);
+}
+
+function commitSave() {
+  const note = notes.find(n => n.id === activeId);
+  if (!note) return;
+  note.content = document.getElementById('mdEditor').value;
+  note.title = document.getElementById('titleInput').value;
+  note.at = Date.now();
+  // Bring to top
+  notes = [note, ...notes.filter(n => n.id !== activeId)];
+  saveNotes();
+  renderList();
+  markSaved();
+}
+
+function markSaving() {
+  document.getElementById('saveDot').classList.add('saving');
+  document.getElementById('saveLabel').textContent = '저장 중...';
+}
+
+function markSaved() {
+  document.getElementById('saveDot').classList.remove('saving');
+  document.getElementById('saveLabel').textContent = '저장됨';
+}
+
+/* ══════════════════════════════════════════════
+   STATS
+══════════════════════════════════════════════ */
+function updateStats() {
+  const txt = document.getElementById('mdEditor').value;
+  const words = txt.trim() ? txt.trim().split(/\s+/).length : 0;
+  const lines = txt ? txt.split('\n').length : 0;
+  const chars = txt.length;
+  document.getElementById('wordCount').textContent = words;
+  document.getElementById('lineCount').textContent = lines;
+  document.getElementById('charCount').textContent = chars;
+}
+
+/* ══════════════════════════════════════════════
+   MARKDOWN PARSER
+══════════════════════════════════════════════ */
+function parseMarkdown(md) {
+  if (!md.trim()) return '<p class="preview-empty">작성한 내용이 여기에 표시됩니다</p>';
+
+  const lines = md.split('\n');
+  let html = '';
+  let i = 0;
+
+  while (i < lines.length) {
+    const line = lines[i];
+
+    // Fenced code block
+    if (/^```/.test(line)) {
+      const lang = line.slice(3).trim();
+      let code = '';
+      i++;
+      while (i < lines.length && !/^```/.test(lines[i])) {
+        code += escHtml(lines[i]) + '\n';
+        i++;
+      }
+      html += `<pre><code${lang ? ` class="lang-${escHtml(lang)}"` : ''}>${code}</code></pre>`;
+      i++;
+      continue;
+    }
+
+    // Headings
+    const h3 = line.match(/^### (.+)/);
+    const h2 = line.match(/^## (.+)/);
+    const h1 = line.match(/^# (.+)/);
+    if (h1) { html += `<h1>${inlineFormat(h1[1])}</h1>`; i++; continue; }
+    if (h2) { html += `<h2>${inlineFormat(h2[1])}</h2>`; i++; continue; }
+    if (h3) { html += `<h3>${inlineFormat(h3[1])}</h3>`; i++; continue; }
+
+    // HR
+    if (/^---+$|^\*\*\*+$/.test(line.trim())) { html += '<hr>'; i++; continue; }
+
+    // Blockquote
+    if (/^> /.test(line)) {
+      let bq = '';
+      while (i < lines.length && /^> /.test(lines[i])) {
+        bq += inlineFormat(lines[i].slice(2)) + '<br>';
+        i++;
+      }
+      html += `<blockquote>${bq}</blockquote>`;
+      continue;
+    }
+
+    // Ordered list
+    if (/^\d+\. /.test(line)) {
+      html += '<ol>';
+      while (i < lines.length && /^\d+\. /.test(lines[i])) {
+        html += `<li>${inlineFormat(lines[i].replace(/^\d+\. /, ''))}</li>`;
+        i++;
+      }
+      html += '</ol>';
+      continue;
+    }
+
+    // Unordered list / checkbox
+    if (/^- /.test(line) || /^\* /.test(line)) {
+      html += '<ul>';
+      while (i < lines.length && (/^- /.test(lines[i]) || /^\* /.test(lines[i]))) {
+        const item = lines[i].replace(/^[-*] /, '');
+        const cbUnchecked = item.match(/^\[ \] (.+)/);
+        const cbChecked = item.match(/^\[x\] (.+)/i);
+        if (cbUnchecked) {
+          html += `<li class="task-item"><input type="checkbox" onclick="return false"> <span>${inlineFormat(cbUnchecked[1])}</span></li>`;
+        } else if (cbChecked) {
+          html += `<li class="task-item"><input type="checkbox" checked onclick="return false"> <span class="task-done">${inlineFormat(cbChecked[1])}</span></li>`;
+        } else {
+          html += `<li>${inlineFormat(item)}</li>`;
+        }
+        i++;
+      }
+      html += '</ul>';
+      continue;
+    }
+
+    // Empty line
+    if (line.trim() === '') { html += '<p></p>'; i++; continue; }
+
+    // Paragraph
+    html += `<p>${inlineFormat(line)}</p>`;
+    i++;
+  }
+
+  return html;
+}
+
+function inlineFormat(s) {
+  s = escHtml(s);
+  // Images before links
+  s = s.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1">');
+  // Links
+  s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+  // Bold+italic
+  s = s.replace(/\*\*\*([^*]+)\*\*\*/g, '<strong><em>$1</em></strong>');
+  // Bold
+  s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  s = s.replace(/__([^_]+)__/g, '<strong>$1</strong>');
+  // Italic
+  s = s.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+  s = s.replace(/_([^_]+)_/g, '<em>$1</em>');
+  // Strikethrough
+  s = s.replace(/~~([^~]+)~~/g, '<del>$1</del>');
+  // Inline code
+  s = s.replace(/`([^`]+)`/g, '<code>$1</code>');
+  return s;
+}
+
+function updatePreview() {
+  const md = document.getElementById('mdEditor').value;
+  document.getElementById('previewContent').innerHTML = parseMarkdown(md);
+}
+
+/* ══════════════════════════════════════════════
+   TOOLBAR ACTIONS
+══════════════════════════════════════════════ */
+function insertMd(before, after, placeholder) {
+  const ta = document.getElementById('mdEditor');
+  const start = ta.selectionStart;
+  const end = ta.selectionEnd;
+  const sel = ta.value.slice(start, end) || placeholder;
+  const replacement = before + sel + after;
+  ta.setRangeText(replacement, start, end, 'select');
+  ta.focus();
+  if (!ta.value.slice(start, end)) {
+    ta.selectionStart = start + before.length;
+    ta.selectionEnd = start + before.length + placeholder.length;
+  }
+  onEditorInput();
+}
+
+function insertLine(prefix) {
+  const ta = document.getElementById('mdEditor');
+  const start = ta.selectionStart;
+  const val = ta.value;
+  // Find start of line
+  const lineStart = val.lastIndexOf('\n', start - 1) + 1;
+  const insert = prefix;
+  ta.setRangeText(insert, lineStart, lineStart, 'end');
+  ta.focus();
+  onEditorInput();
+}
+
+function insertCodeBlock() {
+  const ta = document.getElementById('mdEditor');
+  const start = ta.selectionStart;
+  const end = ta.selectionEnd;
+  const sel = ta.value.slice(start, end);
+  const replacement = '```\n' + (sel || '코드') + '\n```';
+  ta.setRangeText(replacement, start, end, 'end');
+  ta.focus();
+  onEditorInput();
+}
+
+function insertHr() {
+  const ta = document.getElementById('mdEditor');
+  const start = ta.selectionStart;
+  ta.setRangeText('\n---\n', start, start, 'end');
+  ta.focus();
+  onEditorInput();
+}
+
+function insertLink() {
+  const url = prompt('URL을 입력하세요:', 'https://');
+  if (!url) return;
+  const ta = document.getElementById('mdEditor');
+  const start = ta.selectionStart;
+  const end = ta.selectionEnd;
+  const sel = ta.value.slice(start, end) || '링크 텍스트';
+  ta.setRangeText(`[${sel}](${url})`, start, end, 'end');
+  ta.focus();
+  onEditorInput();
+}
+
+function handleTabKey(e) {
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    const ta = e.target;
+    const start = ta.selectionStart;
+    ta.setRangeText('  ', start, start, 'end');
+    onEditorInput();
+  }
+  // Ctrl+B / Ctrl+I shortcuts
+  if (e.ctrlKey && e.key === 'b') { e.preventDefault(); insertMd('**','**','굵은 텍스트'); }
+  if (e.ctrlKey && e.key === 'i') { e.preventDefault(); insertMd('*','*','기울임 텍스트'); }
+}
+
+/* ══════════════════════════════════════════════
+   EXPORT
+══════════════════════════════════════════════ */
+function exportMd() {
+  const note = notes.find(n => n.id === activeId);
+  if (!note) return;
+  const filename = (note.title || '메모') + '.md';
+  const blob = new Blob([note.content], { type: 'text/markdown;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+/* ══════════════════════════════════════════════
+   INIT
+══════════════════════════════════════════════ */
+(function init() {
+  loadNotes();
+  renderList();
+  // Select most recent note if any
+  if (notes.length > 0) {
+    selectNote(notes[0].id);
+  }
+  setView('split');
+})();
+</script>
+
+<footer>
+  <p><strong>퇴근각</strong></p>
+</footer>
+</body>
+</html>
