@@ -16,7 +16,7 @@
     .w-stat-box .val{font-size:1.2rem;font-weight:900;color:#fff}
     .w-stat-box.streak .val{color:#FFD700;text-shadow:0 0 8px #FFD700}
     .board{display:grid;grid-template-rows:repeat(6,1fr);gap:5px}
-    .row{display:grid;grid-template-columns:repeat(5,1fr);gap:5px}
+    .row{display:grid;gap:5px}
     .tile{
       width:clamp(48px,11vw,60px);height:clamp(48px,11vw,60px);
       border:2px solid rgba(255,255,255,.12);border-radius:8px;
@@ -128,7 +128,7 @@
 <div class="page-header">
   <div class="breadcrumb"><a href="../index.html">홈</a> › 루팡게임</div>
   <h1>🟩 워들 리마스터드</h1>
-  <p>5글자 직장인 단어를 6번 안에 맞혀라 · 🟩 맞는 자리 · 🟨 있지만 자리 틀림 · ⬜ 없음</p>
+  <p>3~5글자 단어를 6번 안에 맞혀라 · 🟩 맞는 자리 · 🟨 있지만 자리 틀림 · ⬜ 없음</p>
 </div>
 <main>
   <div class="ad-banner">광고 영역 (Google AdSense)</div>
@@ -243,17 +243,25 @@ class HangulIME{
   flush(){const c=this.current();this.reset();return c;}
 }
 
-// ── WORDS ──
+// ── WORDS (3~5음절 실제 단어) ──
 const WORDS=[
-  '안녕하세요','감사합니다','알겠습니다','죄송합니다','수고하셨어',
-  '잘부탁해요','이해합니다','확인해볼게','보고드릴게','완료했어요',
-  '퇴사하고파','야근하지마','월급올려줘','연차쓸거야','출근하기싫',
-  '점심뭐먹어','커피한잔해','회의하기싫','칼퇴하고파','업무많아요',
-  '열심히했어','화이팅해요','스트레스야','번아웃왔어','마감지켰어',
-  '연봉올랐어','보너스받았','승진했어요','팀장됐어요','이직해볼까',
-  '야근수당줘','연차다썼어','워라밸중요','점심메뉴뭐','퇴근하고파',
-  '회식하기싫','임원이무서','보고서제출','회의록써줘','프레젠테이',
-  '업무보고해','기획안작성','계약완료요','목표달성해','신입사원이',
+  // 3음절
+  '사무실','회의실','도서관','지하철','편의점',
+  '아파트','프린터','컴퓨터','노트북','핸드폰',
+  '이어폰','초콜릿','마카롱','유튜브','인터넷',
+  '주차장','승강기','영수증','삼겹살','불고기',
+  '비빔밥','닭갈비','마라탕','핫초코','이력서',
+  '고구마','화장실','탕수육','포카칩','스케줄',
+  // 4음절
+  '스마트폰','카푸치노','카페라떼','크루아상','프리랜서',
+  '재택근무','연차휴가','초등학교','고등학교','국민연금',
+  '건강보험','실업급여','연봉협상','딸기라떼','녹차라떼',
+  '타이레놀','블루베리','아이패드','입사지원','면접준비',
+  '스타벅스','맥도날드','슈퍼마켓','스파게티','롯데마트',
+  // 5음절
+  '아메리카노','에스프레소','아이스크림','엘리베이터','스마트워치',
+  '아이스라떼','치즈케이크','바닐라라떼','프라푸치노','순두부찌개',
+  '성과상여금','까르보나라','마르게리타','딸기케이크','카라멜라떼',
 ];
 
 // ── STATS ──
@@ -271,7 +279,8 @@ function updateStatUI(){
 }
 
 // ── GAME STATE ──
-const ROWS_N=6,COLS_N=5;
+const ROWS_N=6;
+let colsN=5;
 let answer,guesses,currentRow,currentTiles,gameOver,ime;
 const KB_STATE={};
 const KEYMAP={q:'ㅂ',w:'ㅈ',e:'ㄷ',r:'ㄱ',t:'ㅅ',y:'ㅛ',u:'ㅕ',i:'ㅑ',o:'ㅐ',p:'ㅔ',a:'ㅁ',s:'ㄴ',d:'ㅇ',f:'ㄹ',g:'ㅎ',h:'ㅗ',j:'ㅓ',k:'ㅏ',l:'ㅣ',z:'ㅋ',x:'ㅌ',c:'ㅊ',v:'ㅍ',b:'ㅠ',n:'ㅜ',m:'ㅡ',Q:'ㅃ',W:'ㅉ',E:'ㄸ',R:'ㄲ',T:'ㅆ',O:'ㅒ',P:'ㅖ'};
@@ -282,16 +291,18 @@ function newGame(){
   const d=new Date();
   const idx=((d.getFullYear()-2026)*366+d.getMonth()*31+d.getDate())%WORDS.length;
   answer=WORDS[Math.abs(idx)].split('');
-  guesses=Array.from({length:ROWS_N},()=>Array(COLS_N).fill(''));
-  currentRow=0;currentTiles=Array(COLS_N).fill('');
+  colsN=answer.length;
+  guesses=Array.from({length:ROWS_N},()=>Array(colsN).fill(''));
+  currentRow=0;currentTiles=Array(colsN).fill('');
   gameOver=false;ime=new HangulIME();
   Object.keys(KB_STATE).forEach(k=>delete KB_STATE[k]);
-  renderBoard();renderKeyboard();setMsg('');updateStatUI();
+  renderBoard();renderKeyboard();setMsg(colsN+'글자 단어');updateStatUI();
 }
 
 function renderBoard(){
+  const colStyle=`grid-template-columns:repeat(${colsN},1fr)`;
   document.getElementById('board').innerHTML=Array.from({length:ROWS_N},(_,r)=>`
-    <div class="row" id="row${r}">${Array.from({length:COLS_N},(_,c)=>`<div class="tile" id="t${r}_${c}"><div class="tile-inner" id="ti${r}_${c}"></div></div>`).join('')}</div>`).join('');
+    <div class="row" id="row${r}" style="${colStyle}">${Array.from({length:colsN},(_,c)=>`<div class="tile" id="t${r}_${c}"><div class="tile-inner" id="ti${r}_${c}"></div></div>`).join('')}</div>`).join('');
 }
 function renderKeyboard(){
   document.getElementById('keyboard').innerHTML=KB_ROWS.map(row=>`<div class="kb-row">${row.map(k=>`<button class="kb-key ${['입력','⌫'].includes(k)?'wide':''}" id="kb_${k}" onclick="pressKey('${k}')">${k}</button>`).join('')}</div>`).join('');
@@ -317,7 +328,7 @@ function pressKey(k){
   const{commit,current}=ime.push(k);
   if(commit)commitChar(commit);
   const filled=currentTiles.filter(x=>x&&x!=='​').length;
-  if(filled<COLS_N){
+  if(filled<colsN){
     currentTiles[filled]='​';
     const ti=getTileInner(currentRow,filled);if(ti)ti.textContent=current;
     getTile(currentRow,filled)?.classList.add('has-letter','composing');
@@ -327,7 +338,7 @@ function pressKey(k){
 
 function syncRow(){
   const filled=currentTiles.filter(x=>x&&x!=='​').length;
-  for(let c=0;c<COLS_N;c++){
+  for(let c=0;c<colsN;c++){
     if(currentTiles[c]&&currentTiles[c]!=='​'){
       const t=getTile(currentRow,c);
       const ti=getTileInner(currentRow,c);
@@ -335,7 +346,7 @@ function syncRow(){
     }
   }
   const composing=ime.current();
-  if(composing&&filled<COLS_N){
+  if(composing&&filled<colsN){
     const ti=getTileInner(currentRow,filled);
     const t=getTile(currentRow,filled);
     if(ti&&t){ti.textContent=composing;t.className='tile has-letter composing';}
@@ -344,7 +355,7 @@ function syncRow(){
 
 function commitChar(ch){
   const idx=currentTiles.findIndex(x=>!x||x==='​');
-  if(idx>=0&&idx<COLS_N){
+  if(idx>=0&&idx<colsN){
     currentTiles[idx]=ch;
     const t=getTile(currentRow,idx);
     const ti=getTileInner(currentRow,idx);
@@ -376,16 +387,16 @@ function doEnter(){
   const composing=ime.flush();
   if(composing){
     const idx=currentTiles.findIndex(x=>!x||x==='​');
-    if(idx>=0&&idx<COLS_N)currentTiles[idx]=composing;
+    if(idx>=0&&idx<colsN)currentTiles[idx]=composing;
   }
   const word=currentTiles.filter(x=>x&&x!=='​');
-  if(word.length<COLS_N){SFX.shake();setMsg('5글자를 입력하세요');shakeRow();return;}
+  if(word.length<colsN){SFX.shake();setMsg(colsN+'글자를 입력하세요');shakeRow();return;}
   guesses[currentRow]=[...word];
   revealRow(currentRow,[...word]);
 }
 
 function revealRow(row,word){
-  const result=Array(COLS_N).fill('absent');
+  const result=Array(colsN).fill('absent');
   const ac=[...answer];
   word.forEach((ch,i)=>{if(ch===ac[i]){result[i]='correct';ac[i]=null;}});
   word.forEach((ch,i)=>{if(result[i]==='correct')return;const ai=ac.indexOf(ch);if(ai>=0){result[i]='present';ac[ai]=null;}});
@@ -420,10 +431,10 @@ function revealRow(row,word){
       setTimeout(()=>{SFX.lose();setMsg('정답: '+answer.join(''));},200);
       recordResult(false,0);
     }else{
-      currentRow++;currentTiles=Array(COLS_N).fill('');ime.reset();
+      currentRow++;currentTiles=Array(colsN).fill('');ime.reset();
     }
     updateStatUI();
-  },COLS_N*120+300);
+  },colsN*120+300);
 }
 
 function recordResult(win,guessNum){
