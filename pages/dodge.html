@@ -117,6 +117,7 @@
   /* ── State ── */
   let state = IDLE;
   let score = 0;
+  let bonusScore = 0;
   let survivalTime = 0; // seconds
   let lives = 3;
   let bestScore = parseInt(localStorage.getItem(BEST_KEY) || '0', 10);
@@ -224,6 +225,7 @@
   function startGame() {
     state = PLAYING;
     score = 0;
+    bonusScore = 0;
     survivalTime = 0;
     lives = 3;
     elapsed = 0;
@@ -278,7 +280,7 @@
     // survival time & score
     elapsed += dt;
     survivalTime = elapsed / 1000;
-    score = Math.floor(survivalTime * 10);
+    score = Math.floor(survivalTime * 10) + bonusScore;
 
     // difficulty warning
     const curLevel = getDifficultyLevel(survivalTime);
@@ -436,11 +438,11 @@
         lives++;
         addFloat(player.x, player.y - 30, '❤️ +1', '#2ecc71');
       } else {
-        score += 200;
+        bonusScore += 200;
         addFloat(player.x, player.y - 30, '+200', '#2ecc71');
       }
     } else if (def.effect === 'bonus') {
-      score += 500;
+      bonusScore += 500;
       addFloat(player.x, player.y - 30, '+500 💰', '#FFD700');
     }
   }

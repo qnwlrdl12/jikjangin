@@ -193,6 +193,7 @@
     ctx.scale(DPR, DPR);
     generateStars();
   }
+  initCanvas(); // must run before event listeners reference canvas
 
   function generateStars() {
     stars = [];
@@ -799,22 +800,7 @@
   });
 
   /* ── Bootstrap ──────────────────────────────────────────── */
-  function _bootstrap() {
-    try {
-      initCanvas();
-      init();
-    } catch (e) {
-      console.error('[Stack] init error:', e);
-      // Show error on page so it's visible without DevTools
-      const el = document.getElementById('scoreDisp') || document.body;
-      el.textContent = '오류: ' + e.message;
-    }
-  }
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', _bootstrap);
-  } else {
-    _bootstrap();
-  }
+  init();
 
 })();
 </script>
