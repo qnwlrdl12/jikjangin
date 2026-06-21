@@ -60,6 +60,7 @@
     .stat-val.cyan { color: #4ECDC4; text-shadow: 0 0 10px #4ECDC4; }
     .stat-val.org  { color: #FF6B35; text-shadow: 0 0 10px #FF6B35; }
     .retry-btn {
+      touch-action: manipulation;
       background: linear-gradient(135deg, #FF6B35, #ff9060);
       border: none;
       border-radius: 12px;
@@ -147,7 +148,7 @@
     '#45B7D1','#a855f7','#ec4899','#22c55e',
     '#3b82f6','#f97316'
   ];
-  const CANVAS_H = 550;
+  const CANVAS_H = Math.min(550, Math.max(300, window.innerHeight - 230));
 
   /* ── State ──────────────────────────────────────────────── */
   let canvas, ctx;

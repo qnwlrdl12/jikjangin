@@ -71,7 +71,7 @@
   const ctx = canvas.getContext('2d');
   const DPR = window.devicePixelRatio || 1;
   const W_CSS = Math.min(400, window.innerWidth - 32);
-  const H_CSS = 560;
+  const H_CSS = Math.min(560, Math.max(320, window.innerHeight - 180));
   canvas.style.width  = W_CSS + 'px';
   canvas.style.height = H_CSS + 'px';
   canvas.width  = W_CSS * DPR;

@@ -58,7 +58,7 @@
       min-width:clamp(27px,7vw,37px);height:42px;padding:0 3px;
       border-radius:6px;background:#4a4a5a;border:none;
       color:#fff;font-size:clamp(.68rem,2.3vw,.85rem);
-      font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;
+      font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;
       transition:background .25s,transform .08s;font-family:'Noto Sans KR',sans-serif;
     }
     .kb-key:active{transform:scale(.92)}
@@ -87,7 +87,7 @@
     .c-piece{position:absolute;border-radius:2px;animation:cFall linear forwards}
     @keyframes cFall{0%{transform:translateY(-10px) rotate(0);opacity:1}100%{transform:translateY(100vh) rotate(540deg);opacity:0}}
     .w-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
-    .w-btn{background:var(--card);border:1px solid rgba(255,255,255,.1);color:var(--text);padding:8px 16px;border-radius:8px;cursor:pointer;font-size:.85rem;font-weight:600;transition:all .2s;font-family:inherit}
+    .w-btn{background:var(--card);border:1px solid rgba(255,255,255,.1);color:var(--text);padding:8px 16px;border-radius:8px;cursor:pointer;font-size:.85rem;font-weight:600;touch-action:manipulation;transition:all .2s;font-family:inherit}
     .w-btn:hover{background:var(--primary);color:#fff;border-color:var(--primary)}
 
     /* ── Light mode overrides ── */

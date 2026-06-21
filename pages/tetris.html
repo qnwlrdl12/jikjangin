@@ -30,10 +30,20 @@
     .snd-b{position:absolute;top:8px;right:8px;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.12);border-radius:8px;color:#fff;font-size:1rem;width:32px;height:32px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:5}
     .cpop{position:absolute;top:10px;left:50%;transform:translateX(-50%);background:rgba(255,107,53,.93);border-radius:20px;padding:4px 14px;font-size:.8rem;font-weight:900;color:#fff;pointer-events:none;opacity:0;transition:opacity .3s;white-space:nowrap;z-index:4}
     .t-ctrl{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-top:10px}
-    .tb{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:9px 12px;font-size:.88rem;font-weight:700;color:#fff;cursor:pointer;font-family:inherit;min-width:44px;text-align:center;-webkit-tap-highlight-color:transparent;user-select:none;transition:background .1s}
+    .tb{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:9px 12px;font-size:.88rem;font-weight:700;color:#fff;cursor:pointer;font-family:inherit;min-width:44px;text-align:center;-webkit-tap-highlight-color:transparent;user-select:none;touch-action:manipulation;transition:background .1s}
     .tb:active{background:rgba(255,107,53,.25)}
     .tb.pr{background:var(--primary);border-color:var(--primary)}
-    @media(max-width:520px){.tet-wrap{flex-direction:column;align-items:center}.tet-side{flex-direction:row;width:100%;max-width:282px}.t-box{flex:1}}
+    .t-mob-bar{display:none;justify-content:space-around;align-items:stretch;gap:4px;max-width:380px;margin:0 auto 6px;width:100%}
+    .t-mob-cell{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:5px 6px;text-align:center;flex:1}
+    .t-mob-cell .lbl{font-size:.55rem;color:var(--text-muted);display:block;letter-spacing:.04em}
+    .t-mob-cell .val{font-size:.95rem;font-weight:900;color:#fff;display:block}
+    @media(max-width:520px){
+      .tet-side{display:none!important}
+      .tet-wrap{justify-content:center}
+      .t-mob-bar{display:flex!important}
+      .tet-kb-hint{display:none}
+      .t-ctrl{margin-top:6px}
+    }
     html.light .t-box{background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.1)}
     html.light .t-val{color:#1a1a2e}
     html.light #tc{border-color:rgba(0,0,0,.12)}
@@ -49,10 +59,17 @@
 <div class="page-header">
   <div class="breadcrumb"><a href="../index.html">홈</a> › 루팡게임</div>
   <h1>🟦 테트리스 리마스터드</h1>
-  <p>← → 이동 · ↑ 회전 · ↓ 빠르게 · Space 즉시 낙하 · C 홀드</p>
+  <p class="tet-kb-hint">← → 이동 · ↑ 회전 · ↓ 빠르게 · Space 즉시 낙하 · C 홀드</p>
 </div>
 <main>
   <div class="ad-banner">광고 영역 (Google AdSense)</div>
+  <div class="t-mob-bar" id="mobBar">
+    <div class="t-mob-cell"><span class="lbl">점수</span><span class="val" id="mScore">0</span></div>
+    <div class="t-mob-cell"><span class="lbl">레벨</span><span class="val" id="mLevel" style="color:#00f0ff">1</span></div>
+    <div class="t-mob-cell"><span class="lbl">라인</span><span class="val" id="mLines">0</span></div>
+    <div class="t-mob-cell"><span class="lbl">최고</span><span class="val" id="mBest" style="color:#FFD700">0</span></div>
+    <div class="t-mob-cell"><span class="lbl">콤보</span><span class="val" id="mCombo">—</span></div>
+  </div>
   <div class="tet-wrap">
     <div class="tet-side">
       <div class="t-box">
@@ -86,21 +103,20 @@
   </div>
   <div class="t-ctrl" id="mCtrl" style="display:none">
     <button class="tb" id="pauseB" onclick="togglePause()" style="display:none">⏸</button>
-    <button class="tb" onclick="doHold()">C</button>
-    <button class="tb" onclick="doRot(1)">↻</button>
-    <button class="tb" onclick="hardDrop()">⬇</button>
-  </div>
-  <div style="display:none;gap:6px;justify-content:center;margin-top:8px" id="dpadDiv">
     <button class="tb" onpointerdown="mStart('L')" onpointerup="mStop()" onpointerleave="mStop()">◀</button>
     <button class="tb" onpointerdown="mStart('D')" onpointerup="mStop()" onpointerleave="mStop()">▼</button>
     <button class="tb" onpointerdown="mStart('R')" onpointerup="mStop()" onpointerleave="mStop()">▶</button>
+    <button class="tb" onclick="doRot(1)">↻ 회전</button>
+    <button class="tb" onclick="hardDrop()">⬇ 낙하</button>
+    <button class="tb" onclick="doHold()">🤜 홀드</button>
   </div>
   <div class="ad-banner" style="margin-top:16px">광고 영역 (Google AdSense)</div>
 </main>
 <footer><p><strong>퇴근각</strong> — 회의 중 플레이는 자기 책임입니다</p></footer>
 <script src="../js/theme.js"></script>
 <script>
-const COLS=10,ROWS=20,CS=28,W=COLS*CS,H=ROWS*CS;
+const COLS=10,ROWS=20;
+let CS=28,W=COLS*CS,H=ROWS*CS;
 const PC=[null,'#00f0ff','#FFD700','#bf5fff','#39ff14','#ff4444','#4488ff','#ff8c00'];
 const SPAWN=[null,
   [[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]],
@@ -119,6 +135,28 @@ function clone(m){return m.map(r=>[...r]);}
 const cv=document.getElementById('tc'),ctx=cv.getContext('2d');
 const hcv=document.getElementById('hcv'),hx=hcv.getContext('2d');
 const ncv=document.getElementById('ncv'),nx=ncv.getContext('2d');
+
+// ── MOBILE SIZING ──
+function isMob(){return window.innerWidth<=520;}
+(function initSizes(){
+  if(!isMob())return;
+  // reserve: nav(52) + page-header(60) + mob-stats(46) + controls(72) + gaps(24)
+  const avH=Math.max(200,window.innerHeight-254);
+  const csH=Math.floor(avH/ROWS);
+  const csW=Math.floor(window.innerWidth*0.88/COLS);
+  CS=Math.max(16,Math.min(csH,csW,28));
+  W=COLS*CS;H=ROWS*CS;
+  cv.width=W;cv.height=H;
+})();
+function syncMob(){
+  if(!isMob())return;
+  const el=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  el('mScore',(score||0).toLocaleString());
+  el('mLevel',level||1);
+  el('mLines',lines||0);
+  el('mBest',best.toLocaleString());
+  el('mCombo',combo>1?combo+'x':'—');
+}
 
 // ── AUDIO ──
 let AC=null,sfxOn=true;
@@ -240,7 +278,7 @@ function hardDrop(){
   if(!running||paused)return;iAC();
   let d=0;while(validPos(psh,px2,py2+1)){py2++;d++;}
   score+=d*2;document.getElementById('scoreEl').textContent=score.toLocaleString();
-  SFX.drop();lockPiece();
+  syncMob();SFX.drop();lockPiece();
 }
 function lockPiece(){
   const col=PC[piece];
@@ -274,6 +312,7 @@ function clearLines(){
   document.getElementById('linesEl').textContent=lines;
   if(score>best){best=score;localStorage.setItem('tet2-best',best);document.getElementById('bestEl').textContent=best.toLocaleString();}
   dropInt=Math.max(80,1000-(level-1)*85);
+  syncMob();
 }
 function showPop(txt){
   const el=document.getElementById('cpop');el.textContent=txt;el.style.opacity='1';
@@ -341,7 +380,7 @@ function startGame(){
   document.getElementById('tov').style.display='none';
   document.getElementById('pauseB').style.display='';
   document.getElementById('mCtrl').style.display='flex';
-  document.getElementById('dpadDiv').style.display='flex';
+  syncMob();
   [1,2,3,4,5,6,7].sort(()=>Math.random()-.5).forEach(t=>nextQ.push(t));
   [1,2,3,4,5,6,7].sort(()=>Math.random()-.5).forEach(t=>nextQ.push(t));
   spawnNew();
@@ -390,8 +429,8 @@ document.addEventListener('keydown',e=>{
 
 // init
 ctx.fillStyle='#050510';ctx.fillRect(0,0,W,H);
-hx.fillStyle='#050510';hx.fillRect(0,0,74,62);
-nx.fillStyle='#050510';nx.fillRect(0,0,74,196);
+hx.fillStyle='#050510';hx.fillRect(0,0,hcv.width,hcv.height);
+nx.fillStyle='#050510';nx.fillRect(0,0,ncv.width,ncv.height);
 rafId=requestAnimationFrame(render);
 </script>
 </body>
