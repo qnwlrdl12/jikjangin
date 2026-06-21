@@ -2613,6 +2613,27 @@ function renderHUD(){
     ctx.fillText(i+1,bx+4,by+14);
   });
 
+  // Tool hint above hotbar
+  const curTool=GS.bar[GS.slot];
+  const TOOL_HINTS={
+    hoe:'Z — 땅 갈기',
+    watering_can:'Z — 물 주기  |  E — 우물에서 채우기',
+    sickle:'Z — 작물 수확 / 약초·섬유 채집',
+    axe:'Z — 나무 자르기',
+    pickaxe:'Z — 돌·철광석 캐기',
+    fishing_rod:'Z — 낚시 (물가에서)',
+    fertilizer:'Z — 비료 사용 (작물 성장 +1)',
+    energy_potion:'Z — 포션 사용 (에너지 +40)',
+  };
+  let hint=TOOL_HINTS[curTool]||(curTool?.endsWith('_seed')?'Z — 씨앗 심기 (갈아진 땅에)':null);
+  if(hint){
+    ctx.font='12px "Malgun Gothic"';
+    const hw=ctx.measureText(hint).width+24;
+    const hx=W/2-hw/2,hy=hbY-34;
+    ctx.fillStyle='rgba(80,40,80,0.75)';ctx.beginPath();ctx.roundRect(hx,hy,hw,24,12);ctx.fill();
+    ctx.fillStyle='#ffe0f8';ctx.textAlign='center';ctx.fillText(hint,W/2,hy+16);
+  }
+
   // Notifications
   GS.notes.forEach((n,i)=>{
     const ny=H-slotSize-50-i*36;
