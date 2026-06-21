@@ -1291,6 +1291,91 @@ function drawMonster(m){
       ctx.beginPath();ctx.moveTo(-7,-10);ctx.lineTo(-5,-3);ctx.lineTo(-3,-10);ctx.fill();
       ctx.beginPath();ctx.moveTo(1,-10);ctx.lineTo(3,-3);ctx.lineTo(5,-10);ctx.fill();
       break;}
+    case 'troll':{
+      // 몸통 — 크고 거대한 녹색 체형
+      ctx.fillStyle=sl?'#8aaa6a':'#6a8a3a';
+      ctx.beginPath();ctx.ellipse(0,6,22,18,0,0,Math.PI*2);ctx.fill();
+      // 팔
+      ctx.beginPath();ctx.ellipse(-26,-2,10,7,0.5,0,Math.PI*2);ctx.fill();
+      ctx.beginPath();ctx.ellipse(26,-2,10,7,-0.5,0,Math.PI*2);ctx.fill();
+      // 머리
+      circ(0,-24,20,sl?'#8aaa6a':'#7a9a4a');
+      // 혹 (이마)
+      circ(-8,-38,8,'#6a8a3a');circ(8,-38,8,'#6a8a3a');
+      // 눈
+      circ(-7,-26,5,'#ff4400');circ(7,-26,5,'#ff4400');
+      circ(-7,-26,3,'#1a0000');circ(7,-26,3,'#1a0000');
+      // 이빨
+      ctx.fillStyle='#ffffcc';
+      ctx.beginPath();ctx.moveTo(-5,-14);ctx.lineTo(-3,-8);ctx.lineTo(-1,-14);ctx.fill();
+      ctx.beginPath();ctx.moveTo(1,-14);ctx.lineTo(3,-8);ctx.lineTo(5,-14);ctx.fill();
+      break;}
+    case 'darkelf':{
+      // 몸통 — 날씬한 보라색
+      ctx.fillStyle=sl?'#b080f0':'#9040e0';
+      ctx.beginPath();ctx.ellipse(0,2,8,11,0,0,Math.PI*2);ctx.fill();
+      // 머리
+      circ(0,-15,10,'#a050d8');
+      // 뾰족한 귀
+      ctx.fillStyle='#a050d8';
+      ctx.beginPath();ctx.moveTo(-10,-18);ctx.lineTo(-20,-30);ctx.lineTo(-5,-20);ctx.closePath();ctx.fill();
+      ctx.beginPath();ctx.moveTo(10,-18);ctx.lineTo(20,-30);ctx.lineTo(5,-20);ctx.closePath();ctx.fill();
+      // 눈 (빛나는)
+      circ(-3,-17,3,'#ff00ff');circ(3,-17,3,'#ff00ff');
+      circ(-3,-17,1.5,'white');circ(3,-17,1.5,'white');
+      // 망토
+      ctx.fillStyle='rgba(60,0,100,0.6)';
+      ctx.beginPath();ctx.moveTo(-10,0);ctx.lineTo(-14,18);ctx.lineTo(0,12);ctx.lineTo(14,18);ctx.lineTo(10,0);ctx.closePath();ctx.fill();
+      break;}
+    case 'wraith':{
+      // 망령 — 반투명 청록 유령 형태
+      ctx.globalAlpha=0.82;
+      ctx.fillStyle=sl?'#80e0e0':'#40c0c0';
+      // 유령 몸통 (아래가 흐릿하게 퍼지는)
+      const grd=ctx.createLinearGradient(0,-30,0,20);
+      grd.addColorStop(0,'rgba(60,200,200,0.9)');
+      grd.addColorStop(1,'rgba(60,200,200,0)');
+      ctx.fillStyle=grd;
+      ctx.beginPath();ctx.ellipse(0,-5,16,24,0,0,Math.PI*2);ctx.fill();
+      // 물결치는 아랫부분
+      ctx.fillStyle='rgba(40,180,180,0.5)';
+      const wv=Math.sin(animFrame*0.12)*3;
+      ctx.beginPath();ctx.moveTo(-16,10);
+      for(let xi=-16;xi<=16;xi+=4){ctx.lineTo(xi,14+Math.sin((xi+animFrame*2)*0.4)*wv);}
+      ctx.lineTo(16,24);ctx.lineTo(-16,24);ctx.closePath();ctx.fill();
+      // 눈 (텅 빈 구멍)
+      ctx.globalAlpha=1;
+      circ(-5,-12,4,'rgba(0,0,0,0.8)');circ(5,-12,4,'rgba(0,0,0,0.8)');
+      circ(-5,-12,2,'rgba(0,220,255,0.5)');circ(5,-12,2,'rgba(0,220,255,0.5)');
+      ctx.globalAlpha=1;
+      break;}
+    case 'demon':{
+      // 몸통 — 크고 강렬한 붉은색
+      ctx.fillStyle=sl?'#e06060':'#c01020';
+      ctx.beginPath();ctx.ellipse(0,8,28,22,0,0,Math.PI*2);ctx.fill();
+      // 날개
+      ctx.fillStyle='rgba(100,0,0,0.7)';
+      ctx.beginPath();ctx.moveTo(-28,0);ctx.lineTo(-50,-30);ctx.lineTo(-36,-10);ctx.lineTo(-20,4);ctx.closePath();ctx.fill();
+      ctx.beginPath();ctx.moveTo(28,0);ctx.lineTo(50,-30);ctx.lineTo(36,-10);ctx.lineTo(20,4);ctx.closePath();ctx.fill();
+      // 머리
+      circ(0,-26,24,sl?'#e06060':'#d01828');
+      // 뿔
+      ctx.fillStyle='#800000';
+      ctx.beginPath();ctx.moveTo(-12,-44);ctx.lineTo(-18,-72);ctx.lineTo(-5,-46);ctx.closePath();ctx.fill();
+      ctx.beginPath();ctx.moveTo(12,-44);ctx.lineTo(18,-72);ctx.lineTo(5,-46);ctx.closePath();ctx.fill();
+      // 눈
+      circ(-9,-28,7,'#ffcc00');circ(9,-28,7,'#ffcc00');
+      circ(-9,-28,5,'#ff6600');circ(9,-28,5,'#ff6600');
+      circ(-9,-28,2.5,'#0a0000');circ(9,-28,2.5,'#0a0000');
+      // 이빨
+      ctx.fillStyle='#ffffdd';
+      ctx.beginPath();ctx.moveTo(-10,-12);ctx.lineTo(-7,-4);ctx.lineTo(-4,-12);ctx.fill();
+      ctx.beginPath();ctx.moveTo(-2,-12);ctx.lineTo(1,-4);ctx.lineTo(4,-12);ctx.fill();
+      ctx.beginPath();ctx.moveTo(6,-12);ctx.lineTo(9,-4);ctx.lineTo(12,-12);ctx.fill();
+      // 꼬리
+      ctx.strokeStyle='#800000';ctx.lineWidth=4;ctx.lineCap='round';
+      ctx.beginPath();ctx.moveTo(20,16);ctx.quadraticCurveTo(38,30,30,46);ctx.stroke();
+      break;}
   }
   // Slow indicator — orbiting snowflakes
   if(m.slowed>0){
@@ -3497,7 +3582,7 @@ CV.addEventListener('click',e=>{
           notify(`${def.name} Lv.${d.level} 업그레이드! (-${upgCost}G)`,'#80ffff');
           spawnParticles(d.x,d.y,'#80ffff',10);
         }else{
-          notify(`업그레이드 비용: ${upgCost}G (${d.level}→${lvl+1}레벨)  부족!`,'#FF8040');
+          notify(`업그레이드 비용: ${upgCost}G (${lvl}→${lvl+1}레벨)  부족!`,'#FF8040');
         }
         return;
       }
