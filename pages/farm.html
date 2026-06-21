@@ -98,7 +98,7 @@ const MONSTER_TYPES={
 
 // ── DEFENSE TYPES ──────────────────────────
 const DEFENSE_DEFS={
-  scarecrow:{name:'허수아비',icon:'🎃',cost:80,  maxHp:80, atk:0, range:TILE*2.5,delay:0,  desc:'범위 내 몬스터 속도 절반'},
+  scarecrow:{name:'허수아비',icon:'🎃',cost:80,  maxHp:80, atk:6, range:TILE*2.5,delay:0,  desc:'범위 내 몬스터 속도 절반 + 약한 지속 피해'},
   archer:   {name:'궁수 토끼',icon:'🐰',cost:200, maxHp:80, atk:18,range:TILE*5,  delay:1.5,desc:'원거리 단일 화살 공격'},
   cannon:   {name:'대포탑', icon:'💣',cost:400, maxHp:150,atk:55,range:TILE*4,  delay:3,  desc:'광역 폭발 공격'},
   wall:     {name:'목책',   icon:'🪵',cost:60,  maxHp:350,atk:0, range:0,       delay:0,  desc:'몬스터 이동 차단'},
@@ -1534,7 +1534,14 @@ function updateWave(dt){
     if(!d.atkCd)d.atkCd=0;
     d.atkCd-=dt;
     if(d.type==='scarecrow'){
-      for(const m of GS.monsters){if(Math.hypot(d.x-m.x,d.y-m.y)<def.range)m.slowed=0.6}
+      const lvl=d.level||1;
+      const effAtk=def.atk*(1+(lvl-1)*0.4)*(1+GS.waveNum*0.05);
+      for(const m of GS.monsters){
+        if(Math.hypot(d.x-m.x,d.y-m.y)<def.range){
+          m.slowed=0.6;
+          m.hp-=effAtk*dt;
+        }
+      }
     } else if(def.atk>0&&d.atkCd<=0){
       const lvl=d.level||1;
       const effRange=def.range*(1+(lvl-1)*0.12);
