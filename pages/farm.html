@@ -3305,7 +3305,7 @@ function update(dt){
   // Actions
   if(justPressed('KeyE'))useTool();
   if(justPressed('Space')||justPressed('Enter'))interact();
-  if(justPressed('KeyZ')&&(GS.hour>=20||GS.waveTriggeredToday))advanceDay();
+  if(justPressed('KeyZ')&&!GS.waveActive&&(GS.hour>=20||GS.waveTriggeredToday))advanceDay();
   if(justPressed('KeyI'))GS.invOpen=!GS.invOpen;
   if(justPressed('KeyB')&&!GS.waveActive){GS.buildMenuOpen=true;GS.buildSelected=null;}
 
