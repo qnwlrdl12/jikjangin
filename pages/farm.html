@@ -3238,7 +3238,7 @@ CV.addEventListener('click',e=>{
   }
 
   // Defense upgrade (click existing defense when not in build mode)
-  if(!GS.buildSelected&&!GS.buildMenuOpen&&!GS.shopOpen&&!GS.invOpen&&!GS.dialog){
+  if(!GS.buildSelected&&!GS.buildMenuOpen&&!GS.shopOpen&&!GS.invOpen&&!GS.dialog&&!GS.barnOpen&&!GS.smithOpen&&!GS.clinicOpen&&!GS.mayorOpen){
     const wx=x+camX(),wy=y+camY();
     for(const d of GS.defenses){
       if(Math.hypot(wx-d.x,wy-d.y)<TILE*0.75){
