@@ -2281,10 +2281,11 @@ function renderBarn(){
   ctx.strokeStyle='rgba(180,130,60,0.5)';ctx.lineWidth=2;ctx.beginPath();ctx.roundRect(px,py,pw,ph,20);ctx.stroke();
   rr(px,py,pw,52,14,'#c98040');
   txtShadow('🐄 헛간',px+pw/2,py+34,22,'#fff','rgba(100,50,0,0.4)','center');
+  txt(`💰 ${GS.money.toLocaleString()}G`,px+18,py+34,14,'#ffe090');
   rr(px+pw-44,py+10,30,30,15,'#c98040');
   txtShadow('✕',px+pw-29,py+30,16,'#fff','rgba(0,0,0,0.2)','center');
   GS._barnCloseBtn={x:px+pw-44,y:py+10,w:30,h:30};
-  txt('[↑↓ 탐색   Enter 수집   F 먹이주기]',px+16,py+64,12,'#8b6010');
+  txt('[↑↓ 탐색   Enter 수집   F 먹이주기   1/2 동물구입]',px+16,py+64,11,'#8b6010');
 
   GS.barnIdx=Math.max(0,Math.min(GS.barnIdx,GS.animals.length-1));
 
@@ -2363,6 +2364,16 @@ function renderBarn(){
   ctx.fillStyle='rgba(200,160,80,0.7)';ctx.beginPath();ctx.roundRect(px,py+ph-38,pw,38,12);ctx.fill();
   ctx.fillStyle='#5a3800';ctx.font='12px "Malgun Gothic"';ctx.textAlign='center';
   ctx.fillText('먹이를 주면 다음날 산물 생산   |   먹이 없으면 생산 없음',px+pw/2,py+ph-14);
+
+  // Show notifications inside barn panel (HUD not rendered while barn is open)
+  if(GS.notes&&GS.notes.length>0){
+    const n=GS.notes[GS.notes.length-1];
+    ctx.globalAlpha=Math.min(1,n.timer);
+    rr(px+pw/2-160,py+ph-76,320,30,15,n.col||'#FFE08A');
+    ctx.globalAlpha=1;
+    ctx.fillStyle='#2a1000';ctx.font='bold 13px "Malgun Gothic"';ctx.textAlign='center';
+    ctx.fillText(n.txt,px+pw/2,py+ph-55);
+  }
 }
 
 // ── SMITH UI ───────────────────────────────────
@@ -3216,6 +3227,19 @@ function update(dt){
         if(a.fed){notify('이미 먹이를 줬습니다.','#999');}
         else if((GS.inv['animal_feed']||0)>0){removeItem('animal_feed',1);a.fed=true;notify('동물에게 먹이를 줬습니다! 🌾','#8BC34A');}
         else notify('동물 먹이가 없습니다.','#E53935');
+      }
+    }
+    else if(justPressed('Digit1')||justPressed('Digit2')){
+      const idx=justPressed('Digit1')?0:1;
+      const ownsCow=GS.animals.some(a=>a.type==='cow');
+      const ownsSheep=GS.animals.some(a=>a.type==='sheep');
+      const buys=[];
+      if(!ownsCow)buys.push({type:'cow',cost:2000});
+      if(!ownsSheep)buys.push({type:'sheep',cost:1500});
+      const b=buys[idx];
+      if(b){
+        if(GS.money>=b.cost){GS.money-=b.cost;GS.animals.push({type:b.type,fed:true,product:false,daysToProduct:b.type==='cow'?2:3,dayTimer:b.type==='cow'?2:3});notify(`${b.type==='cow'?'소':'양'} 구입! (-${b.cost}G) 🐾`,'#8BC34A');}
+        else notify('골드가 부족합니다!','#E53935');
       }
     }
     clearJust();return;
