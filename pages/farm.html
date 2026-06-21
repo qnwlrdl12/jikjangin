@@ -2486,15 +2486,6 @@ function renderBarn(){
   ctx.fillStyle='#5a3800';ctx.font='12px "Malgun Gothic"';ctx.textAlign='center';
   ctx.fillText('먹이를 주면 다음날 산물 생산   |   먹이 없으면 생산 없음',px+pw/2,py+ph-14);
 
-  // Show notifications inside barn panel (HUD not rendered while barn is open)
-  if(GS.notes&&GS.notes.length>0){
-    const n=GS.notes[GS.notes.length-1];
-    ctx.globalAlpha=Math.min(1,n.timer);
-    rr(px+pw/2-160,py+ph-76,320,30,15,n.col||'#FFE08A');
-    ctx.globalAlpha=1;
-    ctx.fillStyle='#2a1000';ctx.font='bold 13px "Malgun Gothic"';ctx.textAlign='center';
-    ctx.fillText(n.txt,px+pw/2,py+ph-55);
-  }
 }
 
 // ── SMITH UI ───────────────────────────────────
@@ -2668,6 +2659,22 @@ function renderDialog(){
   }
 }
 
+// ── NOTIFICATIONS (항상 최상단) ──────────────────
+function renderNotifications(){
+  if(!GS.notes||GS.notes.length===0)return;
+  GS.notes.forEach((n,i)=>{
+    const ny=H-130-i*36;
+    ctx.font='14px "Malgun Gothic"';
+    const nw=ctx.measureText(n.txt).width+32;
+    const opacity=Math.min(1,n.timer);
+    ctx.globalAlpha=opacity;
+    ctx.fillStyle='rgba(255,240,248,0.92)';ctx.beginPath();ctx.roundRect(W/2-nw/2,ny-22,nw,28,14);ctx.fill();
+    ctx.strokeStyle=n.col;ctx.lineWidth=1.5;ctx.beginPath();ctx.roundRect(W/2-nw/2,ny-22,nw,28,14);ctx.stroke();
+    ctx.fillStyle=n.col;ctx.textAlign='center';ctx.fillText(n.txt,W/2,ny);
+    ctx.globalAlpha=1;
+  });
+}
+
 // ── HUD — Kawaii Pastel UI ──────────────────────
 function renderHUD(){
   // Top bar — soft frosted glass
@@ -2776,17 +2783,7 @@ function renderHUD(){
   }
 
   // Notifications
-  GS.notes.forEach((n,i)=>{
-    const ny=H-slotSize-50-i*36;
-    ctx.font='14px "Malgun Gothic"';
-    const nw=ctx.measureText(n.txt).width+32;
-    const opacity=Math.min(1,n.timer);
-    ctx.globalAlpha=opacity;
-    ctx.fillStyle='rgba(255,240,248,0.92)';ctx.beginPath();ctx.roundRect(W/2-nw/2,ny-22,nw,28,14);ctx.fill();
-    ctx.strokeStyle=n.col;ctx.lineWidth=1.5;ctx.beginPath();ctx.roundRect(W/2-nw/2,ny-22,nw,28,14);ctx.stroke();
-    ctx.fillStyle=n.col;ctx.textAlign='center';ctx.fillText(n.txt,W/2,ny);
-    ctx.globalAlpha=1;
-  });
+  // (notifications rendered globally via renderNotifications)
 
   // Sleep hint
   if(GS.hour%24>=20&&!GS.sleeping){
@@ -3205,6 +3202,9 @@ function render(){
   else if(GS.invOpen){renderInventory()}
   else if(GS.dialog){renderDialog()}
   else{renderHUD();renderWaveHUD()}
+
+  // 알림은 항상 최상단에 렌더 (패널 위에도 표시)
+  renderNotifications();
 
   if(GS.sleeping)renderSleep();
 }
