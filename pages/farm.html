@@ -319,7 +319,7 @@ function initGS(){
     dialog:null,     // {lines,page,npcIdx}
     shopOpen:false,
     shopTab:'buy',   // 'buy'|'sell'
-    invOpen:false,
+    invOpen:false,invIdx:0,
     // Notifications
     notes:[],        // {txt,timer,col}
     // Particles
@@ -2173,25 +2173,34 @@ function renderInventory(){
   rr(ipx,ipy,pw,52,20,'#f87098');
   ctx.fillStyle='rgba(255,180,210,0.3)';ctx.fillRect(ipx,ipy+40,pw,12);
   txtShadow('🎒 인벤토리',ipx+pw/2,ipy+34,22,'#fff','rgba(200,50,100,0.3)','center');
+  txt('[←→↑↓ 탐색  1-7: 단축키 등록]',ipx+14,ipy+58,11,'rgba(180,80,130,0.8)');
 
-  let idx=0;
-  Object.entries(GS.inv).forEach(([key,qty])=>{
-    if(qty<=0)return;
-    const meta=ITEM_META[key];if(!meta)return;
+  const invItems=Object.entries(GS.inv).filter(([k,v])=>v>0&&ITEM_META[k]);
+  GS.invIdx=Math.max(0,Math.min(GS.invIdx,Math.max(0,invItems.length-1)));
+  invItems.forEach(([key,qty],idx)=>{
+    const meta=ITEM_META[key];
     const cx=idx%6,cy=Math.floor(idx/6);
-    const bx=ipx+16+cx*78,by=ipy+60+cy*78;
-    if(by>ipy+ph-60){idx++;return}
-    ctx.fillStyle='rgba(255,220,240,0.7)';ctx.beginPath();ctx.roundRect(bx,by,70,70,12);ctx.fill();
-    ctx.strokeStyle='rgba(240,160,200,0.35)';ctx.lineWidth=1;ctx.beginPath();ctx.roundRect(bx,by,70,70,12);ctx.stroke();
+    const bx=ipx+16+cx*78,by=ipy+68+cy*78;
+    if(by>ipy+ph-60)return;
+    const focused=idx===GS.invIdx;
+    const barSlot=GS.bar.indexOf(key);
+    ctx.fillStyle=focused?'rgba(255,160,210,0.9)':'rgba(255,220,240,0.7)';
+    ctx.beginPath();ctx.roundRect(bx,by,70,70,12);ctx.fill();
+    ctx.strokeStyle=focused?'#e03060':'rgba(240,160,200,0.35)';
+    ctx.lineWidth=focused?2.5:1;ctx.beginPath();ctx.roundRect(bx,by,70,70,12);ctx.stroke();
     ctx.font='28px serif';ctx.textAlign='center';ctx.textBaseline='middle';
-    ctx.fillText(meta.icon||'📦',bx+35,by+30);
+    ctx.fillText(meta.icon||'📦',bx+35,by+28);
     ctx.textBaseline='alphabetic';
     ctx.fillStyle='rgba(255,200,230,0.9)';ctx.beginPath();ctx.roundRect(bx+34,by+48,32,16,8);ctx.fill();
     ctx.fillStyle='#c04080';ctx.font='bold 10px "Malgun Gothic"';ctx.textAlign='center';
     ctx.fillText(`x${qty}`,bx+50,by+61);
-    idx++;
+    if(barSlot>=0){
+      ctx.fillStyle='rgba(80,160,80,0.9)';ctx.beginPath();ctx.roundRect(bx+2,by+2,22,16,8);ctx.fill();
+      ctx.fillStyle='#fff';ctx.font='bold 10px "Malgun Gothic"';ctx.textAlign='center';
+      ctx.fillText(barSlot+1,bx+13,by+14);
+    }
   });
-  if(idx===0){ctx.fillStyle='#c090b0';ctx.font='14px "Malgun Gothic"';ctx.textAlign='center';ctx.fillText('아직 아이템이 없어요 🌸',ipx+pw/2,ipy+200);}
+  if(invItems.length===0){ctx.fillStyle='#c090b0';ctx.font='14px "Malgun Gothic"';ctx.textAlign='center';ctx.fillText('아직 아이템이 없어요 🌸',ipx+pw/2,ipy+200);}
 
   rr(ipx+pw-44,ipy+10,30,30,15,'#f87098');
   txtShadow('✕',ipx+pw-29,ipy+30,16,'#fff','rgba(0,0,0,0.2)','center');
@@ -2227,20 +2236,21 @@ function renderBarn(){
     ctx.strokeStyle=focused?'#c98040':'rgba(180,130,60,0.3)';ctx.lineWidth=focused?2:1;ctx.beginPath();ctx.roundRect(bx,by,pw-40,78,12);ctx.stroke();
     txt(animalLabels[a.type]||a.type,bx+14,by+30,18,'#6b3a10');
     txt(isFed?'🍽️ 먹이 OK':'⚠️ 굶주림',bx+14,by+54,13,isFed?'#4CAF50':'#E53935');
-    if(hasProduct){
-      const prodKey=a.type==='chicken'?'egg':a.type==='cow'?'milk':'wool';
-      rr(bx+pw-200,by+14,120,50,25,'#f8a030');
-      txt(`${animalProducts[a.type]} 수집`,bx+pw-140,by+44,13,'#fff','center');
-      GS._barnBtns.push({type:'collect',animalIdx:i,x:bx+pw-200,y:by+14,w:120,h:50});
-    } else {
-      txt('아직 산물 없음',bx+pw-180,by+44,13,'#b09070');
-    }
-    // Feed button
+    const RIGHT=bx+(pw-40); // row right edge
     const hasFeed=(GS.inv['animal_feed']||0)>0;
+    if(hasProduct){
+      const cbx=RIGHT-120;
+      rr(cbx,by+14,120,50,25,'#f8a030');
+      txt(`${animalProducts[a.type]} 수집`,cbx+60,by+44,13,'#fff','center');
+      GS._barnBtns.push({type:'collect',animalIdx:i,x:cbx,y:by+14,w:120,h:50});
+    } else {
+      txt('아직 산물 없음',RIGHT-100,by+44,13,'#b09070');
+    }
     if(!isFed){
-      rr(bx+pw-80,by+14,62,50,25,hasFeed?'#8BC34A':'#aaa');
-      txt(hasFeed?'🌾 먹이':'먹이없음',bx+pw-49,by+44,12,'#fff','center');
-      if(hasFeed)GS._barnBtns.push({type:'feed',animalIdx:i,x:bx+pw-80,y:by+14,w:62,h:50});
+      const fbx=hasProduct ? RIGHT-120-8-62 : RIGHT-62;
+      rr(fbx,by+14,62,50,25,hasFeed?'#8BC34A':'#aaa');
+      txt(hasFeed?'🌾 먹이':'먹이없음',fbx+31,by+44,12,'#fff','center');
+      if(hasFeed)GS._barnBtns.push({type:'feed',animalIdx:i,x:fbx,y:by+14,w:62,h:50});
     }
   });
 
@@ -3055,9 +3065,25 @@ function update(dt){
     }
     clearJust();return;
   }
-  // Inventory: close only
+  // Inventory keyboard nav + hotbar registration
   if(GS.invOpen){
+    const invItems=Object.entries(GS.inv).filter(([k,v])=>v>0&&ITEM_META[k]);
+    GS.invIdx=Math.max(0,Math.min(GS.invIdx,invItems.length-1));
     if(justPressed('Escape')||justPressed('KeyI')){GS.invOpen=false;}
+    else if(justPressed('ArrowLeft')||justPressed('KeyA'))GS.invIdx=Math.max(0,GS.invIdx-1);
+    else if(justPressed('ArrowRight')||justPressed('KeyD'))GS.invIdx=Math.min(invItems.length-1,GS.invIdx+1);
+    else if(justPressed('ArrowUp')||justPressed('KeyW'))GS.invIdx=Math.max(0,GS.invIdx-6);
+    else if(justPressed('ArrowDown')||justPressed('KeyS'))GS.invIdx=Math.min(invItems.length-1,GS.invIdx+6);
+    else{
+      for(let s=0;s<GS.bar.length;s++){
+        if(justPressed(`Digit${s+1}`)&&invItems[GS.invIdx]){
+          const key=invItems[GS.invIdx][0];
+          GS.bar[s]=key;
+          notify(`${ITEM_META[key].name} → 단축키 ${s+1} 등록!`,'#4CAF50');
+          break;
+        }
+      }
+    }
     clearJust();return;
   }
 
