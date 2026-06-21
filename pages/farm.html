@@ -337,7 +337,7 @@ function initGS(){
     chestOpen:false,chestLooted:false,
     // Animals (in barn)
     animals:[
-      {type:'chicken',fed:false,product:null,daysToProduct:1,dayTimer:1},
+      {type:'chicken',fed:true,product:false,daysToProduct:1,dayTimer:1},
     ],
     // Day flag
     wakedUp:true,
@@ -2244,10 +2244,10 @@ function renderBarn(){
   const ownsCow=GS.animals.some(a=>a.type==='cow');
   const ownsSheep=GS.animals.some(a=>a.type==='sheep');
   const shopY=py+70+GS.animals.length*90+10;
-  txt('── 동물 구입 ──',px+pw/2,shopY+20,13,'#8b6010','center');
   const buys=[];
   if(!ownsCow)buys.push({type:'cow',label:'🐄 소 구입',cost:2000});
   if(!ownsSheep)buys.push({type:'sheep',label:'🐑 양 구입',cost:1500});
+  if(buys.length>0)txt('── 동물 구입 ──',px+pw/2,shopY+20,13,'#8b6010','center');
   buys.forEach((b,i)=>{
     const bx=px+20+i*220,by2=shopY+30;
     const canAfford=GS.money>=b.cost;
@@ -2356,7 +2356,7 @@ function renderMayor(){
   GS._mayorCloseBtn={x:px+pw-44,y:py+10,w:30,h:30};
 
   txt(`오늘의 의뢰 (${GS.day}일차)  [↑↓ 탐색  Enter 납품]`,px+14,py+66,12,'#6b4a00');
-  GS.mayorIdx=Math.min(GS.mayorIdx,(GS.dailyOrders||[]).length-1);
+  GS.mayorIdx=Math.max(0,Math.min(GS.mayorIdx,(GS.dailyOrders||[]).length-1));
   GS._mayorOrderBtns=[];
   (GS.dailyOrders||[]).forEach((order,i)=>{
     const bx=px+14,by=py+82+i*110;
