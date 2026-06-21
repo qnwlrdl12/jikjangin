@@ -1571,10 +1571,19 @@ function updateWave(dt){
   // Wave complete
   if(GS.waveQueue.length===0&&GS.monsters.length===0){
     GS.waveActive=false;
-    const bonus=GS.waveNum*60;
+    const bonus=GS.waveNum*80;
     GS.money+=bonus;
-    notify(`✨ ${GS.waveNum}웨이브 클리어! 보너스 +${bonus}G`,'#FFD700');
-    spawnParticles(GS.px,GS.py,'#FFD700',20);
+    // Restore statue HP: 5HP per wave, max up to 40HP
+    const healAmt=Math.min(GS.farmMaxHP-GS.farmHP, Math.min(40, GS.waveNum*5));
+    if(healAmt>0) GS.farmHP=Math.min(GS.farmMaxHP,GS.farmHP+healAmt);
+    // Bonus seed item every 2 waves
+    const seedBonus=(['parsnip_seed','turnip_seed','potato_seed','corn_seed','strawberry_seed'])[GS.waveNum%5];
+    const seedQty=1+Math.floor(GS.waveNum/4);
+    addItem(seedBonus,seedQty);
+    const healMsg=healAmt>0?` | 석상 +${Math.floor(healAmt)}HP`:'';
+    notify(`✨ ${GS.waveNum}웨이브 클리어! +${bonus}G${healMsg}`,'#FFD700');
+    notify(`🎁 씨앗 보너스: ${ITEM_META[seedBonus]?.name||seedBonus} ×${seedQty}`,'#90EE90');
+    spawnParticles(GS.px,GS.py,'#FFD700',30);
   }
 }
 
@@ -1925,7 +1934,7 @@ function renderShop(){
   });
 
   if(GS.shopTab==='buy'){
-    const stock=[...SHOP_SEASONS[GS.season],...['parsnip_seed','turnip_seed']];
+    const stock=[...SHOP_SEASONS[GS.season].map(k=>k.endsWith('_seed')?k:k+'_seed'),...['parsnip_seed','turnip_seed']];
     const unique=[...new Set(stock)];
     txt('✿ 이번 계절 씨앗  [↑↓ 탐색 / Enter 구매]',px+20,py+106,12,'#c06090');
     GS.shopIdx=Math.min(GS.shopIdx,unique.length-1);
@@ -2039,8 +2048,8 @@ function renderDialog(){
   ctx.fillStyle='rgba(255,240,250,0.97)';ctx.beginPath();ctx.roundRect(dpx,dpy,pw,ph,18);ctx.fill();
   ctx.strokeStyle=style.bow+'90';ctx.lineWidth=2;ctx.beginPath();ctx.roundRect(dpx,dpy,pw,ph,18);ctx.stroke();
 
-  // Name badge
-  ctx.fillStyle=style.dress;ctx.beginPath();ctx.roundRect(dpx+14,dpy-14,90,28,14);ctx.fill();
+  // Name badge — use npc.color (always dark enough for white text)
+  ctx.fillStyle=npc.color;ctx.beginPath();ctx.roundRect(dpx+14,dpy-14,90,28,14);ctx.fill();
   ctx.strokeStyle=style.bow;ctx.lineWidth=1.5;ctx.beginPath();ctx.roundRect(dpx+14,dpy-14,90,28,14);ctx.stroke();
   ctx.fillStyle='#fff';ctx.font='bold 14px "Malgun Gothic"';ctx.textAlign='left';ctx.fillText(npc.name,dpx+22,dpy+6);
 
@@ -2177,19 +2186,35 @@ function renderHUD(){
     ctx.fillText('Z — 수면하기 💤',W-sw/2-14,H-38);
   }
 
-  // Quest panel
-  const activeQ=GS.quests.find(q=>!q.done);
-  if(activeQ){
+  // Quest panel — QUEST_DEFS + NPC quests
+  const defQuests=GS.quests.filter(q=>!q.done).slice(0,2);
+  const npcQuests=GS.npcs.filter(n=>n.quest&&n.quest.given&&!n.quest.done).map(n=>n.quest);
+  const allActiveQ=[...defQuests,...npcQuests].slice(0,3);
+  if(allActiveQ.length>0){
     const qw=230;
-    ctx.fillStyle='rgba(255,230,248,0.88)';ctx.beginPath();ctx.roundRect(W-qw-14,58,qw,60,14);ctx.fill();
-    ctx.strokeStyle='rgba(220,150,200,0.5)';ctx.lineWidth=1.5;ctx.beginPath();ctx.roundRect(W-qw-14,58,qw,60,14);ctx.stroke();
-    ctx.fillStyle='#b03080';ctx.font='bold 12px "Malgun Gothic"';ctx.textAlign='left';ctx.fillText('📋 '+activeQ.title,W-qw-6,76);
-    ctx.fillStyle='#808090';ctx.font='11px "Malgun Gothic"';ctx.fillText(activeQ.desc,W-qw-6,92);
-    const prog=Math.min(activeQ.prog,activeQ.target);
-    const qpW=qw-16;
-    ctx.fillStyle='rgba(220,180,220,0.4)';ctx.beginPath();ctx.roundRect(W-qw-6,100,qpW,8,4);ctx.fill();
-    ctx.fillStyle='#f060a0';ctx.beginPath();ctx.roundRect(W-qw-6,100,qpW*(prog/activeQ.target),8,4);ctx.fill();
-    ctx.fillStyle='#b03080';ctx.font='10px "Malgun Gothic"';ctx.fillText(`${prog}/${activeQ.target}`,W-qw-6+qpW+4,108);
+    allActiveQ.forEach((q,qi)=>{
+      const qy=58+qi*66;
+      ctx.fillStyle='rgba(255,230,248,0.88)';ctx.beginPath();ctx.roundRect(W-qw-14,qy,qw,60,14);ctx.fill();
+      ctx.strokeStyle='rgba(220,150,200,0.5)';ctx.lineWidth=1.5;ctx.beginPath();ctx.roundRect(W-qw-14,qy,qw,60,14);ctx.stroke();
+      ctx.fillStyle='#b03080';ctx.font='bold 12px "Malgun Gothic"';ctx.textAlign='left';ctx.fillText('📋 '+q.title,W-qw-6,qy+18);
+      ctx.fillStyle='#808090';ctx.font='11px "Malgun Gothic"';ctx.fillText(q.desc||'',W-qw-6,qy+34);
+      // progress bar — QUEST_DEFS use prog/target; NPC quests use need dict
+      let prog=0,total=1;
+      if(q.need){
+        // NPC quest
+        const entries=Object.entries(q.need);
+        total=entries.reduce((s,[,v])=>s+v,0);
+        prog=entries.reduce((s,[k,v])=>s+Math.min(GS.inv[k]||0,v),0);
+      } else if(q.target!==undefined){
+        prog=Math.min(q.prog||0,q.target);total=q.target;
+      }
+      const qpW=qw-16;
+      ctx.fillStyle='rgba(220,180,220,0.4)';ctx.beginPath();ctx.roundRect(W-qw-6,qy+42,qpW,8,4);ctx.fill();
+      if(total>0){
+        ctx.fillStyle='#f060a0';ctx.beginPath();ctx.roundRect(W-qw-6,qy+42,qpW*(Math.min(prog,total)/total),8,4);ctx.fill();
+      }
+      ctx.fillStyle='#b03080';ctx.font='10px "Malgun Gothic"';ctx.fillText(`${prog}/${total}`,W-qw-6+qpW+4,qy+50);
+    });
   }
 }
 
@@ -2703,7 +2728,7 @@ function update(dt){
   // Actions
   if(justPressed('KeyE'))useTool();
   if(justPressed('Space')||justPressed('Enter'))interact();
-  if(justPressed('KeyZ')&&GS.hour>=20)advanceDay();
+  if(justPressed('KeyZ')&&(GS.hour>=20||GS.waveTriggeredToday))advanceDay();
   if(justPressed('KeyI'))GS.invOpen=!GS.invOpen;
   if(justPressed('KeyB')&&!GS.waveActive){GS.buildMenuOpen=true;GS.buildSelected=null;}
 
