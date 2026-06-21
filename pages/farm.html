@@ -1879,7 +1879,7 @@ Object.entries(CROPS).forEach(([k,v])=>{
   const snames=['봄','여름','가을','겨울'];
   const ss=v.seasons.map(s=>snames[s]).join('/');
   ITEM_META[k]={name:v.name,icon:v.icon,sell:v.sell,desc:`${ss} 작물. 수확하면 ${v.sell}G에 판매 가능합니다.`};
-  ITEM_META[k+'_seed']={name:v.name+' 씨앗',icon:'🌱',buy:v.seed,sell:Math.floor(v.seed*0.5),desc:`${ss}에 심을 수 있는 씨앗. 수확까지 약 ${v.stages-1}일 소요.`};
+  ITEM_META[k+'_seed']={name:v.name+' 씨앗',icon:'🌱',buy:v.seed,sell:Math.floor(v.seed*0.5),desc:`${ss}에 심을 수 있는 씨앗. 수확까지 약 ${v.days}일 소요.`};
 });
 
 function addItem(key,qty=1,meta=null){
@@ -2087,13 +2087,22 @@ function renderShop(){
   txtShadow('🏪 민지네 상점',px+pw/2,py+34,22,'#fff','rgba(200,50,100,0.4)','center');
 
   // Tabs
+  const sellableCount=Object.entries(GS.inv).filter(([k,v])=>v>0&&ITEM_META[k]?.sell).length;
   const tabs=['buy','sell'];
   const tl=['🛍️ 구매','💰 판매'];
   tabs.forEach((tab,i)=>{
     const active=GS.shopTab===tab;
     rr(px+20+i*106,py+58,96,34,17,active?'#f87098':'rgba(255,220,240,0.6)');
     txt(tl[i],px+68+i*106,py+80,14,active?'#fff':'#c06090','center');
+    // Badge showing sellable item count on sell tab
+    if(tab==='sell'&&sellableCount>0&&!active){
+      rr(px+20+i*106+80,py+58,22,16,8,'#e03060');
+      txt(`${sellableCount}`,px+20+i*106+91,py+70,10,'#fff','center');
+    }
   });
+  if(GS.shopTab==='buy'&&sellableCount>0){
+    txt(`📦 판매 가능한 아이템 ${sellableCount}개 있음 — Tab으로 전환`,px+pw/2,py+106,11,'#c04080','center');
+  }
 
   if(GS.shopTab==='buy'){
     const seedStock=[...SHOP_SEASONS[GS.season].map(k=>k.endsWith('_seed')?k:k+'_seed'),...['parsnip_seed','turnip_seed']];
