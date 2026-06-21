@@ -89,11 +89,15 @@ const SPAL=[
 
 // ── MONSTER TYPES ──────────────────────────
 const MONSTER_TYPES={
-  slime:   {name:'슬라임', hp:30, spd:48, dmg:2, reward:20, col:'#50d850',size:14},
-  bat:     {name:'박쥐',   hp:20, spd:90, dmg:1, reward:15, col:'#9070b0',size:10},
-  goblin:  {name:'고블린', hp:90, spd:60, dmg:8, reward:40, col:'#40a840',size:16},
-  skeleton:{name:'해골',   hp:140,spd:40, dmg:12,reward:60, col:'#c0d0e0',size:16},
-  boss:    {name:'대보스', hp:600,spd:28, dmg:25,reward:300,col:'#e03050',size:26},
+  slime:   {name:'슬라임',   hp:30,  spd:48, dmg:2,  reward:20,  col:'#50d850',size:14},
+  bat:     {name:'박쥐',     hp:20,  spd:90, dmg:1,  reward:15,  col:'#9070b0',size:10},
+  goblin:  {name:'고블린',   hp:90,  spd:60, dmg:8,  reward:40,  col:'#40a840',size:16},
+  skeleton:{name:'해골',     hp:140, spd:40, dmg:12, reward:60,  col:'#c0d0e0',size:16},
+  boss:    {name:'대보스',   hp:600, spd:28, dmg:25, reward:300, col:'#e03050',size:26},
+  troll:   {name:'트롤',     hp:450, spd:32, dmg:22, reward:180, col:'#5a7a2a',size:24},
+  darkelf: {name:'암흑 요정',hp:90,  spd:105,dmg:18, reward:100, col:'#8030d0',size:12},
+  wraith:  {name:'망령',     hp:200, spd:70, dmg:30, reward:200, col:'#40c0c0',size:18},
+  demon:   {name:'악마',     hp:1200,spd:55, dmg:40, reward:600, col:'#c00000',size:30},
 };
 
 // ── DEFENSE TYPES ──────────────────────────
@@ -1421,6 +1425,7 @@ function drawMonsterPaths(){
     {wx:19*TILE,wy:TILE,   label:'북쪽 출현'},
     {wx:19*TILE,wy:29*TILE,label:'남쪽 출현'},
   ];
+  if(GS.waveNum>=10)spawns.push({wx:TILE,wy:16*TILE,label:'서쪽 출현'});
   ctx.save();
   ctx.font='bold 12px sans-serif';ctx.textAlign='center';
   for(const s of spawns){
@@ -1486,12 +1491,37 @@ function drawParticles(){
 // ── WAVE SYSTEM ────────────────────────────────
 function buildWave(n){
   const q=[];let t=0;
-  const slimes=Math.min(3+n*2,18);
-  for(let i=0;i<slimes;i++){q.push({type:'slime',delay:t});t+=2.5}
-  if(n>=2){const c=Math.min(n,6);for(let i=0;i<c;i++){q.push({type:'bat',delay:t});t+=1.8}}
-  if(n>=4){const c=Math.min(Math.floor(n/2),5);for(let i=0;i<c;i++){q.push({type:'goblin',delay:t});t+=3}}
-  if(n>=7){const c=Math.min(Math.floor(n/3),4);for(let i=0;i<c;i++){q.push({type:'skeleton',delay:t});t+=4}}
-  if(n%5===0){q.push({type:'boss',delay:t+5})}
+  function add(type,count,interval){for(let i=0;i<count;i++){q.push({type,delay:t});t+=interval;}}
+
+  if(n<11){
+    // 1~10웨이브: 기존 난이도
+    add('slime',Math.min(3+n*2,18),2.5);
+    if(n>=2)add('bat',Math.min(n,6),1.8);
+    if(n>=4)add('goblin',Math.min(Math.floor(n/2),5),3);
+    if(n>=7)add('skeleton',Math.min(Math.floor(n/3),4),4);
+    if(n%5===0)q.push({type:'boss',delay:t+5});
+  }else{
+    // 11웨이브 이후: 대폭 강화
+    const ex=n-10; // 초과 웨이브 수 (1부터)
+    // 슬라임 — 계속 다수 스폰
+    add('slime',Math.min(12+ex*2,30),1.8);
+    // 박쥐 — 빠르게 다수
+    add('bat',Math.min(6+ex,18),1.2);
+    // 고블린
+    add('goblin',Math.min(4+ex,14),2.2);
+    // 해골
+    add('skeleton',Math.min(2+Math.floor(ex*0.8),10),3);
+    // 트롤 — 11웨이브부터
+    add('troll',Math.min(1+Math.floor(ex/2),6),5);
+    // 암흑 요정 — 13웨이브부터
+    if(n>=13)add('darkelf',Math.min(Math.floor((n-12)*1.5),10),1.5);
+    // 망령 — 15웨이브부터
+    if(n>=15)add('wraith',Math.min(Math.floor((n-14)*1.2),8),3.5);
+    // 보스 (5의 배수)
+    if(n%5===0)q.push({type:'boss',delay:t+3});
+    // 악마 — 20웨이브부터, 5의 배수마다
+    if(n>=20&&n%5===0)q.push({type:'demon',delay:t+8});
+  }
   return q;
 }
 
@@ -1513,16 +1543,22 @@ function startWave(){
 
 function spawnMonster(type){
   const def=MONSTER_TYPES[type];
-  const side=Math.floor(Math.random()*3);
+  const sides=GS.waveNum>=11?4:3; // 11웨이브부터 서쪽 스폰 추가
+  const side=Math.floor(Math.random()*sides);
   let sx,sy;
-  if(side===0){sx=(38+Math.random()*6)*TILE;sy=(4+Math.random()*24)*TILE}
-  else if(side===1){sx=(4+Math.random()*30)*TILE;sy=1*TILE}
-  else{sx=(4+Math.random()*30)*TILE;sy=29*TILE}
-  const hp=Math.round(def.hp*(1+GS.waveNum*0.15));
+  if(side===0){sx=(38+Math.random()*6)*TILE;sy=(4+Math.random()*24)*TILE}       // 동쪽
+  else if(side===1){sx=(4+Math.random()*34)*TILE;sy=1*TILE}                       // 북쪽 (확장)
+  else if(side===2){sx=(4+Math.random()*34)*TILE;sy=29*TILE}                      // 남쪽 (확장)
+  else{sx=1*TILE;sy=(4+Math.random()*24)*TILE}                                    // 서쪽 (11웨이브+)
+  const hpScale=GS.waveNum<11?1+GS.waveNum*0.15:1+GS.waveNum*0.22; // 11+는 HP 스케일 가속
+  const hp=Math.round(def.hp*hpScale);
+  const n=GS.waveNum;
+  const spdScale=n<11?1+n*0.04:1+n*0.07;
+  const dmgScale=n<11?1+n*0.08:1+n*0.13;
   GS.monsters.push({
     type,x:sx,y:sy,hp,maxHp:hp,
-    spd:def.spd*(1+GS.waveNum*0.04),
-    dmg:def.dmg*(1+GS.waveNum*0.08),
+    spd:def.spd*spdScale,
+    dmg:def.dmg*dmgScale,
     reward:def.reward,col:def.col,size:def.size,
     id:Math.random()*9999|0,slowed:0,atkCd:0,atkAnim:0,houseAtkCd:0
   });
