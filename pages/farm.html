@@ -2212,15 +2212,19 @@ function renderBarn(){
   txtShadow('✕',px+pw-29,py+30,16,'#fff','rgba(0,0,0,0.2)','center');
   GS._barnCloseBtn={x:px+pw-44,y:py+10,w:30,h:30};
 
+  txt('[↑↓ 탐색  Enter 수집  F 먹이주기]',px+14,py+62,12,'#8b6010');
+  GS.barnIdx=Math.max(0,Math.min(GS.barnIdx,GS.animals.length-1));
+
   // Animals
   const animalLabels={chicken:'🐔 닭',cow:'🐄 소',sheep:'🐑 양'};
   const animalProducts={chicken:'🥚 달걀',cow:'🥛 우유',sheep:'🧶 양털'};
   GS.animals.forEach((a,i)=>{
     const bx=px+20,by=py+70+i*90;
+    const focused=i===GS.barnIdx;
     const hasProduct=a.product;
     const isFed=a.fed!==false;
-    ctx.fillStyle='rgba(255,230,180,0.7)';ctx.beginPath();ctx.roundRect(bx,by,pw-40,78,12);ctx.fill();
-    ctx.strokeStyle='rgba(180,130,60,0.3)';ctx.lineWidth=1;ctx.beginPath();ctx.roundRect(bx,by,pw-40,78,12);ctx.stroke();
+    ctx.fillStyle=focused?'rgba(255,210,140,0.9)':'rgba(255,230,180,0.7)';ctx.beginPath();ctx.roundRect(bx,by,pw-40,78,12);ctx.fill();
+    ctx.strokeStyle=focused?'#c98040':'rgba(180,130,60,0.3)';ctx.lineWidth=focused?2:1;ctx.beginPath();ctx.roundRect(bx,by,pw-40,78,12);ctx.stroke();
     txt(animalLabels[a.type]||a.type,bx+14,by+30,18,'#6b3a10');
     txt(isFed?'🍽️ 먹이 OK':'⚠️ 굶주림',bx+14,by+54,13,isFed?'#4CAF50':'#E53935');
     if(hasProduct){
@@ -3057,9 +3061,26 @@ function update(dt){
     clearJust();return;
   }
 
-  // Barn UI
+  // Barn UI keyboard nav
   if(GS.barnOpen){
     if(justPressed('Escape')){GS.barnOpen=false;}
+    else if(justPressed('ArrowUp')||justPressed('KeyW'))GS.barnIdx=Math.max(0,GS.barnIdx-1);
+    else if(justPressed('ArrowDown')||justPressed('KeyS'))GS.barnIdx=Math.min(GS.animals.length-1,GS.barnIdx+1);
+    else if(justPressed('Enter')||justPressed('Space')){
+      const a=GS.animals[GS.barnIdx];
+      if(a){
+        if(collectBarnProduct(a)){notify(`${a.type==='chicken'?'달걀':a.type==='cow'?'우유':'양털'} 수집! 🐾`,'#FFD700');}
+        else notify('아직 산물이 없습니다.','#999');
+      }
+    }
+    else if(justPressed('KeyF')){
+      const a=GS.animals[GS.barnIdx];
+      if(a){
+        if(a.fed){notify('이미 먹이를 줬습니다.','#999');}
+        else if((GS.inv['animal_feed']||0)>0){removeItem('animal_feed',1);a.fed=true;notify('동물에게 먹이를 줬습니다! 🌾','#8BC34A');}
+        else notify('동물 먹이가 없습니다.','#E53935');
+      }
+    }
     clearJust();return;
   }
 
