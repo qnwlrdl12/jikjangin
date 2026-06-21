@@ -2210,7 +2210,7 @@ function renderInventory(){
 // ── BARN UI ────────────────────────────────────
 function renderBarn(){
   GS._barnBtns=[];
-  const pw=520,ph=460;
+  const pw=540,ph=460;
   const px=(W-pw)/2,py=(H-ph)/2;
   ctx.fillStyle='rgba(0,0,0,0.5)';ctx.fillRect(0,0,W,H);
   ctx.fillStyle='rgba(255,245,225,0.97)';ctx.beginPath();ctx.roundRect(px,py,pw,ph,20);ctx.fill();
@@ -2220,59 +2220,85 @@ function renderBarn(){
   rr(px+pw-44,py+10,30,30,15,'#c98040');
   txtShadow('✕',px+pw-29,py+30,16,'#fff','rgba(0,0,0,0.2)','center');
   GS._barnCloseBtn={x:px+pw-44,y:py+10,w:30,h:30};
+  txt('[↑↓ 탐색   Enter 수집   F 먹이주기]',px+16,py+64,12,'#8b6010');
 
-  txt('[↑↓ 탐색  Enter 수집  F 먹이주기]',px+14,py+62,12,'#8b6010');
   GS.barnIdx=Math.max(0,Math.min(GS.barnIdx,GS.animals.length-1));
 
-  // Animals
-  const animalLabels={chicken:'🐔 닭',cow:'🐄 소',sheep:'🐑 양'};
-  const animalProducts={chicken:'🥚 달걀',cow:'🥛 우유',sheep:'🧶 양털'};
+  const EMOJI={chicken:'🐔',cow:'🐄',sheep:'🐑'};
+  const LABEL={chicken:'닭',cow:'소',sheep:'양'};
+  const PROD_NAME={chicken:'🥚 달걀',cow:'🥛 우유',sheep:'🧶 양털'};
+  const ROW_H=82, ROW_GAP=8, ROW_TOP=py+74;
+  const ROW_X=px+14, ROW_W=pw-28; // row left=px+14, width=512
+
   GS.animals.forEach((a,i)=>{
-    const bx=px+20,by=py+70+i*90;
+    const by=ROW_TOP+i*(ROW_H+ROW_GAP);
     const focused=i===GS.barnIdx;
     const hasProduct=a.product;
     const isFed=a.fed!==false;
-    ctx.fillStyle=focused?'rgba(255,210,140,0.9)':'rgba(255,230,180,0.7)';ctx.beginPath();ctx.roundRect(bx,by,pw-40,78,12);ctx.fill();
-    ctx.strokeStyle=focused?'#c98040':'rgba(180,130,60,0.3)';ctx.lineWidth=focused?2:1;ctx.beginPath();ctx.roundRect(bx,by,pw-40,78,12);ctx.stroke();
-    txt(animalLabels[a.type]||a.type,bx+14,by+30,18,'#6b3a10');
-    txt(isFed?'🍽️ 먹이 OK':'⚠️ 굶주림',bx+14,by+54,13,isFed?'#4CAF50':'#E53935');
-    const RIGHT=bx+(pw-40); // row right edge
     const hasFeed=(GS.inv['animal_feed']||0)>0;
-    if(hasProduct){
-      const cbx=RIGHT-120;
-      rr(cbx,by+14,120,50,25,'#f8a030');
-      txt(`${animalProducts[a.type]} 수집`,cbx+60,by+44,13,'#fff','center');
-      GS._barnBtns.push({type:'collect',animalIdx:i,x:cbx,y:by+14,w:120,h:50});
-    } else {
-      txt('아직 산물 없음',RIGHT-100,by+44,13,'#b09070');
-    }
+
+    // Row background (draw first, then text, then buttons on top — keep text on LEFT only)
+    ctx.fillStyle=focused?'rgba(255,210,140,0.9)':'rgba(255,230,180,0.7)';
+    ctx.beginPath();ctx.roundRect(ROW_X,by,ROW_W,ROW_H,12);ctx.fill();
+    ctx.strokeStyle=focused?'#c98040':'rgba(180,130,60,0.3)';
+    ctx.lineWidth=focused?2:1;
+    ctx.beginPath();ctx.roundRect(ROW_X,by,ROW_W,ROW_H,12);ctx.stroke();
+
+    // Animal emoji (leftmost)
+    ctx.font='32px serif';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(EMOJI[a.type]||'🐾',ROW_X+28,by+ROW_H/2);
+    ctx.textBaseline='alphabetic';
+
+    // Text block — constrained to left 230px to never reach button zone
+    const TXT_X=ROW_X+58;
+    txt(LABEL[a.type]||a.type, TXT_X, by+28, 16, '#5a2a00');
+    txt(isFed?'🍽️ 먹이 OK':'⚠️ 굶주림', TXT_X, by+48, 12, isFed?'#2e7d32':'#c62828');
+    const dayInfo=hasProduct?'수집 대기 중!':isFed?`${a.dayTimer||0}일 후 생산`:'먹이 필요';
+    txt(dayInfo, TXT_X, by+66, 11, hasProduct?'#f8a030':isFed?'#7b5500':'#999');
+
+    // Button zone — right side, starts at ROW_X+270 = px+284
+    const BTN_RIGHT=ROW_X+ROW_W-8; // px+518
+    const BTN_Y=by+(ROW_H-42)/2;   // vertically centered, height=42
+
+    // Feed button (68px wide) — shown when not fed
     if(!isFed){
-      const fbx=hasProduct ? RIGHT-120-8-62 : RIGHT-62;
-      rr(fbx,by+14,62,50,25,hasFeed?'#8BC34A':'#aaa');
-      txt(hasFeed?'🌾 먹이':'먹이없음',fbx+31,by+44,12,'#fff','center');
-      if(hasFeed)GS._barnBtns.push({type:'feed',animalIdx:i,x:fbx,y:by+14,w:62,h:50});
+      const fbx=BTN_RIGHT-68;
+      rr(fbx,BTN_Y,68,42,21,hasFeed?'#6aad3d':'#bbb');
+      txt(hasFeed?'🌾 먹이':'먹이없음',fbx+34,BTN_Y+27,12,hasFeed?'#fff':'#888','center');
+      if(hasFeed)GS._barnBtns.push({type:'feed',animalIdx:i,x:fbx,y:BTN_Y,w:68,h:42});
+    }
+
+    // Collect button (118px wide) — shown when product ready
+    // Placed left of feed button (or right-aligned if no feed)
+    if(hasProduct){
+      const cbx=isFed ? BTN_RIGHT-118 : BTN_RIGHT-68-10-118;
+      rr(cbx,BTN_Y,118,42,21,'#f8a030');
+      txt(PROD_NAME[a.type]+' 수집',cbx+59,BTN_Y+27,12,'#fff','center');
+      GS._barnBtns.push({type:'collect',animalIdx:i,x:cbx,y:BTN_Y,w:118,h:42});
     }
   });
 
   // Buy animals
   const ownsCow=GS.animals.some(a=>a.type==='cow');
   const ownsSheep=GS.animals.some(a=>a.type==='sheep');
-  const shopY=py+70+GS.animals.length*90+10;
   const buys=[];
   if(!ownsCow)buys.push({type:'cow',label:'🐄 소 구입',cost:2000});
   if(!ownsSheep)buys.push({type:'sheep',label:'🐑 양 구입',cost:1500});
-  if(buys.length>0)txt('── 동물 구입 ──',px+pw/2,shopY+20,13,'#8b6010','center');
-  buys.forEach((b,i)=>{
-    const bx=px+20+i*220,by2=shopY+30;
-    const canAfford=GS.money>=b.cost;
-    rr(bx,by2,200,50,25,canAfford?'#6b8c3a':'#aaa');
-    txt(`${b.label} (${b.cost}G)`,bx+100,by2+32,13,'#fff','center');
-    GS._barnBtns.push({type:'buy',animalType:b.type,cost:b.cost,x:bx,y:by2,w:200,h:50});
-  });
+  if(buys.length>0){
+    const shopY=ROW_TOP+GS.animals.length*(ROW_H+ROW_GAP)+4;
+    txt('── 동물 구입 ──',px+pw/2,shopY+18,13,'#8b6010','center');
+    buys.forEach((b,i)=>{
+      const bbx=px+20+i*250,bby=shopY+26;
+      const canAfford=GS.money>=b.cost;
+      rr(bbx,bby,228,44,22,canAfford?'#6b8c3a':'#aaa');
+      txt(`${b.label} (${b.cost.toLocaleString()}G)`,bbx+114,bby+28,13,'#fff','center');
+      GS._barnBtns.push({type:'buy',animalType:b.type,cost:b.cost,x:bbx,y:bby,w:228,h:44});
+    });
+  }
 
   ctx.fillStyle='rgba(200,160,80,0.7)';ctx.beginPath();ctx.roundRect(px,py+ph-38,pw,38,12);ctx.fill();
   ctx.fillStyle='#5a3800';ctx.font='12px "Malgun Gothic"';ctx.textAlign='center';
-  ctx.fillText('동물을 클릭해 산물 수집 | 먹이를 주면 다음날 산물 생산 | 먹이 없으면 휴식',px+pw/2,py+ph-14);
+  ctx.fillText('먹이를 주면 다음날 산물 생산   |   먹이 없으면 생산 없음',px+pw/2,py+ph-14);
 }
 
 // ── SMITH UI ───────────────────────────────────
