@@ -452,7 +452,7 @@ const JUST_PREV={};
 window.addEventListener('keydown',e=>{
   if(!KEYS[e.code]){JUST[e.code]=true}
   KEYS[e.code]=true;
-  if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();
+  if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Tab'].includes(e.code))e.preventDefault();
 });
 window.addEventListener('keyup',e=>delete KEYS[e.code]);
 
