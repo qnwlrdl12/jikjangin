@@ -138,16 +138,18 @@ const SHOP_SEASONS=[
 // ── NPC DATA ───────────────────────────────────
 const NPC_DEFS=[
   {id:'mj',name:'민지',role:'상점 주인',color:'#E91E8C',ox:49,oy:11,isShop:true,
-   lines:['어서오세요! 씨앗이나 도구 필요하면 말해요~','오늘도 좋은 하루 되세요! 수확한 건 저한테 파세요.','봄 씨앗이 싸게 나왔어요! 얼른 사세요~']},
-  {id:'mayor',name:'이장님',role:'마을 이장',color:'#8B6914',ox:60,oy:11,
-   lines:['마을에 온 걸 환영해요! 열심히 농사지어보세요.','계절이 바뀌면 새 작물을 심을 수 있어요.','마을 사람들이 응원하고 있답니다!']},
+   lines:['어서오세요! 씨앗이나 도구 필요하면 말해요~','오늘도 좋은 하루 되세요! 수확한 건 저한테 파세요.','봄 씨앗이 싸게 나왔어요! 이번 계절 씨앗 꼭 챙기세요!','에너지 포션도 팔아요. 밭일하다 지치면 드세요~']},
+  {id:'mayor',name:'이장님',role:'마을 이장',color:'#8B6914',ox:60,oy:11,isMayor:true,
+   lines:['마을 의뢰 게시판입니다! 납품하면 보상드려요.','오늘의 의뢰 목록을 확인해보세요!','마을 발전을 위해 다양한 물자가 필요해요.']},
   {id:'halmeo',name:'김 할머니',role:'농업 전문가',color:'#795548',ox:48,oy:18,
-   lines:['이런이런, 젊은이가 농사를 짓다니 기특하구나.','작물은 매일 물을 주어야 잘 자란단다.','비가 오면 물 안 줘도 된단다. 하늘이 도와주니까!'],
-   quest:{id:'q1',title:'할머니의 부탁',desc:'순무 3개를 가져다 드리세요.',need:{turnip:3},reward:{money:300},done:false,given:false}},
-  {id:'smith',name:'철수',role:'대장장이',color:'#455A64',ox:56,oy:18,
-   lines:['도구 업그레이드하고 싶으면 나한테 와!','좋은 도구가 있어야 좋은 농사를 짓는 법이지.','재료 모아오면 더 좋은 도구 만들어줄게.']},
-  {id:'doc',name:'선생님',role:'마을 의사',color:'#1565C0',ox:71,oy:11,
-   lines:['에너지가 다 떨어지면 집에서 쉬세요.','잘 먹고 잘 자야 농사도 잘 됩니다.','밤이 되기 전에 꼭 집으로 돌아가야 해요.']},
+   lines:['이런이런, 젊은이가 농사를 짓다니 기특하구나.','비료를 사용하면 작물이 더 빨리 자란단다.','숲 키 풀에서 약초를 캘 수 있단다. 낫으로 잘라봐!','몬스터 물리치고 땅도 지키렴. 석상이 마을을 보호하니까!'],
+   quest:{id:'q_halmeo1',title:'할머니의 부탁',desc:'순무 3개를 가져다 드리세요.',need:{turnip:3},reward:{money:300},done:false,given:false},
+   quest2:{id:'q_halmeo2',title:'할머니의 두번째 부탁',desc:'감자 5개를 가져다 드리세요.',need:{potato:5},reward:{money:600,item:'fertilizer',qty:3},done:false,given:false},
+   quest3:{id:'q_halmeo3',title:'할머니의 비밀 레시피',desc:'딸기 3개와 약초 5개를 주세요.',need:{strawberry:3,herb:5},reward:{money:1000,item:'energy_potion',qty:3},done:false,given:false}},
+  {id:'smith',name:'철수',role:'대장장이',color:'#455A64',ox:56,oy:18,isSmith:true,
+   lines:['재료 모아오면 뭐든 만들어줄게!','나무는 도끼로, 돌은 곡괭이로 얻을 수 있어.','숲에서 철광석도 나온다고 들었어. 곡괭이로 열심히 캐봐!','철괴 만들면 강력한 도구도 만들 수 있지!']},
+  {id:'doc',name:'선생님',role:'마을 의사',color:'#1565C0',ox:71,oy:11,isClinic:true,
+   lines:['몸이 힘들면 언제든 와요. 제가 도와드릴게요.','에너지 포션 마시면 즉시 회복이 돼요.','석상이 많이 상했으면 저한테 수리 의뢰하세요!','동물 먹이도 취급하고 있어요~']},
 ];
 
 // ── WORLD GENERATION ───────────────────────────
@@ -312,7 +314,7 @@ function initGS(){
     slot:0,
     seedSlot:2, // which hotbar slot is "seeds"
     // NPCs
-    npcs:NPC_DEFS.map(n=>({...n,quest:n.quest?{...n.quest}:null,lineIdx:0})),
+    npcs:NPC_DEFS.map(n=>({...n,quest:n.quest?{...n.quest}:null,quest2:n.quest2?{...n.quest2}:null,quest3:n.quest3?{...n.quest3}:null,lineIdx:0})),
     // UI State
     dialog:null,     // {lines,page,npcIdx}
     shopOpen:false,
@@ -341,6 +343,11 @@ function initGS(){
     wakedUp:true,
     // ── MENU KEYBOARD NAV ──────────────────────
     buildMenuIdx:0,shopIdx:0,
+    smithIdx:0,clinicIdx:0,mayorIdx:0,
+    // ── NPC SPECIAL UIs ────────────────────────
+    smithOpen:false,clinicOpen:false,mayorOpen:false,
+    // ── DAILY ORDERS ───────────────────────────
+    dailyOrders:[],dailyOrderDay:0,
     // ── DEFENSE WAVE STATE ─────────────────────
     farmHP:100,farmMaxHP:100,
     monsters:[],defenses:[],projectiles:[],
@@ -350,6 +357,11 @@ function initGS(){
     buildMenuOpen:false,buildSelected:null,
     statueHit:0,
     _buildBtns:[],_closeBuildBtn:null,_gameOverRestartBtn:null,
+    // ── CRAFTING / UPGRADES ────────────────────
+    waterUpgraded:false,energyUpgraded:false,
+    maxEnergy:MAX_E,
+    craftedCount:0,fishedCount:0,animalProductCount:0,wavesCleared:0,
+    barnOpen:false,barnIdx:0,_barnBtns:[],
   };
 }
 
@@ -359,7 +371,75 @@ const QUEST_DEFS=[
   {id:'q_water',title:'성실한 농부',desc:'작물에 물을 10번 주세요.',type:'water',target:10,reward:{money:150}},
   {id:'q_money',title:'부자 농부',desc:'1,000G를 모으세요.',type:'money',target:1000,reward:{money:200}},
   {id:'q_harvest5',title:'풍성한 수확',desc:'작물을 20개 수확하세요.',type:'harvest',target:20,reward:{money:500}},
+  {id:'q_fish',title:'낚시왕',desc:'물고기를 3마리 낚으세요.',type:'fish',target:3,reward:{money:250}},
+  {id:'q_wave1',title:'첫 방어',desc:'첫 웨이브를 클리어하세요.',type:'wave',target:1,reward:{money:300}},
+  {id:'q_animal',title:'목장 주인',desc:'동물 산물을 5개 수집하세요.',type:'animal',target:5,reward:{money:400}},
+  {id:'q_craft',title:'대장장이의 제자',desc:'철수에게서 아이템을 1개 제작하세요.',type:'craft',target:1,reward:{money:300}},
+  {id:'q_harvest50',title:'대풍작',desc:'작물을 50개 수확하세요.',type:'harvest',target:50,reward:{money:800}},
+  {id:'q_gold5000',title:'마을 부자',desc:'5,000G를 모으세요.',type:'money',target:5000,reward:{money:500}},
 ];
+
+// ── SMITH RECIPES ──────────────────────────────
+const SMITH_RECIPES=[
+  {id:'make_fertilizer',name:'비료 제작',icon:'🌿',desc:'갈아놓은 땅/작물에 사용 → 성장 +1',cost:80,need:{wood:2,stone:1},onlyOnce:false,
+   effect(){addItem('fertilizer',3);GS.craftedCount=(GS.craftedCount||0)+1;checkQuestProgress();notify('비료 3개 제작!','#8BC34A')}},
+  {id:'upgrade_water',name:'물통 강화',icon:'🪣',desc:'물통 용량 10→20 (1회)',cost:200,need:{wood:5},onlyOnce:true,doneKey:'waterUpgraded',
+   effect(){if(GS.waterUpgraded){notify('이미 강화됐습니다!','#999');return;}GS.maxWater=20;GS.waterCan=Math.min(20,GS.waterCan+10);GS.waterUpgraded=true;GS.craftedCount=(GS.craftedCount||0)+1;checkQuestProgress();notify('물통 강화 완료! 용량 20','#6BC4FF')}},
+  {id:'smelt_iron',name:'철괴 제련',icon:'🔩',desc:'철광석 3개 → 철괴 1개',cost:0,need:{iron_ore:3},onlyOnce:false,
+   effect(){addItem('iron_bar',1);GS.craftedCount=(GS.craftedCount||0)+1;checkQuestProgress();notify('철괴 제련 완료! 🔩','#C0C0C0')}},
+  {id:'make_potion',name:'에너지 포션 제조',icon:'🧪',desc:'약초 3개 → 포션 2개',cost:0,need:{herb:3},onlyOnce:false,
+   effect(){addItem('energy_potion',2);GS.craftedCount=(GS.craftedCount||0)+1;checkQuestProgress();notify('에너지 포션 2개 제조!','#90EE90')}},
+  {id:'upgrade_energy',name:'에너지 강화',icon:'⚡',desc:'최대 에너지 100→130 (1회)',cost:600,need:{iron_bar:2,stone:5},onlyOnce:true,doneKey:'energyUpgraded',
+   effect(){if(GS.energyUpgraded){notify('이미 강화됐습니다!','#999');return;}GS.maxEnergy=130;GS.energy=GS.maxEnergy;GS.energyUpgraded=true;GS.craftedCount=(GS.craftedCount||0)+1;checkQuestProgress();notify('최대 에너지 강화! (130)','#FFD700')}},
+  {id:'buy_feed',name:'동물 먹이 구입',icon:'🌾',desc:'골드로 먹이 5개 구입',cost:150,need:{},onlyOnce:false,
+   effect(){addItem('animal_feed',5);notify('동물 먹이 5개 구입!','#FFB300')}},
+];
+
+// ── CLINIC SERVICES ────────────────────────────
+const CLINIC_SERVICES=[
+  {id:'heal_energy',name:'에너지 회복 주사',icon:'💉',desc:'에너지 60 즉시 회복',cost:150,
+   effect(){GS.energy=Math.min(GS.maxEnergy,GS.energy+60);notify('에너지 60 회복! 💉','#90EE90')}},
+  {id:'heal_statue',name:'석상 응급 수리',icon:'💎',desc:'석상 HP 30 회복',cost:400,
+   effect(){GS.farmHP=Math.min(GS.farmMaxHP,GS.farmHP+30);notify('석상 HP +30 회복! 💎','#FFD700')}},
+  {id:'buy_potion',name:'에너지 포션 구입',icon:'🧪',desc:'에너지 포션 1개 (인벤토리에 추가)',cost:120,
+   effect(){addItem('energy_potion',1);notify('에너지 포션 구입! 🧪','#90EE90')}},
+  {id:'buy_feed',name:'동물 먹이 구입',icon:'🌾',desc:'동물 먹이 5개 구입',cost:150,
+   effect(){addItem('animal_feed',5);notify('동물 먹이 5개 구입! 🌾','#FFB300')}},
+  {id:'full_restore',name:'완전 회복',icon:'✨',desc:'에너지 전부 + 석상 HP 20 회복',cost:800,
+   effect(){GS.energy=GS.maxEnergy;GS.farmHP=Math.min(GS.farmMaxHP,GS.farmHP+20);notify('완전 회복! ✨','#FFD700')}},
+];
+
+// ── DAILY ORDER TEMPLATES ──────────────────────
+const ORDER_TEMPLATES=[
+  {title:'파스닙 납품',need:{parsnip:5},reward:400},
+  {title:'순무 납품',need:{turnip:4},reward:360},
+  {title:'감자 납품',need:{potato:3},reward:320},
+  {title:'딸기 납품',need:{strawberry:2},reward:300},
+  {title:'나무 납품',need:{wood:6},reward:180},
+  {title:'돌 납품',need:{stone:5},reward:150},
+  {title:'철광석 납품',need:{iron_ore:3},reward:220},
+  {title:'달걀 납품',need:{egg:3},reward:280},
+  {title:'섬유 납품',need:{fiber:4},reward:120},
+  {title:'약초 납품',need:{herb:5},reward:200},
+  {title:'멜론 납품',need:{melon:2},reward:620},
+  {title:'호박 납품',need:{pumpkin:2},reward:720},
+  {title:'옥수수 납품',need:{corn:3},reward:500},
+  {title:'블루베리 납품',need:{blueberry:4},reward:260},
+  {title:'토마토 납품',need:{tomato:4},reward:300},
+  {title:'철괴 납품',need:{iron_bar:2},reward:350},
+];
+
+function buildDailyOrders(){
+  const rng=mulberry32(GS.day*1337+GS.season*111+GS.year*7);
+  const copy=[...ORDER_TEMPLATES];
+  const result=[];
+  for(let i=0;i<3&&copy.length>0;i++){
+    const idx=Math.floor(rng()*copy.length);
+    const t=copy.splice(idx,1)[0];
+    result.push({...t,done:false});
+  }
+  return result;
+}
 
 // ── INPUT ──────────────────────────────────────
 const KEYS={};
@@ -1571,6 +1651,8 @@ function updateWave(dt){
   // Wave complete
   if(GS.waveQueue.length===0&&GS.monsters.length===0){
     GS.waveActive=false;
+    GS.wavesCleared=(GS.wavesCleared||0)+1;
+    checkQuestProgress();
     const bonus=GS.waveNum*80;
     GS.money+=bonus;
     // Restore statue HP: 5HP per wave, max up to 40HP
@@ -1663,7 +1745,14 @@ function useTool(){
       notify('물통을 채웠습니다! 💧','#6BC4FF');
     }
   } else if(tool==='sickle'){
-    if(cr&&cr.stage>=CROPS[cr.key].days){
+    if(t===T.TALL){
+      // Herb collection from tall grass
+      world.tiles[r][c]=T.GRASS;
+      const herbQty=1+(Math.random()<0.4?1:0);
+      addItem('herb',herbQty);addItem('fiber',1);
+      costEnergy(2);spawnParticles(c*TILE+TILE/2,r*TILE+TILE/2,'#90EE90',6);
+      notify(`약초 ${herbQty}개 채집! 🌿`,'#90EE90');
+    } else if(cr&&cr.stage>=CROPS[cr.key].days){
       const def=CROPS[cr.key];
       const qty=1+(GS.energy>50?Math.random()<0.3?1:0:0);
       addItem(cr.key,qty);
@@ -1679,6 +1768,25 @@ function useTool(){
     } else {
       notify('아직 다 자라지 않았습니다.','#FFB300');
     }
+  } else if(tool==='fertilizer'){
+    // Apply fertilizer: advance crop stage +1, or wet a tilled tile
+    if(cr&&cr.stage<CROPS[cr.key].days){
+      cr.stage=Math.min(cr.stage+1,CROPS[cr.key].days);
+      removeItem('fertilizer',1);
+      spawnParticles(c*TILE+TILE/2,r*TILE+TILE/2,'#8BC34A',8);
+      notify('비료 사용! 작물 성장 +1 🌿','#8BC34A');
+    } else if(t===T.TILLED||t===T.WET){
+      world.tiles[r][c]=T.WET;
+      removeItem('fertilizer',1);
+      notify('비료로 땅을 비옥하게 했습니다 🌿','#8BC34A');
+    } else {
+      notify('작물이 심긴 곳에 사용하세요.','#FFB300');
+    }
+  } else if(tool==='energy_potion'){
+    GS.energy=Math.min(GS.maxEnergy,GS.energy+40);
+    removeItem('energy_potion',1);
+    spawnParticles(GS.px,GS.py,'#90EE90',10);
+    notify('에너지 포션 사용! +40 에너지 🧪','#90EE90');
   } else if(tool==='axe'){
     if(t===T.TREE){
       world.tiles[r][c]=T.STUMP;
@@ -1692,9 +1800,12 @@ function useTool(){
   } else if(tool==='pickaxe'){
     if(t===T.ROCK){
       world.tiles[r][c]=T.GRASS;
-      addItem('stone',2+Math.floor(Math.random()*3));
+      const stoneQty=2+Math.floor(Math.random()*3);
+      addItem('stone',stoneQty);
+      // Low chance for iron ore in forest/mine area (rows 33+)
+      if(r>=33&&Math.random()<0.25){addItem('iron_ore',1);notify('철광석 발견! ⛏️','#C0C0C0')}
       costEnergy(5);spawnParticles(c*TILE+TILE/2,r*TILE+TILE/2,'#A0B0C0',6);
-      notify('돌을 캤습니다. 🪨','#A0B0C0');
+      notify(`돌 ${stoneQty}개 채취 🪨`,'#A0B0C0');
     }
   } else if(tool==='fishing_rod'){
     if(t===T.WATER||t===T.DEEP){
@@ -1735,6 +1846,7 @@ function doFish(){
   setTimeout(()=>{
     const r=Math.random();let sum=0;
     for(const f of FISH_TABLE){sum+=f.weight;if(r<sum){addItem('fish_'+f.name,1,{icon:f.icon,sell:f.sell});
+      GS.fishedCount=(GS.fishedCount||0)+1;checkQuestProgress();
       notify(`${f.icon} ${f.name} 낚았다! (${f.sell}G)`,'#6BC4FF');
       spawnParticles(GS.px,GS.py,'#6BC4FF',6);return}}
     notify('이번엔 놓쳤어요...','#999');
@@ -1749,6 +1861,12 @@ const ITEM_META={
   pickaxe:{name:'곡괭이',icon:'⛏'},fishing_rod:{name:'낚싯대',icon:'🎣'},
   wood:{name:'나무',icon:'🪵',sell:10},stone:{name:'돌',icon:'🪨',sell:8},
   fiber:{name:'섬유',icon:'🧵',sell:5},
+  herb:{name:'약초',icon:'🌿',sell:15},
+  iron_ore:{name:'철광석',icon:'🪨',sell:20},
+  iron_bar:{name:'철괴',icon:'🔩',sell:80},
+  fertilizer:{name:'비료',icon:'🌿',sell:30},
+  energy_potion:{name:'에너지 포션',icon:'🧪',sell:40},
+  animal_feed:{name:'동물 먹이',icon:'🌾',sell:5},
   egg:{name:'달걀',icon:'🥚',sell:50},milk:{name:'우유',icon:'🥛',sell:125},wool:{name:'양털',icon:'🧶',sell:80},
 };
 Object.entries(CROPS).forEach(([k,v])=>{
@@ -1781,6 +1899,13 @@ function interact(){
     const dist=Math.hypot(GS.px-nx,GS.py-ny);
     if(dist<TILE*1.5){
       if(npc.isShop){openShop(i);return}
+      if(npc.isSmith){GS.smithOpen=true;GS.smithIdx=0;return}
+      if(npc.isClinic){GS.clinicOpen=true;GS.clinicIdx=0;return}
+      if(npc.isMayor){
+        // Refresh daily orders if needed
+        if(GS.dailyOrderDay!==GS.day){GS.dailyOrders=buildDailyOrders();GS.dailyOrderDay=GS.day}
+        GS.mayorOpen=true;GS.mayorIdx=0;return;
+      }
       openDialog(i);return;
     }
   }
@@ -1798,24 +1923,46 @@ function interact(){
   }
 }
 
+function tryCompleteNpcQuest(npc,quest,lines){
+  if(!quest||!quest.given||quest.done)return false;
+  const canDo=Object.entries(quest.need).every(([k,v])=>(GS.inv[k]||0)>=v);
+  if(canDo){
+    Object.entries(quest.need).forEach(([k,v])=>removeItem(k,v));
+    GS.money+=quest.reward.money;
+    if(quest.reward.item){addItem(quest.reward.item,quest.reward.qty||1);}
+    quest.done=true;
+    const extra=quest.reward.item?` + ${ITEM_META[quest.reward.item]?.name||quest.reward.item} ×${quest.reward.qty||1}`:'';
+    lines.push(`고마워요! 보상으로 ${quest.reward.money}G${extra}를 드릴게요!`);
+    spawnParticles(npc.ox*TILE+24,npc.oy*TILE+24,'#FFD700',14);
+    return true;
+  }
+  return false;
+}
+
 function openDialog(i){
   const npc=GS.npcs[i];
   const lines=[npc.lines[npc.lineIdx%npc.lines.length]];
   npc.lineIdx++;
-  // Quest dialog
-  if(npc.quest&&!npc.quest.given){
-    npc.quest.given=true;
-    lines.push(npc.quest.desc);
-    lines.push('도와줄 수 있겠니?');
-  } else if(npc.quest&&npc.quest.given&&!npc.quest.done){
-    const need=npc.quest.need;
-    const canDo=Object.entries(need).every(([k,v])=>(GS.inv[k]||0)>=v);
-    if(canDo){
-      Object.entries(need).forEach(([k,v])=>removeItem(k,v));
-      GS.money+=npc.quest.reward.money;
-      npc.quest.done=true;
-      lines.push(`고맙구나! 보상으로 ${npc.quest.reward.money}G를 드릴게!`);
-      spawnParticles(npc.ox*TILE+24,npc.oy*TILE+24,'#FFD700',12);
+
+  // Chain quests: q1 → q2 → q3 for 할머니
+  const quests=[npc.quest,npc.quest2,npc.quest3].filter(Boolean);
+  let questHandled=false;
+  for(const q of quests){
+    if(q.done)continue;
+    if(!q.given){
+      q.given=true;
+      lines.push(`[의뢰] ${q.title}`);
+      lines.push(q.desc);
+      lines.push('도와줄 수 있겠니?');
+      questHandled=true;break;
+    } else {
+      const done=tryCompleteNpcQuest(npc,q,lines);
+      if(!done){
+        // Check partial progress
+        const prog=Object.entries(q.need).map(([k,v])=>`${ITEM_META[k]?.name||k}: ${GS.inv[k]||0}/${v}`).join(', ');
+        lines.push(`아직 다 모으지 못했구나. (${prog})`);
+      }
+      questHandled=true;break;
     }
   }
   GS.dialog={lines,page:0,npcIdx:i};
@@ -1823,14 +1970,15 @@ function openDialog(i){
 
 function openShop(i){GS.shopOpen=true;GS.shopTab='buy';GS.dialog=null}
 
-function openBarn(){
-  // Collect animal products
-  let collected=0;
-  GS.animals.forEach(a=>{
-    if(a.product){addItem(a.type==='chicken'?'egg':a.type==='cow'?'milk':'wool',1);a.product=false;collected++}
-  });
-  if(collected>0)notify(`동물 산물 ${collected}개를 얻었습니다! 🐾`,'#FFD700');
-  else notify('헛간에 왔습니다. 동물들이 건강해요!','#8BC34A');
+function openBarn(){GS.barnOpen=true;GS.barnIdx=0;GS.dialog=null}
+
+function collectBarnProduct(a){
+  if(!a.product)return false;
+  const key=a.type==='chicken'?'egg':a.type==='cow'?'milk':'wool';
+  addItem(key,1);a.product=false;
+  GS.animalProductCount=(GS.animalProductCount||0)+1;
+  checkQuestProgress();
+  return true;
 }
 
 // ── QUEST PROGRESS ─────────────────────────────
@@ -1841,6 +1989,10 @@ function checkQuestProgress(){
     if(q.type==='harvest')prog=GS.harvested;
     if(q.type==='water')prog=GS.watered;
     if(q.type==='money')prog=GS.money;
+    if(q.type==='fish')prog=GS.fishedCount||0;
+    if(q.type==='wave')prog=GS.wavesCleared||0;
+    if(q.type==='animal')prog=GS.animalProductCount||0;
+    if(q.type==='craft')prog=GS.craftedCount||0;
     q.prog=prog;
     if(prog>=q.target){
       q.done=true;GS.money+=q.reward.money;
@@ -1866,14 +2018,16 @@ function doSleep(){
       if(world.tiles[r][c]===T.WET)world.tiles[r][c]=T.TILLED;
     }
   }
-  // Animals produce
+  // Animals produce (only if fed)
   GS.animals.forEach(a=>{
-    a.dayTimer--;
-    if(a.dayTimer<=0){
-      a.product=true;
-      const t={chicken:1,cow:1,sheep:3}[a.type];
-      a.dayTimer=t;
+    if(a.fed!==false){
+      a.dayTimer--;
+      if(a.dayTimer<=0){
+        a.product=true;
+        a.dayTimer={chicken:1,cow:2,sheep:3}[a.type]||2;
+      }
     }
+    a.fed=false; // reset for new day
   });
   // Advance time
   GS.day++;
@@ -1897,7 +2051,7 @@ function doSleep(){
   GS.waveTriggeredToday=false;
   GS.monsters=[];GS.projectiles=[];
   // Restore
-  GS.energy=MAX_E;GS.waterCan=GS.maxWater;
+  GS.energy=GS.maxEnergy;GS.waterCan=GS.maxWater;
   GS.hour=6;GS.minute=0;GS.days++;
   checkQuestProgress();
   // Auto-save on sleep
@@ -1934,27 +2088,35 @@ function renderShop(){
   });
 
   if(GS.shopTab==='buy'){
-    const stock=[...SHOP_SEASONS[GS.season].map(k=>k.endsWith('_seed')?k:k+'_seed'),...['parsnip_seed','turnip_seed']];
-    const unique=[...new Set(stock)];
-    txt('✿ 이번 계절 씨앗  [↑↓ 탐색 / Enter 구매]',px+20,py+106,12,'#c06090');
-    GS.shopIdx=Math.min(GS.shopIdx,unique.length-1);
-    unique.forEach((key,i)=>{
+    const seedStock=[...SHOP_SEASONS[GS.season].map(k=>k.endsWith('_seed')?k:k+'_seed'),...['parsnip_seed','turnip_seed']];
+    const uniqueSeeds=[...new Set(seedStock)];
+    // Special consumables available year-round
+    const SHOP_SPECIALS=[
+      {key:'fertilizer',buy:150},{key:'energy_potion',buy:120},{key:'animal_feed',buy:30},
+    ];
+    const allStock=[...uniqueSeeds.map(k=>({key:k,buy:ITEM_META[k]?.buy})),...SHOP_SPECIALS];
+    txt('✿ 구매 [↑↓ 탐색 / Enter 구매]  (씨앗 + 소모품)',px+20,py+106,12,'#c06090');
+    GS.shopIdx=Math.min(GS.shopIdx,allStock.length-1);
+    allStock.forEach(({key,buy},i)=>{
       const meta=ITEM_META[key];if(!meta)return;
+      const cost=buy||meta.buy||0;
       const ix=i%3,iy=Math.floor(i/3);
       const bx=px+20+ix*180,by=py+118+iy*72;
+      if(by>py+ph-60)return;
       const focused=i===GS.shopIdx;
-      ctx.fillStyle=focused?'rgba(255,190,220,0.9)':'rgba(255,220,240,0.7)';
+      const isSpecial=SHOP_SPECIALS.some(s=>s.key===key);
+      ctx.fillStyle=focused?(isSpecial?'rgba(200,255,200,0.9)':'rgba(255,190,220,0.9)'):(isSpecial?'rgba(220,255,210,0.6)':'rgba(255,220,240,0.7)');
       ctx.beginPath();ctx.roundRect(bx,by,168,62,12);ctx.fill();
-      ctx.strokeStyle=focused?'#e0306080':'rgba(240,150,200,0.4)';
+      ctx.strokeStyle=focused?(isSpecial?'#40a840':'#e0306080'):'rgba(240,150,200,0.4)';
       ctx.lineWidth=focused?2.5:1;ctx.beginPath();ctx.roundRect(bx,by,168,62,12);ctx.stroke();
-      if(focused){ctx.fillStyle='#e03060';ctx.font='12px serif';ctx.textAlign='left';ctx.fillText('▶',bx+2,by+35)}
+      if(focused){ctx.fillStyle=isSpecial?'#208020':'#e03060';ctx.font='12px serif';ctx.textAlign='left';ctx.fillText('▶',bx+2,by+35)}
       ctx.font='24px serif';ctx.textAlign='left';ctx.fillText(meta.icon||'🌱',bx+10,by+40);
       txt(meta.name,bx+46,by+28,13,'#904060');
-      txt(`${meta.buy||CROPS[key.replace('_seed','')]?.seed||'?'}G`,bx+46,by+48,13,'#c06090');
-      rr(bx+118,by+16,42,28,14,focused?'#e0306080':'#f870a0');
+      txt(`${cost}G`,bx+46,by+48,13,'#c06090');
+      rr(bx+118,by+16,42,28,14,focused?(isSpecial?'#40a840':'#e03060'):'#f870a0');
       txt('구매',bx+139,by+34,13,'#fff','center');
       if(!GS._shopBtns)GS._shopBtns=[];
-      GS._shopBtns.push({x:bx+118,y:by+16,w:42,h:28,key});
+      GS._shopBtns.push({x:bx+118,y:by+16,w:42,h:28,key,buy:cost});
     });
   } else {
     txt('✿ 판매 가능한 아이템  [↑↓ 탐색 / Enter 1개 / X 전부]',px+20,py+106,12,'#c06090');
@@ -2036,6 +2198,198 @@ function renderInventory(){
   GS._closeInvBtn={x:ipx+pw-44,y:ipy+10,w:30,h:30};
 }
 
+// ── BARN UI ────────────────────────────────────
+function renderBarn(){
+  GS._barnBtns=[];
+  const pw=520,ph=460;
+  const px=(W-pw)/2,py=(H-ph)/2;
+  ctx.fillStyle='rgba(0,0,0,0.5)';ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='rgba(255,245,225,0.97)';ctx.beginPath();ctx.roundRect(px,py,pw,ph,20);ctx.fill();
+  ctx.strokeStyle='rgba(180,130,60,0.5)';ctx.lineWidth=2;ctx.beginPath();ctx.roundRect(px,py,pw,ph,20);ctx.stroke();
+  rr(px,py,pw,52,14,'#c98040');
+  txtShadow('🐄 헛간',px+pw/2,py+34,22,'#fff','rgba(100,50,0,0.4)','center');
+  rr(px+pw-44,py+10,30,30,15,'#c98040');
+  txtShadow('✕',px+pw-29,py+30,16,'#fff','rgba(0,0,0,0.2)','center');
+  GS._barnCloseBtn={x:px+pw-44,y:py+10,w:30,h:30};
+
+  // Animals
+  const animalLabels={chicken:'🐔 닭',cow:'🐄 소',sheep:'🐑 양'};
+  const animalProducts={chicken:'🥚 달걀',cow:'🥛 우유',sheep:'🧶 양털'};
+  GS.animals.forEach((a,i)=>{
+    const bx=px+20,by=py+70+i*90;
+    const hasProduct=a.product;
+    const isFed=a.fed!==false;
+    ctx.fillStyle='rgba(255,230,180,0.7)';ctx.beginPath();ctx.roundRect(bx,by,pw-40,78,12);ctx.fill();
+    ctx.strokeStyle='rgba(180,130,60,0.3)';ctx.lineWidth=1;ctx.beginPath();ctx.roundRect(bx,by,pw-40,78,12);ctx.stroke();
+    txt(animalLabels[a.type]||a.type,bx+14,by+30,18,'#6b3a10');
+    txt(isFed?'🍽️ 먹이 OK':'⚠️ 굶주림',bx+14,by+54,13,isFed?'#4CAF50':'#E53935');
+    if(hasProduct){
+      const prodKey=a.type==='chicken'?'egg':a.type==='cow'?'milk':'wool';
+      rr(bx+pw-200,by+14,120,50,25,'#f8a030');
+      txt(`${animalProducts[a.type]} 수집`,bx+pw-140,by+44,13,'#fff','center');
+      GS._barnBtns.push({type:'collect',animalIdx:i,x:bx+pw-200,y:by+14,w:120,h:50});
+    } else {
+      txt('아직 산물 없음',bx+pw-180,by+44,13,'#b09070');
+    }
+    // Feed button
+    const hasFeed=(GS.inv['animal_feed']||0)>0;
+    if(!isFed){
+      rr(bx+pw-80,by+14,62,50,25,hasFeed?'#8BC34A':'#aaa');
+      txt(hasFeed?'🌾 먹이':'먹이없음',bx+pw-49,by+44,12,'#fff','center');
+      if(hasFeed)GS._barnBtns.push({type:'feed',animalIdx:i,x:bx+pw-80,y:by+14,w:62,h:50});
+    }
+  });
+
+  // Buy animals
+  const ownsCow=GS.animals.some(a=>a.type==='cow');
+  const ownsSheep=GS.animals.some(a=>a.type==='sheep');
+  const shopY=py+70+GS.animals.length*90+10;
+  txt('── 동물 구입 ──',px+pw/2,shopY+20,13,'#8b6010','center');
+  const buys=[];
+  if(!ownsCow)buys.push({type:'cow',label:'🐄 소 구입',cost:2000});
+  if(!ownsSheep)buys.push({type:'sheep',label:'🐑 양 구입',cost:1500});
+  buys.forEach((b,i)=>{
+    const bx=px+20+i*220,by2=shopY+30;
+    const canAfford=GS.money>=b.cost;
+    rr(bx,by2,200,50,25,canAfford?'#6b8c3a':'#aaa');
+    txt(`${b.label} (${b.cost}G)`,bx+100,by2+32,13,'#fff','center');
+    GS._barnBtns.push({type:'buy',animalType:b.type,cost:b.cost,x:bx,y:by2,w:200,h:50});
+  });
+
+  ctx.fillStyle='rgba(200,160,80,0.7)';ctx.beginPath();ctx.roundRect(px,py+ph-38,pw,38,12);ctx.fill();
+  ctx.fillStyle='#5a3800';ctx.font='12px "Malgun Gothic"';ctx.textAlign='center';
+  ctx.fillText('동물을 클릭해 산물 수집 | 먹이를 주면 다음날 산물 생산 | 먹이 없으면 휴식',px+pw/2,py+ph-14);
+}
+
+// ── SMITH UI ───────────────────────────────────
+function renderSmith(){
+  const pw=580,ph=500;
+  const px=(W-pw)/2,py=(H-ph)/2;
+  ctx.fillStyle='rgba(0,0,0,0.55)';ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='rgba(240,230,210,0.97)';ctx.beginPath();ctx.roundRect(px,py,pw,ph,20);ctx.fill();
+  ctx.strokeStyle='rgba(100,80,40,0.5)';ctx.lineWidth=2;ctx.beginPath();ctx.roundRect(px,py,pw,ph,20);ctx.stroke();
+  rr(px,py,pw,52,14,'#5a3820');
+  txtShadow('⚒️ 철수의 대장간',px+pw/2,py+34,22,'#fff','rgba(0,0,0,0.4)','center');
+  rr(px+pw-44,py+10,30,30,15,'#5a3820');
+  txtShadow('✕',px+pw-29,py+30,16,'#fff','rgba(0,0,0,0.2)','center');
+  GS._smithCloseBtn={x:px+pw-44,y:py+10,w:30,h:30};
+
+  txt('[↑↓ 탐색  Enter 제작]',px+14,py+64,12,'#8b6040');
+  GS.smithIdx=Math.min(GS.smithIdx,SMITH_RECIPES.length-1);
+  GS._smithCraftBtns=[];
+  SMITH_RECIPES.forEach((rec,i)=>{
+    const bx=px+14,by=py+76+i*66;
+    const focused=i===GS.smithIdx;
+    const alreadyDone=rec.onlyOnce&&GS[rec.doneKey];
+    const canAfford=GS.money>=rec.cost&&Object.entries(rec.need).every(([k,v])=>(GS.inv[k]||0)>=v);
+    const available=!alreadyDone&&canAfford;
+    ctx.fillStyle=alreadyDone?'rgba(180,180,180,0.4)':focused?'rgba(200,170,110,0.6)':'rgba(230,220,190,0.5)';
+    ctx.beginPath();ctx.roundRect(bx,by,pw-28,58,10);ctx.fill();
+    if(focused&&!alreadyDone){ctx.strokeStyle='#8b5e2a';ctx.lineWidth=2;ctx.beginPath();ctx.roundRect(bx,by,pw-28,58,10);ctx.stroke();}
+    ctx.font='26px serif';ctx.textAlign='left';ctx.textBaseline='middle';
+    ctx.fillText(rec.icon,bx+12,by+29);ctx.textBaseline='alphabetic';
+    txt(alreadyDone?rec.name+' (완료)':rec.name,bx+50,by+24,14,alreadyDone?'#999':'#3a2010');
+    // Material requirement
+    const needStr=Object.entries(rec.need).map(([k,v])=>`${ITEM_META[k]?.icon||''}${ITEM_META[k]?.name||k}×${v}(보유:${GS.inv[k]||0})`).join('  ');
+    const costStr=rec.cost>0?`💰${rec.cost}G  `:'';
+    txt(costStr+needStr+(rec.need&&Object.keys(rec.need).length===0?rec.desc:''),bx+50,by+44,11,canAfford&&!alreadyDone?'#5a3010':'#c04040');
+    if(!alreadyDone){
+      rr(bx+pw-116,by+12,88,34,17,available?'#8b5e2a':'#aaa');
+      txt('제작',bx+pw-72,by+33,14,available?'#fff':'#ddd','center');
+      GS._smithCraftBtns.push({x:bx+pw-116,y:by+12,w:88,h:34,idx:i,available});
+    }
+  });
+
+  ctx.fillStyle='rgba(90,56,32,0.8)';ctx.beginPath();ctx.roundRect(px,py+ph-38,pw,38,12);ctx.fill();
+  ctx.fillStyle='#f5dfa0';ctx.font='12px "Malgun Gothic"';ctx.textAlign='center';
+  ctx.fillText(`💰 보유 골드: ${GS.money.toLocaleString()}G  |  재료 부족 시 빨간색으로 표시`,px+pw/2,py+ph-14);
+}
+
+// ── CLINIC UI ─────────────────────────────────
+function renderClinic(){
+  const pw=520,ph=440;
+  const px=(W-pw)/2,py=(H-ph)/2;
+  ctx.fillStyle='rgba(0,0,0,0.5)';ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='rgba(230,240,255,0.97)';ctx.beginPath();ctx.roundRect(px,py,pw,ph,20);ctx.fill();
+  ctx.strokeStyle='rgba(80,120,200,0.4)';ctx.lineWidth=2;ctx.beginPath();ctx.roundRect(px,py,pw,ph,20);ctx.stroke();
+  rr(px,py,pw,52,14,'#1565C0');
+  txtShadow('🏥 마을 진료소',px+pw/2,py+34,22,'#fff','rgba(0,0,40,0.4)','center');
+  rr(px+pw-44,py+10,30,30,15,'#1565C0');
+  txtShadow('✕',px+pw-29,py+30,16,'#fff','rgba(0,0,0,0.2)','center');
+  GS._clinicCloseBtn={x:px+pw-44,y:py+10,w:30,h:30};
+
+  txt('[↑↓ 탐색  Enter 이용]',px+14,py+64,12,'#2060a0');
+  GS.clinicIdx=Math.min(GS.clinicIdx,CLINIC_SERVICES.length-1);
+  GS._clinicServiceBtns=[];
+  CLINIC_SERVICES.forEach((svc,i)=>{
+    const bx=px+14,by=py+76+i*68;
+    const focused=i===GS.clinicIdx;
+    const canAfford=GS.money>=svc.cost;
+    ctx.fillStyle=focused?'rgba(160,200,255,0.5)':'rgba(200,220,255,0.4)';
+    ctx.beginPath();ctx.roundRect(bx,by,pw-28,60,10);ctx.fill();
+    if(focused){ctx.strokeStyle='#1565C0';ctx.lineWidth=2;ctx.beginPath();ctx.roundRect(bx,by,pw-28,60,10);ctx.stroke();}
+    ctx.font='28px serif';ctx.textAlign='left';ctx.textBaseline='middle';
+    ctx.fillText(svc.icon,bx+12,by+30);ctx.textBaseline='alphabetic';
+    txt(svc.name,bx+52,by+26,14,'#0d3b8c');
+    txt(svc.desc,bx+52,by+46,12,'#4060a0');
+    rr(bx+pw-120,by+14,92,32,16,canAfford?'#1565C0':'#aaa');
+    txt(svc.cost>0?`${svc.cost}G`:'무료',bx+pw-74,by+34,13,'#fff','center');
+    GS._clinicServiceBtns.push({x:bx+pw-120,y:by+14,w:92,h:32,idx:i,canAfford});
+  });
+
+  ctx.fillStyle='rgba(21,101,192,0.8)';ctx.beginPath();ctx.roundRect(px,py+ph-38,pw,38,12);ctx.fill();
+  ctx.fillStyle='#e8f4ff';ctx.font='12px "Malgun Gothic"';ctx.textAlign='center';
+  ctx.fillText(`💰 보유 골드: ${GS.money.toLocaleString()}G  |  에너지: ${Math.floor(GS.energy)}/${GS.maxEnergy}  |  석상 HP: ${Math.ceil(GS.farmHP)}/${GS.farmMaxHP}`,px+pw/2,py+ph-14);
+}
+
+// ── MAYOR / ORDER BOARD UI ─────────────────────
+function renderMayor(){
+  const pw=540,ph=440;
+  const px=(W-pw)/2,py=(H-ph)/2;
+  ctx.fillStyle='rgba(0,0,0,0.5)';ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='rgba(255,248,220,0.97)';ctx.beginPath();ctx.roundRect(px,py,pw,ph,20);ctx.fill();
+  ctx.strokeStyle='rgba(160,120,20,0.5)';ctx.lineWidth=2;ctx.beginPath();ctx.roundRect(px,py,pw,ph,20);ctx.stroke();
+  rr(px,py,pw,52,14,'#8B6914');
+  txtShadow('📋 마을 의뢰 게시판',px+pw/2,py+34,22,'#fff','rgba(60,40,0,0.4)','center');
+  rr(px+pw-44,py+10,30,30,15,'#8B6914');
+  txtShadow('✕',px+pw-29,py+30,16,'#fff','rgba(0,0,0,0.2)','center');
+  GS._mayorCloseBtn={x:px+pw-44,y:py+10,w:30,h:30};
+
+  txt(`오늘의 의뢰 (${GS.day}일차)  [↑↓ 탐색  Enter 납품]`,px+14,py+66,12,'#6b4a00');
+  GS.mayorIdx=Math.min(GS.mayorIdx,(GS.dailyOrders||[]).length-1);
+  GS._mayorOrderBtns=[];
+  (GS.dailyOrders||[]).forEach((order,i)=>{
+    const bx=px+14,by=py+82+i*110;
+    const focused=i===GS.mayorIdx;
+    const needEntries=Object.entries(order.need);
+    const canSubmit=!order.done&&needEntries.every(([k,v])=>(GS.inv[k]||0)>=v);
+    ctx.fillStyle=order.done?'rgba(150,200,120,0.35)':focused?'rgba(255,220,120,0.5)':'rgba(255,240,190,0.5)';
+    ctx.beginPath();ctx.roundRect(bx,by,pw-28,98,12);ctx.fill();
+    if(focused&&!order.done){ctx.strokeStyle='#8B6914';ctx.lineWidth=2;ctx.beginPath();ctx.roundRect(bx,by,pw-28,98,12);ctx.stroke();}
+    if(order.done){
+      txt('✅ '+order.title+' (완료!)',bx+14,by+38,16,'#2a6010');
+    } else {
+      txt('📦 '+order.title,bx+14,by+28,15,'#3a2000');
+      needEntries.forEach(([k,v],j)=>{
+        const have=GS.inv[k]||0;
+        const col=have>=v?'#2a6010':'#c04000';
+        txt(`${ITEM_META[k]?.icon||''}${ITEM_META[k]?.name||k}: ${have}/${v}`,bx+14+j*150,by+52,13,col);
+      });
+      txt(`보상: ${order.reward}G`,bx+14,by+76,13,'#8B6914');
+      rr(bx+pw-140,by+20,112,58,28,canSubmit?'#8B6914':'#bbb');
+      txt(canSubmit?'납품하기':'재료부족',bx+pw-84,by+54,13,canSubmit?'#fff':'#888','center');
+      GS._mayorOrderBtns.push({x:bx+pw-140,y:by+20,w:112,h:58,idx:i,canSubmit});
+    }
+  });
+  if((GS.dailyOrders||[]).length===0){
+    txt('오늘의 의뢰가 없습니다. 내일 다시 와주세요.',px+pw/2,py+200,14,'#8b6010','center');
+  }
+
+  ctx.fillStyle='rgba(139,105,20,0.8)';ctx.beginPath();ctx.roundRect(px,py+ph-38,pw,38,12);ctx.fill();
+  ctx.fillStyle='#fff8d0';ctx.font='12px "Malgun Gothic"';ctx.textAlign='center';
+  ctx.fillText(`💰 보유 골드: ${GS.money.toLocaleString()}G  |  의뢰는 매일 갱신됩니다`,px+pw/2,py+ph-14);
+}
+
 // ── DIALOG UI ──────────────────────────────────
 function renderDialog(){
   const d=GS.dialog;if(!d)return;
@@ -2112,11 +2466,11 @@ function renderHUD(){
   const ex=W-eW-170,ey=10;
   ctx.fillStyle='rgba(255,200,230,0.7)';ctx.beginPath();ctx.roundRect(ex-2,ey-2,eW+4+50,eH+6,10);ctx.fill();
   rr(ex,ey,eW,eH,7,'rgba(255,180,210,0.4)');
-  const ep=GS.energy/MAX_E;
+  const ep=GS.energy/GS.maxEnergy;
   const ec=ep>0.6?'#f060a0':ep>0.3?'#ff9858':'#ff4060';
   rr(ex,ey,Math.max(0,eW*ep),eH,7,ec);
   ctx.fillStyle='rgba(255,255,255,0.5)';ctx.beginPath();ctx.roundRect(ex,ey,Math.max(0,eW*ep)*0.5,eH*0.45,5);ctx.fill();
-  ctx.font='11px "Malgun Gothic"';ctx.textAlign='left';ctx.fillStyle='#a03060';ctx.fillText(`⚡${GS.energy}`,ex+eW+6,ey+12);
+  ctx.font='11px "Malgun Gothic"';ctx.textAlign='left';ctx.fillStyle='#a03060';ctx.fillText(`⚡${Math.floor(GS.energy)}/${GS.maxEnergy}`,ex+eW+6,ey+12);
 
   // Water bar
   const wy=28;
@@ -2188,7 +2542,7 @@ function renderHUD(){
 
   // Quest panel — QUEST_DEFS + NPC quests
   const defQuests=GS.quests.filter(q=>!q.done).slice(0,2);
-  const npcQuests=GS.npcs.filter(n=>n.quest&&n.quest.given&&!n.quest.done).map(n=>n.quest);
+  const npcQuests=[];GS.npcs.forEach(n=>{[n.quest,n.quest2,n.quest3].forEach(q=>{if(q&&q.given&&!q.done)npcQuests.push(q)})});
   const allActiveQ=[...defQuests,...npcQuests].slice(0,3);
   if(allActiveQ.length>0){
     const qw=230;
@@ -2587,6 +2941,10 @@ function render(){
   if(GS.gameOver){renderGameOver()}
   else if(GS.buildMenuOpen){renderBuildMenu()}
   else if(GS.shopOpen){renderShop()}
+  else if(GS.barnOpen){renderBarn()}
+  else if(GS.smithOpen){renderSmith()}
+  else if(GS.clinicOpen){renderClinic()}
+  else if(GS.mayorOpen){renderMayor()}
   else if(GS.invOpen){renderInventory()}
   else if(GS.dialog){renderDialog()}
   else{renderHUD();renderWaveHUD()}
@@ -2672,7 +3030,7 @@ function update(dt){
       GS.shopIdx++;
     } else if(justPressed('Enter')||justPressed('Space')){
       if(GS.shopTab==='buy'&&GS._shopBtns&&GS._shopBtns[GS.shopIdx]){
-        const b=GS._shopBtns[GS.shopIdx];const meta=ITEM_META[b.key];const cost=meta?.buy||0;
+        const b=GS._shopBtns[GS.shopIdx];const meta=ITEM_META[b.key];const cost=b.buy||meta?.buy||0;
         if(GS.money>=cost){GS.money-=cost;addItem(b.key,1);notify(`${meta?.name} 구매! (-${cost}G)`,'#4CAF50')}
         else notify('돈이 부족합니다!','#E53935');
       } else if(GS.shopTab==='sell'){
@@ -2696,6 +3054,67 @@ function update(dt){
   // Inventory: close only
   if(GS.invOpen){
     if(justPressed('Escape')||justPressed('KeyI')){GS.invOpen=false;}
+    clearJust();return;
+  }
+
+  // Barn UI
+  if(GS.barnOpen){
+    if(justPressed('Escape')){GS.barnOpen=false;}
+    clearJust();return;
+  }
+
+  // Smith UI keyboard nav
+  if(GS.smithOpen){
+    if(justPressed('Escape')){GS.smithOpen=false;}
+    else if(justPressed('ArrowUp')||justPressed('KeyW'))GS.smithIdx=Math.max(0,GS.smithIdx-1);
+    else if(justPressed('ArrowDown')||justPressed('KeyS'))GS.smithIdx=Math.min(SMITH_RECIPES.length-1,GS.smithIdx+1);
+    else if(justPressed('Enter')||justPressed('Space')){
+      const rec=SMITH_RECIPES[GS.smithIdx];
+      if(rec){
+        const alreadyDone=rec.onlyOnce&&GS[rec.doneKey];
+        const canAfford=GS.money>=rec.cost&&Object.entries(rec.need).every(([k,v])=>(GS.inv[k]||0)>=v);
+        if(alreadyDone)notify('이미 완료한 제작입니다!','#999');
+        else if(canAfford){GS.money-=rec.cost;Object.entries(rec.need).forEach(([k,v])=>removeItem(k,v));rec.effect();}
+        else notify('재료 또는 골드가 부족합니다!','#E53935');
+      }
+    }
+    clearJust();return;
+  }
+
+  // Clinic UI keyboard nav
+  if(GS.clinicOpen){
+    if(justPressed('Escape')){GS.clinicOpen=false;}
+    else if(justPressed('ArrowUp')||justPressed('KeyW'))GS.clinicIdx=Math.max(0,GS.clinicIdx-1);
+    else if(justPressed('ArrowDown')||justPressed('KeyS'))GS.clinicIdx=Math.min(CLINIC_SERVICES.length-1,GS.clinicIdx+1);
+    else if(justPressed('Enter')||justPressed('Space')){
+      const svc=CLINIC_SERVICES[GS.clinicIdx];
+      if(svc){
+        if(GS.money>=svc.cost){GS.money-=svc.cost;svc.effect();}
+        else notify('골드가 부족합니다!','#E53935');
+      }
+    }
+    clearJust();return;
+  }
+
+  // Mayor/Order board keyboard nav
+  if(GS.mayorOpen){
+    const orders=GS.dailyOrders||[];
+    if(justPressed('Escape')){GS.mayorOpen=false;}
+    else if(justPressed('ArrowUp')||justPressed('KeyW'))GS.mayorIdx=Math.max(0,GS.mayorIdx-1);
+    else if(justPressed('ArrowDown')||justPressed('KeyS'))GS.mayorIdx=Math.min(orders.length-1,GS.mayorIdx+1);
+    else if(justPressed('Enter')||justPressed('Space')){
+      const order=orders[GS.mayorIdx];
+      if(order&&!order.done){
+        const canSubmit=Object.entries(order.need).every(([k,v])=>(GS.inv[k]||0)>=v);
+        if(canSubmit){
+          Object.entries(order.need).forEach(([k,v])=>removeItem(k,v));
+          GS.money+=order.reward;
+          order.done=true;
+          notify(`의뢰 완료: ${order.title}! +${order.reward}G 📋`,'#FFD700');
+          spawnParticles(GS.px,GS.py,'#FFD700',14);
+        } else notify('납품 재료가 부족합니다!','#E53935');
+      }
+    }
     clearJust();return;
   }
 
@@ -2757,7 +3176,7 @@ function update(dt){
     if(justPressed('Escape')){GS.buildSelected=null;}
   }
 
-  if(justPressed('Escape')){GS.shopOpen=false;GS.invOpen=false;GS.dialog=null;GS.buildMenuOpen=false;GS.buildSelected=null;}
+  if(justPressed('Escape')){GS.shopOpen=false;GS.invOpen=false;GS.dialog=null;GS.buildMenuOpen=false;GS.buildSelected=null;GS.barnOpen=false;GS.smithOpen=false;GS.clinicOpen=false;GS.mayorOpen=false;}
 
   // Hotbar 1~7
   for(let i=0;i<GS.bar.length;i++){
@@ -2878,7 +3297,7 @@ CV.addEventListener('click',e=>{
       for(const b of GS._shopBtns){
         if(inRect(x,y,b)){
           const key=b.key,meta=ITEM_META[key];
-          const cost=meta?.buy||0;
+          const cost=b.buy||meta?.buy||0;
           if(GS.money>=cost){GS.money-=cost;addItem(key,1);notify(`${meta?.name} 구매! (-${cost}G)`,'#4CAF50')}
           else notify('돈이 부족합니다!','#E53935');
           return;
@@ -2907,6 +3326,78 @@ CV.addEventListener('click',e=>{
     if(GS._closeInvBtn&&inRect(x,y,GS._closeInvBtn)){GS.invOpen=false;return}
     return;
   }
+
+  // Barn clicks
+  if(GS.barnOpen){
+    if(GS._barnCloseBtn&&inRect(x,y,GS._barnCloseBtn)){GS.barnOpen=false;return}
+    for(const b of(GS._barnBtns||[])){
+      if(inRect(x,y,b)){
+        if(b.type==='collect'){
+          const a=GS.animals[b.animalIdx];
+          if(collectBarnProduct(a)){notify(`${a.type==='chicken'?'달걀':a.type==='cow'?'우유':'양털'} 수집! 🐾`,'#FFD700');}
+          else notify('아직 산물이 없습니다.','#999');
+        } else if(b.type==='feed'){
+          const a=GS.animals[b.animalIdx];
+          if((GS.inv['animal_feed']||0)>0){removeItem('animal_feed',1);a.fed=true;notify('동물에게 먹이를 줬습니다! 🌾','#8BC34A');}
+        } else if(b.type==='buy'){
+          if(GS.money>=b.cost){GS.money-=b.cost;GS.animals.push({type:b.animalType,fed:true,product:false,daysToProduct:b.animalType==='cow'?2:3,dayTimer:b.animalType==='cow'?2:3});notify(`${b.animalType==='cow'?'소':'양'} 구입! (-${b.cost}G) 🐾`,'#8BC34A');}
+          else notify('골드가 부족합니다!','#E53935');
+        }
+        return;
+      }
+    }
+    return;
+  }
+
+  // Smith clicks
+  if(GS.smithOpen){
+    if(GS._smithCloseBtn&&inRect(x,y,GS._smithCloseBtn)){GS.smithOpen=false;return}
+    for(const b of(GS._smithCraftBtns||[])){
+      if(inRect(x,y,b)){
+        if(!b.available){notify('재료 또는 골드가 부족합니다!','#E53935');return}
+        const rec=SMITH_RECIPES[b.idx];
+        const alreadyDone=rec.onlyOnce&&GS[rec.doneKey];
+        if(alreadyDone){notify('이미 완료한 제작입니다!','#999');return}
+        GS.money-=rec.cost;Object.entries(rec.need).forEach(([k,v])=>removeItem(k,v));rec.effect();
+        return;
+      }
+    }
+    return;
+  }
+
+  // Clinic clicks
+  if(GS.clinicOpen){
+    if(GS._clinicCloseBtn&&inRect(x,y,GS._clinicCloseBtn)){GS.clinicOpen=false;return}
+    for(const b of(GS._clinicServiceBtns||[])){
+      if(inRect(x,y,b)){
+        if(!b.canAfford){notify('골드가 부족합니다!','#E53935');return}
+        const svc=CLINIC_SERVICES[b.idx];
+        GS.money-=svc.cost;svc.effect();
+        return;
+      }
+    }
+    return;
+  }
+
+  // Mayor clicks
+  if(GS.mayorOpen){
+    if(GS._mayorCloseBtn&&inRect(x,y,GS._mayorCloseBtn)){GS.mayorOpen=false;return}
+    for(const b of(GS._mayorOrderBtns||[])){
+      if(inRect(x,y,b)){
+        if(!b.canSubmit){notify('납품 재료가 부족합니다!','#E53935');return}
+        const order=(GS.dailyOrders||[])[b.idx];
+        if(order&&!order.done){
+          Object.entries(order.need).forEach(([k,v])=>removeItem(k,v));
+          GS.money+=order.reward;order.done=true;
+          notify(`의뢰 완료: ${order.title}! +${order.reward}G 📋`,'#FFD700');
+          spawnParticles(GS.px,GS.py,'#FFD700',14);
+        }
+        return;
+      }
+    }
+    return;
+  }
+
   GS._shopBtns=[];GS._sellBtns=[];
 });
 
@@ -2937,9 +3428,14 @@ function saveGame(silent=false){
         weather:GS.weather,chestLooted:GS.chestLooted,
         animals:JSON.parse(JSON.stringify(GS.animals)),
         quests:GS.quests.map(q=>({id:q.id,prog:q.prog,done:q.done})),
-        npcs:GS.npcs.map(n=>({id:n.id,lineIdx:n.lineIdx,quest:n.quest?{...n.quest}:null})),
+        npcs:GS.npcs.map(n=>({id:n.id,lineIdx:n.lineIdx,quest:n.quest?{...n.quest}:null,quest2:n.quest2?{...n.quest2}:null,quest3:n.quest3?{...n.quest3}:null})),
         farmHP:GS.farmHP,farmMaxHP:GS.farmMaxHP,waveNum:GS.waveNum,
         defenses:JSON.parse(JSON.stringify(GS.defenses)),
+        waterUpgraded:GS.waterUpgraded,energyUpgraded:GS.energyUpgraded,
+        maxEnergy:GS.maxEnergy,maxWater:GS.maxWater,
+        craftedCount:GS.craftedCount||0,fishedCount:GS.fishedCount||0,
+        animalProductCount:GS.animalProductCount||0,wavesCleared:GS.wavesCleared||0,
+        dailyOrders:JSON.parse(JSON.stringify(GS.dailyOrders||[])),dailyOrderDay:GS.dailyOrderDay||0,
       },
       tiles:Array.from({length:WH},(_,r)=>Array.from(world.tiles[r])),
       cd:world.cd.map(row=>row.map(c=>c?{...c}:null)),
@@ -2972,9 +3468,14 @@ function loadSave(){
       animals:g.animals||GS.animals,
       farmHP:g.farmHP||100,farmMaxHP:g.farmMaxHP||100,waveNum:g.waveNum||0,
       defenses:g.defenses||[],
+      waterUpgraded:g.waterUpgraded||false,energyUpgraded:g.energyUpgraded||false,
+      maxEnergy:g.maxEnergy||MAX_E,maxWater:g.maxWater||10,
+      craftedCount:g.craftedCount||0,fishedCount:g.fishedCount||0,
+      animalProductCount:g.animalProductCount||0,wavesCleared:g.wavesCleared||0,
+      dailyOrders:g.dailyOrders||[],dailyOrderDay:g.dailyOrderDay||0,
     });
     g.quests.forEach(sq=>{const q=GS.quests.find(q=>q.id===sq.id);if(q){q.prog=sq.prog;q.done=sq.done}});
-    g.npcs.forEach(sn=>{const n=GS.npcs.find(n=>n.id===sn.id);if(n){n.lineIdx=sn.lineIdx;if(sn.quest)n.quest={...sn.quest}}});
+    g.npcs.forEach(sn=>{const n=GS.npcs.find(n=>n.id===sn.id);if(n){n.lineIdx=sn.lineIdx;if(sn.quest)n.quest={...sn.quest};if(sn.quest2&&n.quest2)n.quest2={...sn.quest2};if(sn.quest3&&n.quest3)n.quest3={...sn.quest3}}});
     return true;
   }catch(e){console.error('Load failed',e);return false}
 }
