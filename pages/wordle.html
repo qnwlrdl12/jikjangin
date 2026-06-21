@@ -286,11 +286,13 @@ const KB_STATE={};
 const KEYMAP={q:'ㅂ',w:'ㅈ',e:'ㄷ',r:'ㄱ',t:'ㅅ',y:'ㅛ',u:'ㅕ',i:'ㅑ',o:'ㅐ',p:'ㅔ',a:'ㅁ',s:'ㄴ',d:'ㅇ',f:'ㄹ',g:'ㅎ',h:'ㅗ',j:'ㅓ',k:'ㅏ',l:'ㅣ',z:'ㅋ',x:'ㅌ',c:'ㅊ',v:'ㅍ',b:'ㅠ',n:'ㅜ',m:'ㅡ',Q:'ㅃ',W:'ㅉ',E:'ㄸ',R:'ㄲ',T:'ㅆ',O:'ㅒ',P:'ㅖ'};
 const KB_ROWS=[['ㅂ','ㅈ','ㄷ','ㄱ','ㅅ','ㅛ','ㅕ','ㅑ','ㅐ','ㅔ'],['ㅁ','ㄴ','ㅇ','ㄹ','ㅎ','ㅗ','ㅓ','ㅏ','ㅣ'],['⌫','ㅋ','ㅌ','ㅊ','ㅍ','ㅠ','ㅜ','ㅡ','입력']];
 
+let lastWordIdx=-1;
 function newGame(){
   iAC();
-  const d=new Date();
-  const idx=((d.getFullYear()-2026)*366+d.getMonth()*31+d.getDate())%WORDS.length;
-  answer=WORDS[Math.abs(idx)].split('');
+  let idx;
+  do{idx=Math.floor(Math.random()*WORDS.length);}while(idx===lastWordIdx&&WORDS.length>1);
+  lastWordIdx=idx;
+  answer=WORDS[idx].split('');
   colsN=answer.length;
   guesses=Array.from({length:ROWS_N},()=>Array(colsN).fill(''));
   currentRow=0;currentTiles=Array(colsN).fill('');

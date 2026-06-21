@@ -294,11 +294,37 @@ footer {
   .section{ margin-bottom:60px; }
   .bento { grid-template-columns: repeat(2, 1fr); gap: 10px; }
   .bento-lg { grid-column: span 2; grid-row: span 1; }
+  /* 모바일 미지원 카드 숨김 */
+  .no-mobile { display: none !important; }
+  .mobile-only-notice { display: flex !important; }
 }
 @media(max-width:420px){
   .hero-title{ font-size:2.2rem; }
   .bento { grid-template-columns: 1fr; }
   .bento-lg, .bento-wide { grid-column: span 1; }
+}
+
+/* PC 전용 뱃지 */
+.badge-pc {
+  position:absolute; top:10px; right:10px;
+  background:rgba(255,255,255,0.1);
+  border:1px solid rgba(255,255,255,0.2);
+  color:rgba(255,255,255,0.6);
+  font-size:0.68rem; font-weight:700;
+  padding:3px 8px; border-radius:20px;
+  letter-spacing:0.04em;
+}
+/* 모바일 안내 배너 (기본 숨김, 모바일에서만 표시) */
+.mobile-only-notice {
+  display: none;
+  align-items: center; gap:12px;
+  background:rgba(255,107,53,0.12);
+  border:1px solid rgba(255,107,53,0.3);
+  border-radius:14px;
+  padding:14px 18px;
+  margin-bottom:12px;
+  font-size:0.82rem; color:rgba(255,200,170,0.9);
+  grid-column: 1 / -1;
 }
 
 /* ══ THEME TOGGLE BUTTON ══ */
@@ -663,7 +689,12 @@ html.light .footer-copy { color: var(--muted); }
       <p class="sec-desc">퇴근 5분 전 긴장 이완용 — 들키면 책임 못 짐</p>
     </div>
     <div class="bento">
-      <a href="pages/farm.html" class="card bento-lg" style="--card-ac:#22c55e">
+      <div class="mobile-only-notice">
+        <span style="font-size:1.4rem">📱</span>
+        <span>일부 게임은 키보드가 필요해 PC에서만 즐길 수 있어요. 모바일에서는 터치로 즐길 수 있는 게임만 표시됩니다.</span>
+      </div>
+      <a href="pages/farm.html" class="card bento-lg no-mobile" style="--card-ac:#22c55e">
+        <span class="badge-pc">⌨️ PC 전용</span>
         <div class="ci">⚔️</div>
         <div class="card-title">농장이야기</div>
         <div class="card-desc">낮엔 작물을 키워 골드를 모으고, 밤엔 몬스터로부터 신성한 석상을 수호하라! 농장 경영 + 타워 디펜스 — 15종 작물·방어시설·웨이브 시스템</div>
@@ -685,7 +716,8 @@ html.light .footer-copy { color: var(--muted); }
         </div>
         <span class="tag t-new">✨ 신규</span>
       </a>
-      <a href="pages/typing.html" class="card bento-wide" style="--card-ac:#FFD700">
+      <a href="pages/typing.html" class="card bento-wide no-mobile" style="--card-ac:#FFD700">
+        <span class="badge-pc">⌨️ PC 전용</span>
         <div class="ci">⌨️</div>
         <div class="card-title">직장인 타자 게임</div>
         <div class="card-desc">60초 안에 직장생활 문장 타이핑 — 분당 타수·정확도 실시간 측정, 최고 기록 자동 저장</div>
@@ -706,10 +738,11 @@ html.light .footer-copy { color: var(--muted); }
       <a href="pages/wordle.html" class="card" style="--card-ac:#FFD700">
         <div class="ci">🟩</div>
         <div class="card-title">한국어 워들</div>
-        <div class="card-desc">직장인 테마 5글자 단어 맞추기</div>
+        <div class="card-desc">직장인 테마 3~5글자 단어 맞추기 — 6번 안에 정답을 찾아라</div>
         <span class="tag t-fun">🎮 게임</span>
       </a>
-      <a href="pages/snake.html" class="card" style="--card-ac:#FFD700">
+      <a href="pages/snake.html" class="card no-mobile" style="--card-ac:#FFD700">
+        <span class="badge-pc">⌨️ PC 전용</span>
         <div class="ci">🐍</div>
         <div class="card-title">뱀 게임</div>
         <div class="card-desc">고전 뱀 게임 — 회의 중은 본인 책임</div>
@@ -739,7 +772,8 @@ html.light .footer-copy { color: var(--muted); }
         <div class="card-desc">서류더미를 피해 퇴근하라</div>
         <span class="tag t-fun">🎮 게임</span>
       </a>
-      <a href="pages/dodge.html" class="card" style="--card-ac:#FF6B35">
+      <a href="pages/dodge.html" class="card no-mobile" style="--card-ac:#FF6B35">
+        <span class="badge-pc">⌨️ PC 전용</span>
         <div class="ci">🏃</div>
         <div class="card-title">직장인 피하기</div>
         <div class="card-desc">쏟아지는 업무를 피해 버텨라</div>
