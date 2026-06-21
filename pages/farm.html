@@ -26,23 +26,28 @@ body{background:#fde8f0;display:flex;align-items:center;justify-content:center;w
 <body>
 <canvas id="c"></canvas>
 <div id="title">
-  <div class="t-deco" style="top:8%;left:6%">🌻</div>
-  <div class="t-deco" style="top:12%;right:8%">🍓</div>
-  <div class="t-deco" style="bottom:15%;left:10%">🥕</div>
-  <div class="t-deco" style="bottom:10%;right:12%">🌽</div>
-  <div class="t-deco" style="top:40%;left:3%">🐔</div>
-  <div class="t-deco" style="top:45%;right:4%">🐄</div>
+  <div class="t-deco" style="top:8%;left:6%">⚔️</div>
+  <div class="t-deco" style="top:12%;right:8%">💎</div>
+  <div class="t-deco" style="bottom:15%;left:10%">🌾</div>
+  <div class="t-deco" style="bottom:10%;right:12%">👾</div>
+  <div class="t-deco" style="top:40%;left:3%">🐰</div>
+  <div class="t-deco" style="top:45%;right:4%">💣</div>
   <div class="t-logo">🌾</div>
   <div class="t-title">농장이야기</div>
-  <div class="t-sub">Farm Story — 씨앗을 심고, 꿈을 키워요</div>
+  <div class="t-sub">낮엔 농사, 밤엔 수호 — 석상을 지켜라</div>
+  <div style="color:#9060c0;font-size:13px;margin-bottom:28px;line-height:1.8;text-align:center">
+    작물을 팔아 골드를 모으고, 방어시설을 지어 밤마다 습격해 오는<br>
+    몬스터로부터 신성한 <b style="color:#c050e0">💎 석상</b>을 수호하세요.<br>
+    웨이브가 거듭될수록 몬스터는 더 강해집니다.
+  </div>
   <div id="t-btns">
     <button class="t-btn" id="btn-continue" style="display:none;background:linear-gradient(to bottom,#4A90D9,#2A6AAD);box-shadow:0 6px 0 #1A4A8D,0 10px 30px rgba(0,0,0,0.5)" onclick="continueGame()">💾 이어하기</button>
     <button class="t-btn" id="btn-new" onclick="startGame(true)">🌱 새 게임</button>
   </div>
   <div id="t-saveinfo" style="color:#5a7a4a;font-size:13px;margin-top:10px;display:none"></div>
-  <div class="t-ctrl" style="margin-top:20px">
-    <span>방향키</span> 이동 &nbsp;|&nbsp; <span>E</span> 도구 사용 &nbsp;|&nbsp; <span>Space</span> 상호작용<br>
-    <span>1~7</span> 도구 선택 &nbsp;|&nbsp; <span>I</span> 인벤토리 &nbsp;|&nbsp; <span>Z</span> 수면 &nbsp;|&nbsp; <span>B</span> 방어 건설 &nbsp;|&nbsp; <span>Esc</span> 닫기
+  <div class="t-ctrl" style="margin-top:18px">
+    <span>방향키 / WASD</span> 이동 &nbsp;|&nbsp; <span>Shift</span> 달리기 &nbsp;|&nbsp; <span>E</span> 도구 &nbsp;|&nbsp; <span>Space</span> 상호작용<br>
+    <span>B</span> 방어 건설 &nbsp;|&nbsp; <span>N</span> 웨이브 시작 &nbsp;|&nbsp; <span>F</span> 현위치 건설 &nbsp;|&nbsp; <span>Z</span> 수면 &nbsp;|&nbsp; <span>I</span> 인벤토리
   </div>
 </div>
 <script>
