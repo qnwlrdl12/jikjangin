@@ -2299,7 +2299,7 @@ function renderWaveHUD(){
 
   // Placement mode hint
   if(GS.buildSelected&&!GS.buildMenuOpen){
-    const hs='F/Enter: 현 위치 건설  |  클릭: 원하는 위치  |  Esc: 취소';
+    const hs='F: 바라보는 곳에 건설  |  클릭: 원하는 위치  |  Esc: 취소';
     ctx.font='bold 12px "Malgun Gothic"';
     const hw=ctx.measureText(hs).width+28;
     ctx.fillStyle='rgba(80,50,180,0.9)';ctx.beginPath();ctx.roundRect(W/2-hw/2,H-72,hw,34,17);ctx.fill();
@@ -2493,19 +2493,8 @@ function render(){
   // Draw particles
   drawParticles();
 
-  // Defense placement: range preview circle
+  // Existing defense ranges shown during placement mode (comparison)
   if(GS.buildSelected&&!GS.buildMenuOpen){
-    const selDef=DEFENSE_DEFS[GS.buildSelected];
-    const ppx=GS.px-camX(),ppy=GS.py-camY();
-    // Selected defense range at player pos
-    if(selDef.range>0){
-      ctx.save();
-      ctx.strokeStyle='rgba(100,210,255,0.7)';ctx.lineWidth=2;ctx.setLineDash([8,6]);
-      ctx.beginPath();ctx.arc(ppx,ppy,selDef.range,0,Math.PI*2);ctx.stroke();
-      ctx.fillStyle='rgba(100,210,255,0.07)';ctx.fill();
-      ctx.setLineDash([]);ctx.restore();
-    }
-    // Existing defense ranges for comparison
     ctx.save();
     ctx.setLineDash([5,5]);ctx.lineWidth=1.5;
     for(const edef of GS.defenses){
@@ -2514,7 +2503,7 @@ function render(){
       const ex=edef.x-camX(),ey=edef.y-camY();
       const lvl=edef.level||1;
       const er=edefDef.range*(1+(lvl-1)*0.12);
-      ctx.strokeStyle='rgba(180,180,255,0.35)';
+      ctx.strokeStyle='rgba(180,180,255,0.3)';
       ctx.beginPath();ctx.arc(ex,ey,er,0,Math.PI*2);ctx.stroke();
     }
     ctx.setLineDash([]);ctx.restore();
@@ -2529,12 +2518,37 @@ function render(){
     GS.statueHit=Math.max(0,GS.statueHit-0.025);
   }
 
-  // Facing tile highlight
+  // Facing tile highlight / build placement preview
   if(!GS.dialog&&!GS.shopOpen&&!GS.invOpen&&!GS.buildMenuOpen){
     const {r,c}=facingTile();
     const fx=c*TILE-camX(),fy=r*TILE-camY();
-    ctx.strokeStyle='rgba(255,255,255,0.5)';ctx.lineWidth=2;
-    ctx.beginPath();ctx.roundRect(fx+2,fy+2,TILE-4,TILE-4,4);ctx.stroke();
+    if(GS.buildSelected){
+      // Build preview: colored tile + defense icon + canPlace indicator
+      const selDef=DEFENSE_DEFS[GS.buildSelected];
+      const placeable=canPlaceDefense(c*TILE+TILE/2,r*TILE+TILE/2);
+      const pulse=0.7+0.3*Math.sin(animFrame*0.14);
+      ctx.fillStyle=placeable?`rgba(80,200,120,${pulse*0.25})`:`rgba(220,60,60,${pulse*0.25})`;
+      ctx.beginPath();ctx.roundRect(fx+2,fy+2,TILE-4,TILE-4,4);ctx.fill();
+      ctx.strokeStyle=placeable?`rgba(80,220,120,${pulse})`:`rgba(220,80,80,${pulse})`;
+      ctx.lineWidth=2.5;ctx.beginPath();ctx.roundRect(fx+2,fy+2,TILE-4,TILE-4,4);ctx.stroke();
+      // Defense icon
+      ctx.font=`${TILE*0.55}px serif`;ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.globalAlpha=pulse*0.85;
+      ctx.fillText(selDef.icon,fx+TILE/2,fy+TILE/2);
+      ctx.globalAlpha=1;ctx.textBaseline='alphabetic';
+      // Range circle centered on facing tile
+      if(selDef.range>0){
+        const tcx=fx+TILE/2,tcy=fy+TILE/2;
+        ctx.save();
+        ctx.strokeStyle=`rgba(100,210,255,${pulse*0.7})`;ctx.lineWidth=2;ctx.setLineDash([8,6]);
+        ctx.beginPath();ctx.arc(tcx,tcy,selDef.range,0,Math.PI*2);ctx.stroke();
+        ctx.fillStyle=`rgba(100,210,255,0.06)`;ctx.fill();
+        ctx.setLineDash([]);ctx.restore();
+      }
+    } else {
+      ctx.strokeStyle='rgba(255,255,255,0.5)';ctx.lineWidth=2;
+      ctx.beginPath();ctx.roundRect(fx+2,fy+2,TILE-4,TILE-4,4);ctx.stroke();
+    }
   }
 
   // UI layers
@@ -2692,16 +2706,18 @@ function update(dt){
     startWave();
   }
 
-  // F key: place selected defense at current player position
+  // F key: place selected defense at FACING tile (matches preview highlight)
   if(GS.buildSelected&&!GS.buildMenuOpen){
     if(justPressed('KeyF')){
-      if(canPlaceDefense(GS.px,GS.py)){
+      const {r:pfr,c:pfc}=facingTile();
+      const pfx=pfc*TILE+TILE/2,pfy=pfr*TILE+TILE/2;
+      if(canPlaceDefense(pfx,pfy)){
         const def=DEFENSE_DEFS[GS.buildSelected];
         if(GS.money>=def.cost){
           GS.money-=def.cost;
-          GS.defenses.push({type:GS.buildSelected,x:GS.px,y:GS.py,hp:def.maxHp,atkCd:0,level:1});
+          GS.defenses.push({type:GS.buildSelected,x:pfx,y:pfy,hp:def.maxHp,atkCd:0,level:1});
           notify(`${def.name} 건설! (-${def.cost}G)`,'#80c0ff');
-          spawnParticles(GS.px,GS.py,'#80c0ff',8);
+          spawnParticles(pfx,pfy,'#80c0ff',8);
           GS.buildSelected=null;
         } else notify('돈이 부족합니다!','#E53935');
       } else notify('이곳에는 건설할 수 없습니다.','#FF8040');
