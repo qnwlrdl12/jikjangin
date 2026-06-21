@@ -3223,6 +3223,11 @@ function update(dt){
   // Game over — only restart button works
   if(GS.gameOver){
     GS.notes=GS.notes.filter(n=>{n.timer-=dt;return n.timer>0});
+    if(justPressed('Enter')||justPressed('Space')){
+      GS.farmHP=GS.farmMaxHP;GS.monsters=[];GS.defenses=[];GS.projectiles=[];
+      GS.gameOver=false;GS.waveNum=0;GS.waveActive=false;GS.waveQueue=[];
+      GS.waveTriggeredToday=false;GS.money=500;GS.day=1;
+    }
     clearJust();return;
   }
 
