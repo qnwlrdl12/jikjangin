@@ -47,7 +47,7 @@ body{background:#fde8f0;display:flex;align-items:center;justify-content:center;w
   <div id="t-saveinfo" style="color:#5a7a4a;font-size:13px;margin-top:10px;display:none"></div>
   <div class="t-ctrl" style="margin-top:18px">
     <span>방향키 / WASD</span> 이동 &nbsp;|&nbsp; <span>Shift</span> 달리기 &nbsp;|&nbsp; <span>E</span> 도구 &nbsp;|&nbsp; <span>Space</span> 상호작용<br>
-    <span>B</span> 방어 건설 &nbsp;|&nbsp; <span>N</span> 웨이브 시작 &nbsp;|&nbsp; <span>F</span> 현위치 건설 &nbsp;|&nbsp; <span>Z</span> 수면 &nbsp;|&nbsp; <span>I</span> 인벤토리
+    <span>B</span> 방어 건설 &nbsp;|&nbsp; <span>U</span> 방어시설 업그레이드 &nbsp;|&nbsp; <span>N</span> 웨이브 시작 &nbsp;|&nbsp; <span>F</span> 현위치 건설 &nbsp;|&nbsp; <span>Z</span> 수면 &nbsp;|&nbsp; <span>I</span> 인벤토리
   </div>
 </div>
 <script>
@@ -3369,6 +3369,32 @@ function update(dt){
   const {r:fr,c:fc}=facingTile();
   if(world.tiles[fr]&&(world.tiles[fr][fc]===T.WELL||world.tiles[fr][fc]===T.WATER)){
     if(justPressed('KeyE')){GS.waterCan=GS.maxWater;notify('물통을 채웠습니다! 💧','#6BC4FF');}
+  }
+
+  // U키 — 바라보는 타일의 방어시설 업그레이드
+  if(justPressed('KeyU')){
+    const wx=(fc+0.5)*TILE, wy=(fr+0.5)*TILE;
+    let upgraded=false;
+    for(const d of GS.defenses){
+      if(Math.hypot(wx-d.x,wy-d.y)<TILE*0.9){
+        const def=DEFENSE_DEFS[d.type];
+        const lvl=d.level||1;
+        if(lvl>=5){notify('최대 레벨입니다! (Lv.5)','#FFD700');}
+        else{
+          const upgCost=Math.floor(def.cost*1.4*lvl);
+          if(GS.money>=upgCost){
+            GS.money-=upgCost;d.level=lvl+1;
+            d.hp=Math.min(d.hp+Math.floor(def.maxHp*0.6),def.maxHp*d.level);
+            notify(`${def.name} Lv.${d.level} 업그레이드! (-${upgCost}G)`,'#80ffff');
+            spawnParticles(d.x,d.y,'#80ffff',10);
+          }else{
+            notify(`업그레이드 비용: ${upgCost}G (${lvl}→${lvl+1}레벨)  부족!`,'#FF8040');
+          }
+        }
+        upgraded=true;break;
+      }
+    }
+    if(!upgraded)notify('방향 앞에 방어시설이 없습니다.','#999');
   }
 
   clearJust();
