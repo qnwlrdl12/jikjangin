@@ -1037,6 +1037,25 @@ function drawDefense(d){
       ctx.fillStyle='rgba(255,255,255,0.15)';ctx.beginPath();ctx.roundRect(-12,-20,24,4,2);ctx.fill();
       break;
     case 'scarecrow':
+      // Slow aura when monsters in range
+      {const hasTarget=GS.monsters&&GS.monsters.some(m2=>Math.hypot(d.x-m2.x,d.y-m2.y)<def.range);
+      if(hasTarget){
+        const pulse=0.35+0.25*Math.sin(animFrame*0.16);
+        // range ring
+        ctx.strokeStyle=`rgba(80,180,255,${pulse*0.9})`;ctx.lineWidth=2;
+        ctx.setLineDash([7,6]);
+        ctx.beginPath();ctx.arc(0,-20,def.range,0,Math.PI*2);ctx.stroke();
+        ctx.setLineDash([]);
+        // inner fill
+        ctx.fillStyle=`rgba(80,160,255,${pulse*0.08})`;
+        ctx.beginPath();ctx.arc(0,-20,def.range,0,Math.PI*2);ctx.fill();
+        // orbiting snowflakes
+        ctx.fillStyle=`rgba(160,220,255,${pulse*1.2})`;ctx.font='12px serif';ctx.textAlign='center';
+        for(let si=0;si<3;si++){
+          const sa=animFrame*0.07+si*Math.PI*2/3;
+          ctx.fillText('❄',Math.cos(sa)*22,-20+Math.sin(sa)*22);
+        }
+      }}
       ctx.fillStyle='#a07840';ctx.fillRect(-3,-2,6,22);ctx.fillRect(-15,4,30,5);
       ctx.fillStyle='#384018';ctx.beginPath();ctx.roundRect(-11,-26,22,11,3);ctx.fill();
       ctx.fillStyle='#506020';ctx.beginPath();ctx.roundRect(-15,-18,30,5,2);ctx.fill();
@@ -1188,6 +1207,18 @@ function drawMonster(m){
       ctx.beginPath();ctx.moveTo(-7,-10);ctx.lineTo(-5,-3);ctx.lineTo(-3,-10);ctx.fill();
       ctx.beginPath();ctx.moveTo(1,-10);ctx.lineTo(3,-3);ctx.lineTo(5,-10);ctx.fill();
       break;}
+  }
+  // Slow indicator — orbiting snowflakes
+  if(m.slowed>0){
+    const sf=animFrame*0.09;
+    ctx.font='11px serif';ctx.textAlign='center';
+    for(let si=0;si<3;si++){
+      const sa=sf+si*Math.PI*2/3;
+      const sr=m.size+5;
+      ctx.globalAlpha=Math.min(1,m.slowed/0.4)*0.85;
+      ctx.fillText('❄',Math.cos(sa)*sr,Math.sin(sa)*sr-m.size*0.3);
+    }
+    ctx.globalAlpha=1;
   }
   // Attack flash & slash arc
   if(atkProg>0){
@@ -1455,19 +1486,22 @@ function updateWave(dt){
     }
     if(!blockedByWall&&dist>2){
       const spd=m.spd*(m.slowed>0?0.45:1)*dt;
-      // Steer around walls (repulsion from nearby wall defenses)
+      // Steer around walls — normalized so speed stays constant
       let steerX=0,steerY=0;
       for(const wd of GS.defenses){
         if(wd.type!=='wall')continue;
         const wdx=m.x-wd.x,wdy=m.y-wd.y,wdist=Math.hypot(wdx,wdy);
-        if(wdist>0&&wdist<TILE*2.4){
-          const push=(TILE*2.4-wdist)/(TILE*2.4);
-          steerX+=wdx/wdist*push*2.5;
-          steerY+=wdy/wdist*push*2.5;
+        if(wdist>0&&wdist<TILE*2.2){
+          const push=(TILE*2.2-wdist)/(TILE*2.2);
+          steerX+=wdx/wdist*push;
+          steerY+=wdy/wdist*push;
         }
       }
-      m.x+=(dx/dist+steerX)*spd;
-      m.y+=(dy/dist+steerY)*spd;
+      const mvx=dx/dist+steerX*0.9;
+      const mvy=dy/dist+steerY*0.9;
+      const mvLen=Math.hypot(mvx,mvy)||1;
+      m.x+=(mvx/mvLen)*spd;
+      m.y+=(mvy/mvLen)*spd;
       // Trample crops
       m.trampleCd=(m.trampleCd||0)-dt;
       if(m.trampleCd<=0){
