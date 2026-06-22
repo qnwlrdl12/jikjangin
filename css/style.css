@@ -739,7 +739,7 @@ html.light .sk-box.mul .val { color: #1a7a10 !important; text-shadow: none !impo
 
 /* RESPONSIVE */
 @media (max-width: 768px) {
-  .nav-links { display: none; }
+  .nav-links li:not(.nav-novel) { display: none; }
   .hero { padding: 48px 16px 40px; }
   .hero-stats { gap: 24px; }
   .card-grid { grid-template-columns: repeat(2, 1fr); }
