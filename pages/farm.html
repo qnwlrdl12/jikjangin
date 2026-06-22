@@ -4367,9 +4367,8 @@ function loop(ts){
   lastTime=ts;
   animFrame++;
   if(gameRunning&&GS){
-    const mult=gameMode==='defense'?defSpeedMult:1;
-    const subDt=rawDt/mult;
-    for(let i=0;i<mult;i++)update(subDt);
+    const dt=gameMode==='defense'?rawDt*defSpeedMult:rawDt;
+    update(dt);
     render();
   }
   requestAnimationFrame(loop);
