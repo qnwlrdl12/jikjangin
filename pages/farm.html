@@ -120,6 +120,133 @@ const HOUSE_X=31*TILE+TILE/2,HOUSE_Y=11*TILE+TILE/2;
 const DEF_HX=40*TILE+TILE/2,DEF_HY=30*TILE+TILE/2; // defense mode castle center
 let curHX=HOUSE_X,curHY=HOUSE_Y; // current mode target (dynamic)
 
+// ── GACHA TOWER SYSTEM ─────────────────────────
+const GRADE_COLOR={C:'#90c8ff',B:'#60e060',A:'#ffd060',S:'#ff80ff',SS:'#ff5050'};
+const GRADE_UPG={C:80,B:180,A:380,S:750,SS:1500}; // upgrade cost per level
+
+const GACHA_TOWERS={
+  // ── C급 (6개) ─────────────────────────────────
+  c_fire_bow:{name:'화염 궁수',icon:'🏹',grade:'C',attr:'화염',gacha:true,
+    cost:0,maxHp:80,atk:24,range:TILE*4.5,delay:1.2,special:'burn',
+    desc:'화살 명중 시 2초 화상 (8dmg/s)'},
+  c_ice_aura:{name:'빙결 오라',icon:'❄️',grade:'C',attr:'빙결',gacha:true,
+    cost:0,maxHp:100,atk:6,range:TILE*2.8,delay:0,special:'slow_aura',
+    desc:'범위 내 속도 50% 감소 + 빙결 지속 피해'},
+  c_poison_dart:{name:'독침 탑',icon:'💉',grade:'C',attr:'독',gacha:true,
+    cost:0,maxHp:70,atk:18,range:TILE*4,delay:1.5,special:'poison',
+    desc:'명중 시 3초 중독 (5dmg/s)'},
+  c_holy_bell:{name:'신성 종',icon:'🔔',grade:'C',attr:'신성',gacha:true,
+    cost:0,maxHp:90,atk:20,range:TILE*3.5,delay:2.2,special:'holy_aoe',
+    desc:'광역 신성 공격 — 언데드·악마 1.8배'},
+  c_earth_spike:{name:'대지 창탑',icon:'🪨',grade:'C',attr:'대지',gacha:true,
+    cost:0,maxHp:120,atk:28,range:TILE*3,delay:2.5,special:'pierce',
+    desc:'관통 피격 (+40% 공격력)'},
+  c_wind_fan:{name:'바람개비',icon:'🌀',grade:'C',attr:'바람',gacha:true,
+    cost:0,maxHp:65,atk:14,range:TILE*3,delay:0.7,special:'push',
+    desc:'빠른 공격 + 소형 넉백'},
+
+  // ── B급 (8개) ─────────────────────────────────
+  b_fire_bomb:{name:'화염 투석기',icon:'💥',grade:'B',attr:'화염',gacha:true,
+    cost:0,maxHp:130,atk:58,range:TILE*4,delay:3,special:'burn_aoe',
+    desc:'폭발 광역 + 화상 DoT'},
+  b_lightning_rod:{name:'번개 피뢰침',icon:'⚡',grade:'B',attr:'번개',gacha:true,
+    cost:0,maxHp:90,atk:32,range:TILE*5.5,delay:1.5,special:'chain',chainCount:2,
+    desc:'번개 2연쇄'},
+  b_frost_field:{name:'서리 마법진',icon:'🌨️',grade:'B',attr:'빙결',gacha:true,
+    cost:0,maxHp:110,atk:9,range:TILE*3.8,delay:0,special:'slow_aura',
+    desc:'넓은 범위 감속 + 빙결 피해'},
+  b_poison_mushroom:{name:'독버섯탑',icon:'🍄',grade:'B',attr:'독',gacha:true,
+    cost:0,maxHp:85,atk:42,range:TILE*3.5,delay:2.5,special:'poison_aoe',
+    desc:'독 포자 광역 살포'},
+  b_holy_cross:{name:'성수 십자가',icon:'✝️',grade:'B',attr:'신성',gacha:true,
+    cost:0,maxHp:115,atk:48,range:TILE*5,delay:2,special:'holy_aoe',
+    desc:'신성 광역 (언데드·악마 1.8배)'},
+  b_dark_leech:{name:'저주 거머리',icon:'🩸',grade:'B',attr:'암흑',gacha:true,
+    cost:0,maxHp:80,atk:38,range:TILE*4.5,delay:1.8,special:'drain',
+    desc:'흡혈 공격 → 석상 HP 회복'},
+  b_rock_throw:{name:'바위 투석기',icon:'🗿',grade:'B',attr:'대지',gacha:true,
+    cost:0,maxHp:155,atk:65,range:TILE*3.5,delay:3.2,special:'pierce_aoe',
+    desc:'광역 관통 폭발'},
+  b_wind_shot:{name:'질풍탑',icon:'💨',grade:'B',attr:'바람',gacha:true,
+    cost:0,maxHp:75,atk:30,range:TILE*5.5,delay:0.9,special:'push',
+    desc:'빠른 연속 공격 + 넉백'},
+
+  // ── A급 (10개) ────────────────────────────────
+  a_fire_dragon:{name:'화염 드래곤',icon:'🐉',grade:'A',attr:'화염',gacha:true,
+    cost:0,maxHp:180,atk:95,range:TILE*5.5,delay:2.5,special:'burn_aoe',
+    desc:'드래곤 화염 광역 + 강한 화상'},
+  a_storm_mage:{name:'폭풍 마법사',icon:'🧙',grade:'A',attr:'번개',gacha:true,
+    cost:0,maxHp:130,atk:65,range:TILE*6,delay:1.8,special:'chain',chainCount:3,
+    desc:'번개 3연쇄'},
+  a_frost_fortress:{name:'빙결 성채',icon:'🏰',grade:'A',attr:'빙결',gacha:true,
+    cost:0,maxHp:220,atk:75,range:TILE*4.5,delay:2.8,special:'push_aoe',
+    desc:'빙결 광역 폭발 + 넉백'},
+  a_poison_cloud:{name:'독구름 탑',icon:'☁️',grade:'A',attr:'독',gacha:true,
+    cost:0,maxHp:105,atk:55,range:TILE*5.5,delay:2,special:'poison_aoe',
+    desc:'광역 독구름 — 넓은 중독'},
+  a_holy_angel:{name:'수호 천사',icon:'👼',grade:'A',attr:'신성',gacha:true,
+    cost:0,maxHp:145,atk:85,range:TILE*5.5,delay:2,special:'holy_drain',
+    desc:'신성 광역 + 흡혈'},
+  a_vampire:{name:'흡혈귀 탑',icon:'🧛',grade:'A',attr:'암흑',gacha:true,
+    cost:0,maxHp:135,atk:70,range:TILE*5,delay:1.5,special:'drain',
+    desc:'강력한 흡혈 공격'},
+  a_earth_wall:{name:'대지 골렘',icon:'🗿',grade:'A',attr:'대지',gacha:true,
+    cost:0,maxHp:600,atk:0,range:0,delay:0,special:'wall',
+    desc:'초고체력 장벽 — 이동 차단'},
+  a_whirlwind:{name:'회오리탑',icon:'🌪️',grade:'A',attr:'바람',gacha:true,
+    cost:0,maxHp:115,atk:58,range:TILE*4.5,delay:1.5,special:'push_aoe',
+    desc:'회오리 광역 + 강한 넉백'},
+  a_volcano:{name:'화산탑',icon:'🌋',grade:'A',attr:'화염',gacha:true,
+    cost:0,maxHp:190,atk:110,range:TILE*5,delay:4,special:'burn_aoe',
+    desc:'화산 분출 강력 광역 + 격렬한 화상'},
+  a_thunder_eel:{name:'전기 장어탑',icon:'🐟',grade:'A',attr:'번개',gacha:true,
+    cost:0,maxHp:110,atk:48,range:TILE*6,delay:1.2,special:'chain',chainCount:4,
+    desc:'번개 4연쇄'},
+
+  // ── S급 (4개) ─────────────────────────────────
+  S_phoenix:{name:'불사조 탑',icon:'🦅',grade:'S',attr:'화염',gacha:true,
+    cost:0,maxHp:250,atk:155,range:TILE*6.5,delay:2,special:'burn_aoe',
+    desc:'불사조 화염 광역 + 맹렬한 화상'},
+  S_thunderstorm:{name:'폭풍 탑',icon:'🌩️',grade:'S',attr:'번개',gacha:true,
+    cost:0,maxHp:180,atk:125,range:TILE*7,delay:1.5,special:'chain',chainCount:5,
+    desc:'번개 폭풍 5연쇄'},
+  S_frost_queen:{name:'서리 여왕',icon:'👸',grade:'S',attr:'빙결',gacha:true,
+    cost:0,maxHp:200,atk:140,range:TILE*7,delay:2.5,special:'slow_aura',
+    desc:'광역 빙결 아우라 — 강력 감속'},
+  S_archangel:{name:'대천사',icon:'⚜️',grade:'S',attr:'신성',gacha:true,
+    cost:0,maxHp:240,atk:145,range:TILE*7,delay:2,special:'holy_drain',
+    desc:'신성 광역 + 대량 흡혈'},
+
+  // ── SS급 (2개) ────────────────────────────────
+  SS_dragon_god:{name:'용신',icon:'🐲',grade:'SS',attr:'화염',gacha:true,
+    cost:0,maxHp:350,atk:260,range:TILE*7.5,delay:2.5,special:'burn_aoe',
+    desc:'신화급 전체 광역 화염 + 맹렬한 화상'},
+  SS_zeus:{name:'제우스',icon:'⚡',grade:'SS',attr:'번개',gacha:true,
+    cost:0,maxHp:280,atk:210,range:TILE*8,delay:1.5,special:'chain',chainCount:999,
+    desc:'번개가 모든 적에게 연쇄'},
+};
+Object.assign(DEFENSE_DEFS,GACHA_TOWERS);
+
+// Precompute gacha grade buckets
+const GACHA_BY_GRADE={};
+(function(){
+  for(const k of Object.keys(GACHA_TOWERS)){
+    const g=GACHA_TOWERS[k].grade;
+    if(!GACHA_BY_GRADE[g])GACHA_BY_GRADE[g]=[];
+    GACHA_BY_GRADE[g].push(k);
+  }
+})();
+const GACHA_PROB=[{g:'C',p:0.50},{g:'B',p:0.30},{g:'A',p:0.15},{g:'S',p:0.04},{g:'SS',p:0.01}];
+
+function gradeUpgCost(grade,lvl){return Math.floor((GRADE_UPG[grade]||80)*lvl);}
+
+function gachaDraw(){
+  const r=Math.random();let acc=0,grade='C';
+  for(const{g,p}of GACHA_PROB){acc+=p;if(r<acc){grade=g;break;}}
+  const pool=GACHA_BY_GRADE[grade];
+  return pool[Math.floor(Math.random()*pool.length)];
+}
+
 // ── CROPS ──────────────────────────────────────
 const CROPS={
   parsnip:    {name:'파스닙',   icon:'🌿',days:4, sell:35, seed:10, seasons:[0],   color:'#F5CBA7'},
@@ -458,6 +585,10 @@ function initDefenseGS(){
     craftedCount:0,fishedCount:0,animalProductCount:0,wavesCleared:0,
     barnOpen:false,barnIdx:0,_barnBtns:[],
     _shopBtns:[],_sellBtns:[],
+    // ── GACHA ─────────────────────────────────────
+    hand:[],           // drawn tower type keys not yet placed
+    gachaOpen:false,
+    handIdx:0,
   };
 }
 
@@ -1295,6 +1426,36 @@ function drawDefense(d){
       ctx.fillStyle='rgba(255,255,255,0.7)';
       for(let i=0;i<4;i++){const a=animFrame*0.06+i*Math.PI/2;circ(Math.cos(a)*8,-24+Math.sin(a)*8,1.5,'rgba(255,255,255,0.7)')}
       break;
+    default:{
+      // Generic gacha crystal tower
+      const gc=GRADE_COLOR[def?.grade]||'#90c8ff';
+      const pulse=0.7+0.3*Math.sin(animFrame*0.1);
+      // Slow-aura ring
+      if(def?.special==='slow_aura'){
+        const ht=GS.monsters&&GS.monsters.some(m2=>Math.hypot(d.x-m2.x,d.y-m2.y)<def.range);
+        if(ht){ctx.strokeStyle=`rgba(80,180,255,${pulse*0.7})`;ctx.lineWidth=1.5;ctx.setLineDash([6,5]);ctx.beginPath();ctx.arc(0,-10,def.range,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);}
+      }
+      // Base platform
+      ctx.fillStyle='#706080';ctx.beginPath();ctx.roundRect(-14,6,28,14,3);ctx.fill();
+      // Crystal obelisk
+      ctx.fillStyle=gc+'cc';
+      ctx.beginPath();ctx.moveTo(0,-44);ctx.lineTo(-8,-18);ctx.lineTo(-10,6);ctx.lineTo(10,6);ctx.lineTo(8,-18);ctx.closePath();ctx.fill();
+      // Highlight
+      ctx.fillStyle='rgba(255,255,255,0.22)';
+      ctx.beginPath();ctx.moveTo(0,-44);ctx.lineTo(-5,-18);ctx.lineTo(-7,6);ctx.lineTo(-4,6);ctx.closePath();ctx.fill();
+      // Glow
+      const cg=ctx.createRadialGradient(0,-32,0,0,-32,11);
+      cg.addColorStop(0,gc+'ee');cg.addColorStop(1,gc+'00');
+      ctx.fillStyle=cg;ctx.beginPath();ctx.arc(0,-32,11,0,Math.PI*2);ctx.fill();
+      // Icon + grade
+      ctx.globalAlpha=pulse;
+      ctx.font='13px serif';ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillText(def?.icon||'💎',0,-34);
+      ctx.globalAlpha=1;ctx.textBaseline='alphabetic';
+      ctx.font='bold 8px "Malgun Gothic"';ctx.fillStyle=gc;
+      ctx.fillText(def?.grade||'?',0,3);
+      break;
+    }
   }
   // HP bar (always show during wave, otherwise when damaged)
   const effMaxHp=def.maxHp*(d.level||1);
@@ -1780,11 +1941,14 @@ function updateWave(dt){
       GS.monsters.splice(i,1);continue;
     }
     const dx=curHX-m.x,dy=curHY-m.y,dist=Math.hypot(dx,dy);
+    // Burn / poison DoT
+    if(m.burn>0){m.hp-=8*dt;m.burn-=dt;}
+    if(m.poison>0){m.hp-=5*dt;m.poison-=dt;}
     // Wall check
     let blockedByWall=false;
     for(let wi=GS.defenses.length-1;wi>=0;wi--){
       const d=GS.defenses[wi];
-      if(d.type!=='wall')continue;
+      if(d.type!=='wall'&&DEFENSE_DEFS[d.type]?.special!=='wall')continue;
       const wd=Math.hypot(d.x-m.x,d.y-m.y);
       if(wd<TILE*1.1){
         blockedByWall=true;
@@ -1843,7 +2007,8 @@ function updateWave(dt){
     const def=DEFENSE_DEFS[d.type];
     if(!d.atkCd)d.atkCd=0;
     d.atkCd-=dt;
-    if(d.type==='scarecrow'){
+    const sp=def.special||'';
+    if(d.type==='scarecrow'||sp==='slow_aura'){
       const lvl=d.level||1;
       const effAtk=def.atk*(1+(lvl-1)*0.4)*(1+GS.waveNum*0.05);
       for(const m of GS.monsters){
@@ -1852,6 +2017,8 @@ function updateWave(dt){
           m.hp-=effAtk*dt;
         }
       }
+    } else if(sp==='wall'){
+      // wall type: handled by monster collision above
     } else if(def.atk>0&&d.atkCd<=0){
       const lvl=d.level||1;
       const effRange=def.range*(1+(lvl-1)*0.12);
@@ -1860,14 +2027,46 @@ function updateWave(dt){
       for(const m of GS.monsters){const md=Math.hypot(d.x-m.x,d.y-m.y);if(md<effRange&&md<nearDist){nearest=m;nearDist=md}}
       if(nearest){
         d.atkCd=Math.max(0.4,def.delay*(1-(lvl-1)*0.1));
-        const isAoE=(d.type==='cannon'||d.type==='magetower');
+        const isAoE=d.type==='cannon'||d.type==='magetower'||sp.includes('aoe');
+        const DARK_TYPES=['demon','boss','skeleton','wraith'];
+        const holyMult=(sp.includes('holy')&&DARK_TYPES.includes(nearest.type))?1.8:1;
+        const pierceMult=sp==='pierce'||sp==='pierce_aoe'?1.4:1;
+        const finalAtk=effAtk*holyMult*pierceMult;
         if(isAoE){
-          const aoeR=TILE*(d.type==='cannon'?1.8:2.5)*(1+(lvl-1)*0.15);
-          GS.monsters.forEach(m=>{if(Math.hypot(nearest.x-m.x,nearest.y-m.y)<aoeR)m.hp-=effAtk});
+          const aoeR=TILE*(d.type==='cannon'?1.8:d.type==='magetower'?2.5:def.range*0.4/TILE)*(1+(lvl-1)*0.15);
+          GS.monsters.forEach(m=>{
+            if(Math.hypot(nearest.x-m.x,nearest.y-m.y)<aoeR){
+              const hm=(sp.includes('holy')&&DARK_TYPES.includes(m.type))?1.8:1;
+              m.hp-=finalAtk*hm/holyMult; // re-apply per-monster holy mult
+              if(sp.includes('burn'))m.burn=Math.max(m.burn||0,2.5);
+              if(sp.includes('poison'))m.poison=Math.max(m.poison||0,3);
+              if(sp.includes('push')){const pdx=m.x-d.x,pdy=m.y-d.y,pl=Math.hypot(pdx,pdy)||1;m.x+=pdx/pl*TILE*1.5;m.y+=pdy/pl*TILE*1.5;}
+            }
+          });
+          if(sp.includes('drain'))GS.farmHP=Math.min(GS.farmMaxHP,GS.farmHP+finalAtk*0.1);
         } else {
-          nearest.hp-=effAtk;
+          nearest.hp-=finalAtk;
+          if(sp.includes('burn'))nearest.burn=Math.max(nearest.burn||0,2.5);
+          if(sp.includes('poison'))nearest.poison=Math.max(nearest.poison||0,3);
+          if(sp==='push'){{const pdx=nearest.x-d.x,pdy=nearest.y-d.y,pl=Math.hypot(pdx,pdy)||1;nearest.x+=pdx/pl*TILE*2;nearest.y+=pdy/pl*TILE*2;}}
+          if(sp.includes('drain'))GS.farmHP=Math.min(GS.farmMaxHP,GS.farmHP+finalAtk*0.18);
+          // Chain lightning
+          if(sp==='chain'){
+            let cc=def.chainCount||2,last=nearest;
+            const visited=new Set([nearest]);
+            while(cc-->0){
+              let ct=null,cd2=Infinity;
+              for(const m of GS.monsters){if(visited.has(m))continue;const d2=Math.hypot(m.x-last.x,m.y-last.y);if(d2<TILE*5&&d2<cd2){ct=m;cd2=d2;}}
+              if(!ct)break;
+              visited.add(ct);
+              ct.hp-=finalAtk*0.55;
+              if(sp.includes('burn'))ct.burn=Math.max(ct.burn||0,1.5);
+              GS.projectiles.push({x:last.x,y:last.y,tx:ct.x,ty:ct.y,type:d.type,life:0.5,spd:14});
+              last=ct;
+            }
+          }
         }
-        GS.projectiles.push({x:d.x,y:d.y,tx:nearest.x,ty:nearest.y,type:d.type,life:1,spd:d.type==='archer'?9:6});
+        GS.projectiles.push({x:d.x,y:d.y,tx:nearest.x,ty:nearest.y,type:d.type,life:1,spd:d.type==='archer'?9:7});
       }
     }
   }
@@ -2955,47 +3154,163 @@ function renderSleep(){
 // ── BUILD MENU UI ──────────────────────────────
 function renderBuildMenu(){
   GS._buildBtns=[];
-  const mw=380,mh=420;
+  const mw=400,mh=Math.min(window.innerHeight-40,540);
   const mx=(W-mw)/2,my=(H-mh)/2;
-  ctx.fillStyle='rgba(0,0,0,0.52)';ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='rgba(0,0,0,0.55)';ctx.fillRect(0,0,W,H);
   ctx.fillStyle='rgba(238,234,255,0.97)';ctx.beginPath();ctx.roundRect(mx,my,mw,mh,16);ctx.fill();
   ctx.strokeStyle='rgba(120,80,200,0.5)';ctx.lineWidth=2;ctx.beginPath();ctx.roundRect(mx,my,mw,mh,16);ctx.stroke();
-  rr(mx,my,mw,46,12,'#6050a0');
-  txtShadow('🏰 방어 구조물 건설',mx+mw/2,my+30,18,'#fff','rgba(0,0,0,0.3)','center');
 
-  const defKeys=Object.keys(DEFENSE_DEFS);
-  GS.buildMenuIdx=Math.min(GS.buildMenuIdx,defKeys.length-1);
-  let row=0;
-  Object.entries(DEFENSE_DEFS).forEach(([key,def])=>{
-    const bx=mx+14,by=my+56+row*66;
-    const focused=row===GS.buildMenuIdx;
-    ctx.fillStyle=focused?'rgba(170,150,255,0.62)':'rgba(215,205,255,0.5)';
-    ctx.beginPath();ctx.roundRect(bx,by,mw-28,58,10);ctx.fill();
-    if(focused){
-      ctx.strokeStyle='#6040c8';ctx.lineWidth=2.5;ctx.beginPath();ctx.roundRect(bx,by,mw-28,58,10);ctx.stroke();
-      // Left arrow indicator
-      ctx.fillStyle='#6040c8';ctx.font='16px serif';ctx.textAlign='left';ctx.fillText('▶',bx-2,by+35);
+  if(gameMode==='defense'){
+    // ── 디펜스 모드: 패 목록 ──────────────────────
+    rr(mx,my,mw,46,12,'#3d2070');
+    txtShadow(`🎴 패 목록 (${GS.hand.length}장)`,mx+mw/2,my+30,17,'#fff','rgba(0,0,0,0.3)','center');
+    if(GS.hand.length===0){
+      txtShadow('패가 없습니다. G키로 뽑기하세요.',mx+mw/2,my+mh/2,15,'#9070c0','rgba(0,0,0,0.2)','center');
+    } else {
+      // Unique types with count
+      const counts={};
+      for(const k of GS.hand)counts[k]=(counts[k]||0)+1;
+      const entries=Object.keys(counts).map(k=>({key:k,cnt:counts[k],def:DEFENSE_DEFS[k]}));
+      GS.buildMenuIdx=Math.min(GS.buildMenuIdx,entries.length-1);
+      let row=0;
+      const rowH=64,visH=mh-90,startRow=Math.max(0,GS.buildMenuIdx-Math.floor(visH/rowH/2));
+      for(let i=startRow;i<entries.length&&(i-startRow)*rowH<visH;i++){
+        const {key,cnt,def}=entries[i];
+        const bx=mx+12,by=my+54+(i-startRow)*rowH;
+        const focused=i===GS.buildMenuIdx;
+        const gc=GRADE_COLOR[def.grade]||'#90c8ff';
+        ctx.fillStyle=focused?'rgba(100,60,200,0.2)':'rgba(210,200,250,0.45)';
+        ctx.beginPath();ctx.roundRect(bx,by,mw-24,56,10);ctx.fill();
+        if(focused){ctx.strokeStyle=gc;ctx.lineWidth=2;ctx.beginPath();ctx.roundRect(bx,by,mw-24,56,10);ctx.stroke();}
+        // Grade pill
+        ctx.fillStyle=gc+'cc';ctx.beginPath();ctx.roundRect(bx+8,by+8,28,18,9);ctx.fill();
+        ctx.font='bold 10px "Malgun Gothic"';ctx.textAlign='center';ctx.fillStyle='#fff';ctx.fillText(def.grade,bx+22,by+21);
+        // Icon
+        ctx.font='22px serif';ctx.textAlign='left';ctx.textBaseline='middle';
+        ctx.fillText(def.icon,bx+42,by+28);ctx.textBaseline='alphabetic';
+        // Name + attr
+        ctx.font='bold 13px "Malgun Gothic"';ctx.textAlign='left';ctx.fillStyle='#2010a0';
+        ctx.fillText(def.name,bx+72,by+22);
+        ctx.font='10px "Malgun Gothic"';ctx.fillStyle='#6050a0';
+        ctx.fillText(`[${def.attr}] ${def.desc}`,bx+72,by+39);
+        // Count badge
+        ctx.fillStyle='rgba(80,40,160,0.85)';ctx.beginPath();ctx.roundRect(bx+mw-56,by+14,42,28,14);ctx.fill();
+        ctx.font='bold 13px "Malgun Gothic"';ctx.textAlign='center';ctx.fillStyle='#fff';
+        ctx.fillText(`×${cnt}`,bx+mw-35,by+32);
+        GS._buildBtns.push({x:bx,y:by,w:mw-24,h:56,key});
+        row++;
+      }
     }
-    ctx.font='26px serif';ctx.textAlign='left';ctx.textBaseline='middle';
-    ctx.fillText(def.icon,bx+14,by+29);ctx.textBaseline='alphabetic';
-    txt(def.name,bx+54,by+22,14,'#3020a0');
-    txt(def.desc,bx+54,by+41,11,'#6050a0');
-    const afford=GS.money>=def.cost;
-    rr(bx+mw-116,by+12,88,34,17,afford?(focused?'#6040c8':'#9070d0'):'#a09ab8');
-    txtShadow(`${def.cost}G`,bx+mw-72,by+33,14,afford?'#fff':'#ccc','rgba(0,0,0,0.2)','center');
-    GS._buildBtns.push({x:bx+mw-116,y:by+12,w:88,h:34,key});
-    row++;
-  });
+  } else {
+    // ── 기본 모드: 구매 건설 ─────────────────────
+    rr(mx,my,mw,46,12,'#6050a0');
+    txtShadow('🏰 방어 구조물 건설',mx+mw/2,my+30,18,'#fff','rgba(0,0,0,0.3)','center');
+    const farmDefs=Object.entries(DEFENSE_DEFS).filter(([,d])=>!d.gacha);
+    GS.buildMenuIdx=Math.min(GS.buildMenuIdx,farmDefs.length-1);
+    let row=0;
+    farmDefs.forEach(([key,def])=>{
+      const bx=mx+14,by=my+56+row*66;
+      const focused=row===GS.buildMenuIdx;
+      ctx.fillStyle=focused?'rgba(170,150,255,0.62)':'rgba(215,205,255,0.5)';
+      ctx.beginPath();ctx.roundRect(bx,by,mw-28,58,10);ctx.fill();
+      if(focused){ctx.strokeStyle='#6040c8';ctx.lineWidth=2.5;ctx.beginPath();ctx.roundRect(bx,by,mw-28,58,10);ctx.stroke();
+        ctx.fillStyle='#6040c8';ctx.font='16px serif';ctx.textAlign='left';ctx.fillText('▶',bx-2,by+35);}
+      ctx.font='26px serif';ctx.textAlign='left';ctx.textBaseline='middle';
+      ctx.fillText(def.icon,bx+14,by+29);ctx.textBaseline='alphabetic';
+      txt(def.name,bx+54,by+22,14,'#3020a0');
+      txt(def.desc,bx+54,by+41,11,'#6050a0');
+      const afford=GS.money>=def.cost;
+      rr(bx+mw-116,by+12,88,34,17,afford?(focused?'#6040c8':'#9070d0'):'#a09ab8');
+      txtShadow(`${def.cost}G`,bx+mw-72,by+33,14,afford?'#fff':'#ccc','rgba(0,0,0,0.2)','center');
+      GS._buildBtns.push({x:bx+mw-116,y:by+12,w:88,h:34,key});
+      row++;
+    });
+  }
 
   // Close btn
   rr(mx+mw-38,my+8,28,28,14,'#9070c0');
   txtShadow('✕',mx+mw-24,my+26,15,'#fff','rgba(0,0,0,0.2)','center');
   GS._closeBuildBtn={x:mx+mw-38,y:my+8,w:28,h:28};
 
-  // Bottom hint bar
-  ctx.fillStyle='rgba(140,110,220,0.85)';ctx.beginPath();ctx.roundRect(mx,my+mh-38,mw,38,12);ctx.fill();
+  // Bottom hint
+  ctx.fillStyle='rgba(100,70,200,0.85)';ctx.beginPath();ctx.roundRect(mx,my+mh-36,mw,36,12);ctx.fill();
   ctx.fillStyle='#e8d8ff';ctx.font='12px "Malgun Gothic"';ctx.textAlign='center';
-  ctx.fillText(`↑↓ 탐색  |  Enter 선택  |  Esc 닫기  |  💰 ${GS.money.toLocaleString()}G`,mx+mw/2,my+mh-14);
+  const hint=gameMode==='defense'?'↑↓ 탐색  |  Enter/클릭 배치  |  Esc 닫기':'↑↓ 탐색  |  Enter 선택  |  Esc 닫기';
+  ctx.fillText(`${hint}  |  💰 ${GS.money.toLocaleString()}G`,mx+mw/2,my+mh-12);
+}
+
+// ── GACHA MENU ─────────────────────────────────
+function renderGachaMenu(){
+  const mw=360,mh=340;
+  const mx=(W-mw)/2,my=(H-mh)/2;
+  ctx.fillStyle='rgba(0,0,0,0.6)';ctx.fillRect(0,0,W,H);
+  // Panel
+  const panG=ctx.createLinearGradient(mx,my,mx,my+mh);
+  panG.addColorStop(0,'rgba(50,20,100,0.97)');panG.addColorStop(1,'rgba(30,10,60,0.97)');
+  ctx.fillStyle=panG;ctx.beginPath();ctx.roundRect(mx,my,mw,mh,18);ctx.fill();
+  ctx.strokeStyle='rgba(160,80,255,0.7)';ctx.lineWidth=2.5;ctx.beginPath();ctx.roundRect(mx,my,mw,mh,18);ctx.stroke();
+  // Title
+  txtShadow('⚔️ 포탑 뽑기',mx+mw/2,my+38,22,'#f0d0ff','rgba(0,0,0,0.4)','center');
+  // Probabilities
+  const probs=[{g:'C',p:'50%'},{g:'B',p:'30%'},{g:'A',p:'15%'},{g:'S',p:'4%'},{g:'SS',p:'1%'}];
+  let px2=mx+20;
+  ctx.font='bold 11px "Malgun Gothic"';ctx.textBaseline='middle';
+  probs.forEach(({g,p})=>{
+    const gc=GRADE_COLOR[g];
+    const pw=ctx.measureText(`${g} ${p}`).width+18;
+    ctx.fillStyle=gc+'55';ctx.beginPath();ctx.roundRect(px2,my+58,pw,22,11);ctx.fill();
+    ctx.strokeStyle=gc+'99';ctx.lineWidth=1;ctx.beginPath();ctx.roundRect(px2,my+58,pw,22,11);ctx.stroke();
+    ctx.fillStyle='#fff';ctx.textAlign='center';ctx.fillText(`${g} ${p}`,px2+pw/2,my+69);
+    px2+=pw+8;
+  });
+  ctx.textBaseline='alphabetic';
+  // Hand count
+  ctx.font='13px "Malgun Gothic"';ctx.textAlign='center';ctx.fillStyle='#d0b0ff';
+  ctx.fillText(`현재 패: ${GS.hand.length}장`,mx+mw/2,my+102);
+  // Draw buttons
+  const btn1w=148,btn10w=172,btnH=52,btnY=my+124;
+  // 1뽑기
+  const can1=GS.money>=200;
+  const b1g=ctx.createLinearGradient(mx+20,btnY,mx+20,btnY+btnH);
+  b1g.addColorStop(0,can1?'#7040e0':'#504060');b1g.addColorStop(1,can1?'#4020b0':'#302040');
+  ctx.fillStyle=b1g;ctx.beginPath();ctx.roundRect(mx+20,btnY,btn1w,btnH,14);ctx.fill();
+  ctx.strokeStyle=can1?'rgba(180,120,255,0.8)':'rgba(100,80,120,0.5)';ctx.lineWidth=2;ctx.beginPath();ctx.roundRect(mx+20,btnY,btn1w,btnH,14);ctx.stroke();
+  txtShadow('1 뽑기',mx+20+btn1w/2,btnY+22,15,can1?'#fff':'#888','rgba(0,0,0,0.3)','center');
+  txtShadow('200G',mx+20+btn1w/2,btnY+40,13,can1?'#ffd060':'#777','rgba(0,0,0,0.3)','center');
+  GS._gacha1Btn={x:mx+20,y:btnY,w:btn1w,h:btnH};
+  // 10뽑기
+  const can10=GS.money>=1800;
+  const b10g=ctx.createLinearGradient(mx+mw-btn10w-20,btnY,mx+mw-btn10w-20,btnY+btnH);
+  b10g.addColorStop(0,can10?'#c040a0':'#504060');b10g.addColorStop(1,can10?'#902080':'#302040');
+  ctx.fillStyle=b10g;ctx.beginPath();ctx.roundRect(mx+mw-btn10w-20,btnY,btn10w,btnH,14);ctx.fill();
+  ctx.strokeStyle=can10?'rgba(255,120,220,0.8)':'rgba(100,80,120,0.5)';ctx.lineWidth=2;ctx.beginPath();ctx.roundRect(mx+mw-btn10w-20,btnY,btn10w,btnH,14);ctx.stroke();
+  txtShadow('10 뽑기 (10% 할인)',mx+mw-btn10w/2-20,btnY+22,13,can10?'#fff':'#888','rgba(0,0,0,0.3)','center');
+  txtShadow('1,800G',mx+mw-btn10w/2-20,btnY+40,13,can10?'#ffd060':'#777','rgba(0,0,0,0.3)','center');
+  GS._gacha10Btn={x:mx+mw-btn10w-20,y:btnY,w:btn10w,h:btnH};
+  // Last results
+  if(GS._lastGachaResults&&GS._lastGachaResults.length>0){
+    ctx.font='12px "Malgun Gothic"';ctx.textAlign='center';ctx.fillStyle='#c0a0e0';
+    ctx.fillText('직전 결과:',mx+mw/2,btnY+78);
+    const res=GS._lastGachaResults.slice(0,10);
+    let rPx=mx+mw/2-res.length*24;
+    res.forEach(k=>{
+      const rd=DEFENSE_DEFS[k];
+      const gc=GRADE_COLOR[rd?.grade]||'#90c8ff';
+      ctx.fillStyle=gc+'55';ctx.beginPath();ctx.roundRect(rPx,btnY+88,44,48,8);ctx.fill();
+      ctx.strokeStyle=gc+'aa';ctx.lineWidth=1.5;ctx.beginPath();ctx.roundRect(rPx,btnY+88,44,48,8);ctx.stroke();
+      ctx.font='18px serif';ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillText(rd?.icon||'?',rPx+22,btnY+106);ctx.textBaseline='alphabetic';
+      ctx.font='bold 8px sans-serif';ctx.fillStyle=gc;ctx.fillText(rd?.grade||'?',rPx+22,btnY+133);
+      rPx+=48;
+    });
+  }
+  // Close
+  rr(mx+mw-36,my+8,26,26,13,'rgba(160,80,255,0.6)');
+  txtShadow('✕',mx+mw-23,my+25,14,'#fff','rgba(0,0,0,0.2)','center');
+  GS._gachaCloseBtn={x:mx+mw-36,y:my+8,w:26,h:26};
+  // Esc hint
+  ctx.font='11px "Malgun Gothic"';ctx.textAlign='center';ctx.fillStyle='rgba(180,140,255,0.7)';
+  ctx.fillText('Esc / G — 닫기  |  B — 패 보기',mx+mw/2,my+mh-10);
 }
 
 // ── WAVE HUD ───────────────────────────────────
@@ -3072,14 +3387,16 @@ function renderWaveHUD(){
 
 // ── DEFENSE MODE HUD ───────────────────────────
 function renderDefenseHUD(){
-  // Money panel (top-left)
-  ctx.fillStyle='rgba(20,8,50,0.88)';ctx.beginPath();ctx.roundRect(10,10,175,36,10);ctx.fill();
-  ctx.strokeStyle='rgba(160,100,255,0.5)';ctx.lineWidth=1.5;ctx.beginPath();ctx.roundRect(10,10,175,36,10);ctx.stroke();
-  ctx.font='bold 15px "Malgun Gothic"';ctx.textAlign='left';ctx.fillStyle='#FFD700';
-  ctx.fillText(`💰 ${GS.money.toLocaleString()}G`,20,33);
-  // Mode badge
-  ctx.font='12px "Malgun Gothic"';ctx.fillStyle='#c080ff';
-  ctx.fillText('⚔️ 디펜스',110,33);
+  // Money + hand count panel (top-left)
+  ctx.fillStyle='rgba(20,8,50,0.90)';ctx.beginPath();ctx.roundRect(10,10,230,36,10);ctx.fill();
+  ctx.strokeStyle='rgba(160,100,255,0.5)';ctx.lineWidth=1.5;ctx.beginPath();ctx.roundRect(10,10,230,36,10);ctx.stroke();
+  ctx.font='bold 14px "Malgun Gothic"';ctx.textAlign='left';ctx.fillStyle='#FFD700';
+  ctx.fillText(`💰 ${GS.money.toLocaleString()}G`,18,32);
+  ctx.fillStyle='rgba(160,100,255,0.6)';ctx.fillRect(130,16,1,22);
+  ctx.font='13px "Malgun Gothic"';ctx.fillStyle='#c8aaff';
+  ctx.fillText(`🎴 패 ${GS.hand.length}장`,137,32);
+  ctx.font='11px "Malgun Gothic"';ctx.fillStyle='rgba(180,150,255,0.8)';
+  ctx.fillText('G-뽑기  B-패  N-웨이브',18,H-14);
 }
 
 // ── GAME OVER SCREEN ───────────────────────────
@@ -3263,7 +3580,7 @@ function render(){
     ctx.save();
     ctx.setLineDash([5,5]);ctx.lineWidth=1.5;
     for(const edef of GS.defenses){
-      const edefDef=DEFENSE_DEFS[edef.type];
+      const edefDef=DEFENSE_DEFS[edef.type]||{};
       if(edefDef.range<=0)continue;
       const ex=edef.x-camX(),ey=edef.y-camY();
       const lvl=edef.level||1;
@@ -3318,6 +3635,7 @@ function render(){
 
   // UI layers
   if(GS.gameOver){renderGameOver()}
+  else if(GS.gachaOpen){renderGachaMenu()}
   else if(GS.buildMenuOpen){renderBuildMenu()}
   else if(GS.shopOpen){renderShop()}
   else if(GS.barnOpen){renderBarn()}
@@ -3385,17 +3703,41 @@ function update(dt){
   updateWave(dt);
 
   // Build menu keyboard nav
+  // Gacha menu keyboard
+  if(GS.gachaOpen){
+    if(justPressed('Escape')||justPressed('KeyG')){GS.gachaOpen=false;}
+    if(justPressed('Digit1')&&GS.money>=200){
+      GS.money-=200;const k=gachaDraw();GS.hand.push(k);GS._lastGachaResults=[k];
+      const d=DEFENSE_DEFS[k];notify(`✨ ${d.grade}급 [${d.attr}] ${d.name}!`,GRADE_COLOR[d.grade]);
+    }
+    if(justPressed('Digit0')&&GS.money>=1800){
+      GS.money-=1800;const res=[];for(let i=0;i<10;i++){const k=gachaDraw();GS.hand.push(k);res.push(k);}
+      GS._lastGachaResults=res;
+      const ss=res.filter(k=>DEFENSE_DEFS[k]?.grade==='SS'),s=res.filter(k=>DEFENSE_DEFS[k]?.grade==='S');
+      if(ss.length)notify(`🌟 SS급 ${DEFENSE_DEFS[ss[0]].name} 등장!`,GRADE_COLOR.SS);
+      else if(s.length)notify(`✨ S급 ${DEFENSE_DEFS[s[0]].name} 등장!`,GRADE_COLOR.S);
+      else notify(`10뽑기 완료! 패 +10장`,'#c080ff');
+    }
+    clearJust();return;
+  }
+
   if(GS.buildMenuOpen){
-    const defKeys=Object.keys(DEFENSE_DEFS);
-    if(justPressed('ArrowUp')||justPressed('KeyW'))GS.buildMenuIdx=(GS.buildMenuIdx-1+defKeys.length)%defKeys.length;
-    if(justPressed('ArrowDown')||justPressed('KeyS'))GS.buildMenuIdx=(GS.buildMenuIdx+1)%defKeys.length;
+    const defKeys=gameMode==='defense'
+      ?[...new Set(GS.hand)]
+      :Object.keys(DEFENSE_DEFS).filter(k=>!DEFENSE_DEFS[k].gacha);
+    const kLen=Math.max(1,defKeys.length);
+    if(justPressed('ArrowUp')||justPressed('KeyW'))GS.buildMenuIdx=(GS.buildMenuIdx-1+kLen)%kLen;
+    if(justPressed('ArrowDown')||justPressed('KeyS'))GS.buildMenuIdx=(GS.buildMenuIdx+1)%kLen;
     if(justPressed('Enter')||justPressed('Space')){
       const key=defKeys[GS.buildMenuIdx];
-      const def=DEFENSE_DEFS[key];
-      if(GS.money>=def.cost){GS.buildSelected=key;GS.buildMenuOpen=false}
-      else notify('돈이 부족합니다!','#E53935');
+      if(key){
+        const def=DEFENSE_DEFS[key];
+        if(gameMode==='defense'){GS.buildSelected=key;GS.buildMenuOpen=false;}
+        else if(GS.money>=def.cost){GS.buildSelected=key;GS.buildMenuOpen=false;}
+        else notify('돈이 부족합니다!','#E53935');
+      }
     }
-    if(justPressed('Escape')||justPressed('KeyB')){GS.buildMenuOpen=false;GS.buildSelected=null}
+    if(justPressed('Escape')||justPressed('KeyB')){GS.buildMenuOpen=false;GS.buildSelected=null;}
     clearJust();return;
   }
 
@@ -3586,6 +3928,7 @@ function update(dt){
   if(gameMode==='farm'&&justPressed('KeyZ')&&!GS.waveActive&&(GS.hour>=20||GS.waveTriggeredToday))advanceDay();
   if(justPressed('KeyI'))GS.invOpen=!GS.invOpen;
   if(justPressed('KeyB')&&!GS.waveActive){GS.buildMenuOpen=true;GS.buildSelected=null;}
+  if(gameMode==='defense'&&justPressed('KeyG'))GS.gachaOpen=true;
 
   // N key: start wave immediately
   if(justPressed('KeyN')&&!GS.waveActive&&!GS.waveTriggeredToday){
@@ -3603,6 +3946,7 @@ function update(dt){
         if(GS.money>=def.cost){
           GS.money-=def.cost;
           GS.defenses.push({type:GS.buildSelected,x:pfx,y:pfy,hp:def.maxHp,atkCd:0,level:1});
+          if(gameMode==='defense'){const hi=GS.hand.indexOf(GS.buildSelected);if(hi>=0)GS.hand.splice(hi,1);}
           notify(`${def.name} 건설! (-${def.cost}G)`,'#80c0ff');
           spawnParticles(pfx,pfy,'#80c0ff',8);
           GS.buildSelected=null;
@@ -3635,7 +3979,7 @@ function update(dt){
         const lvl=d.level||1;
         if(lvl>=5){notify('최대 레벨입니다! (Lv.5)','#FFD700');}
         else{
-          const upgCost=Math.floor(def.cost*1.4*lvl);
+          const upgCost=def.gacha?gradeUpgCost(def.grade,lvl):Math.floor(def.cost*1.4*lvl);
           if(GS.money>=upgCost){
             GS.money-=upgCost;d.level=lvl+1;
             d.hp=Math.min(d.hp+Math.floor(def.maxHp*0.6),def.maxHp*d.level);
@@ -3681,6 +4025,27 @@ CV.addEventListener('click',e=>{
     return;
   }
 
+  // Gacha menu clicks
+  if(GS.gachaOpen){
+    if(GS._gachaCloseBtn&&inRect(x,y,GS._gachaCloseBtn)){GS.gachaOpen=false;return}
+    if(GS._gacha1Btn&&inRect(x,y,GS._gacha1Btn)){
+      if(GS.money>=200){GS.money-=200;const k=gachaDraw();GS.hand.push(k);GS._lastGachaResults=[k];const d=DEFENSE_DEFS[k];notify(`✨ ${d.grade}급 [${d.attr}] ${d.name}!`,GRADE_COLOR[d.grade]);}
+      else notify('골드가 부족합니다!','#E53935');
+      return;
+    }
+    if(GS._gacha10Btn&&inRect(x,y,GS._gacha10Btn)){
+      if(GS.money>=1800){GS.money-=1800;const res=[];for(let i=0;i<10;i++){const k=gachaDraw();GS.hand.push(k);res.push(k);}
+        GS._lastGachaResults=res;
+        const ss=res.filter(k=>DEFENSE_DEFS[k]?.grade==='SS'),s=res.filter(k=>DEFENSE_DEFS[k]?.grade==='S');
+        if(ss.length)notify(`🌟 SS급 ${DEFENSE_DEFS[ss[0]].name} 등장!`,GRADE_COLOR.SS);
+        else if(s.length)notify(`✨ S급 ${DEFENSE_DEFS[s[0]].name} 등장!`,GRADE_COLOR.S);
+        else notify(`10뽑기 완료! 패 +${res.length}장`,'#c080ff');
+      } else notify('골드가 부족합니다!','#E53935');
+      return;
+    }
+    return;
+  }
+
   // Build menu clicks
   if(GS.buildMenuOpen){
     if(GS._closeBuildBtn&&inRect(x,y,GS._closeBuildBtn)){GS.buildMenuOpen=false;GS.buildSelected=null;return}
@@ -3688,9 +4053,11 @@ CV.addEventListener('click',e=>{
       for(const b of GS._buildBtns){
         if(inRect(x,y,b)){
           const def=DEFENSE_DEFS[b.key];
-          if(GS.money>=def.cost){
-            GS.buildSelected=b.key;
-            GS.buildMenuOpen=false; // close menu, enter placement mode
+          if(gameMode==='defense'){
+            // From hand — free placement
+            GS.buildSelected=b.key;GS.buildMenuOpen=false;
+          } else if(GS.money>=def.cost){
+            GS.buildSelected=b.key;GS.buildMenuOpen=false;
           } else {notify('돈이 부족합니다!','#E53935')}
           return;
         }
@@ -3707,7 +4074,7 @@ CV.addEventListener('click',e=>{
         const def=DEFENSE_DEFS[d.type];
         const lvl=d.level||1;
         if(lvl>=5){notify('최대 레벨입니다! (Lv.5)','#FFD700');return;}
-        const upgCost=Math.floor(def.cost*1.4*lvl);
+        const upgCost=def.gacha?gradeUpgCost(def.grade,lvl):Math.floor(def.cost*1.4*lvl);
         if(GS.money>=upgCost){
           GS.money-=upgCost;
           d.level=lvl+1;
@@ -3729,7 +4096,9 @@ CV.addEventListener('click',e=>{
     if(canPlaceDefense(wx,wy)){
       GS.money-=def.cost;
       GS.defenses.push({type:GS.buildSelected,x:wx,y:wy,hp:def.maxHp,atkCd:0,level:1});
-      notify(`${def.name} 건설! (-${def.cost}G)`,'#80c0ff');
+      if(gameMode==='defense'){const hi=GS.hand.indexOf(GS.buildSelected);if(hi>=0)GS.hand.splice(hi,1);}
+      const costMsg=def.cost>0?` (-${def.cost}G)`:'';
+      notify(`${def.name} 건설!${costMsg}`,'#80c0ff');
       spawnParticles(wx,wy,'#80c0ff',8);
       GS.buildSelected=null;
     } else {
