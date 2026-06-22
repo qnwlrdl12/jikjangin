@@ -475,6 +475,7 @@ let world=null;
 let gameRunning=false;
 let animFrame=0;
 let lastTime=0;
+let defSpeedMult=1;
 let timeAcc=0; // seconds accumulator for game time
 
 function initGS(){
@@ -593,7 +594,7 @@ function initDefenseGS(){
 }
 
 function startDefenseMode(){
-  gameMode='defense';
+  gameMode='defense';defSpeedMult=1;
   document.getElementById('title').style.display='none';
   initDefenseGS();
   gameRunning=true;
@@ -3502,8 +3503,19 @@ function renderDefenseHUD(){
   ctx.fillStyle='rgba(160,100,255,0.6)';ctx.fillRect(130,16,1,22);
   ctx.font='13px "Malgun Gothic"';ctx.fillStyle='#c8aaff';
   ctx.fillText(`🎴 패 ${GS.hand.length}장`,137,32);
-  ctx.font='11px "Malgun Gothic"';ctx.fillStyle='rgba(180,150,255,0.8)';
-  ctx.fillText('G-뽑기  B-패  N-웨이브',18,H-14);
+  // Speed multiplier button
+  const sm=defSpeedMult;
+  const spCol=sm===1?'rgba(40,30,80,0.92)':sm===2?'rgba(20,60,20,0.92)':'rgba(80,20,20,0.92)';
+  const spBorder=sm===1?'rgba(140,120,200,0.6)':sm===2?'rgba(60,200,80,0.7)':'rgba(255,80,60,0.8)';
+  const spLabel=sm===1?'1x ▶':sm===2?'2x ⏩':'3x ⚡';
+  ctx.fillStyle=spCol;ctx.beginPath();ctx.roundRect(248,10,64,36,10);ctx.fill();
+  ctx.strokeStyle=spBorder;ctx.lineWidth=1.5;ctx.beginPath();ctx.roundRect(248,10,64,36,10);ctx.stroke();
+  ctx.font='bold 14px "Malgun Gothic"';ctx.textAlign='center';ctx.fillStyle=sm===1?'#aaa8d8':sm===2?'#80f080':'#ff8060';
+  ctx.fillText(spLabel,280,32);
+  GS._speedBtn={x:248,y:10,w:64,h:36};
+  // Key hints
+  ctx.font='11px "Malgun Gothic"';ctx.textAlign='left';ctx.fillStyle='rgba(180,150,255,0.8)';
+  ctx.fillText('G-뽑기  B-패  N-웨이브  Tab-배속',18,H-14);
 }
 
 // ── GAME OVER SCREEN ───────────────────────────
@@ -3769,7 +3781,6 @@ function clearJust(){
 }
 
 function update(dt){
-  animFrame++;
 
   // Game over — only restart button works
   if(GS.gameOver){
@@ -3777,7 +3788,7 @@ function update(dt){
     if(justPressed('Enter')||justPressed('Space')){
       GS.farmHP=GS.farmMaxHP;GS.monsters=[];GS.defenses=[];GS.projectiles=[];
       GS.gameOver=false;GS.waveNum=0;GS.waveActive=false;GS.waveQueue=[];
-      GS.waveTriggeredToday=false;GS.money=gameMode==='defense'?1000:500;GS.day=1;
+      GS.waveTriggeredToday=false;GS.money=gameMode==='defense'?1000:500;GS.day=1;defSpeedMult=1;
     }
     clearJust();return;
   }
@@ -4036,6 +4047,7 @@ function update(dt){
   if(justPressed('KeyI'))GS.invOpen=!GS.invOpen;
   if(justPressed('KeyB')&&!GS.waveActive){GS.buildMenuOpen=true;GS.buildSelected=null;}
   if(gameMode==='defense'&&justPressed('KeyG'))GS.gachaOpen=true;
+  if(gameMode==='defense'&&justPressed('Tab')){defSpeedMult=defSpeedMult>=3?1:defSpeedMult+1;notify(`배속: ${defSpeedMult}x`,'#80ffcc');}
 
   // N key: start wave immediately
   if(justPressed('KeyN')&&!GS.waveActive&&!GS.waveTriggeredToday){
@@ -4127,9 +4139,15 @@ CV.addEventListener('click',e=>{
     if(GS._gameOverRestartBtn&&inRect(x,y,GS._gameOverRestartBtn)){
       GS.farmHP=GS.farmMaxHP;GS.monsters=[];GS.defenses=[];GS.projectiles=[];
       GS.gameOver=false;GS.waveNum=0;GS.waveActive=false;GS.waveQueue=[];
-      GS.waveTriggeredToday=false;GS.money=gameMode==='defense'?1000:500;GS.day=1;
+      GS.waveTriggeredToday=false;GS.money=gameMode==='defense'?1000:500;GS.day=1;defSpeedMult=1;
     }
     return;
+  }
+
+  // Speed button click (defense HUD)
+  if(gameMode==='defense'&&!GS.gachaOpen&&!GS.buildMenuOpen&&GS._speedBtn&&inRect(x,y,GS._speedBtn)){
+    defSpeedMult=defSpeedMult>=3?1:defSpeedMult+1;
+    notify(`배속: ${defSpeedMult}x`,'#80ffcc');return;
   }
 
   // Gacha menu clicks
@@ -4345,9 +4363,15 @@ function inBox(x,y,bx,by,bw,bh){return x>=bx&&x<=bx+bw&&y>=by&&y<=by+bh}
 
 // ── GAME LOOP ──────────────────────────────────
 function loop(ts){
-  const dt=Math.min((ts-lastTime)/1000,0.05);
+  const rawDt=Math.min((ts-lastTime)/1000,0.05);
   lastTime=ts;
-  if(gameRunning&&GS){update(dt);render()}
+  animFrame++;
+  if(gameRunning&&GS){
+    const mult=gameMode==='defense'?defSpeedMult:1;
+    const subDt=rawDt/mult;
+    for(let i=0;i<mult;i++)update(subDt);
+    render();
+  }
   requestAnimationFrame(loop);
 }
 
@@ -4434,7 +4458,7 @@ function getSaveInfo(){
 
 // ── START ──────────────────────────────────────
 function startGame(fresh=false){
-  gameMode='farm'; curHX=HOUSE_X; curHY=HOUSE_Y;
+  gameMode='farm'; curHX=HOUSE_X; curHY=HOUSE_Y; defSpeedMult=1;
   if(fresh)localStorage.removeItem(SAVE_KEY);
   document.getElementById('title').style.display='none';
   initGS();
