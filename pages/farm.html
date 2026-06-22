@@ -2034,7 +2034,8 @@ function updateWave(dt){
     if(m.hp<=0){
       GS.money+=m.reward;
       spawnParticles(m.x,m.y,m.col,8);
-      notify(`+${m.reward}G 👾`,'#FFD700');
+      if(defSpeedMult===1){notify(`+${m.reward}G 👾`,'#FFD700');}
+      else{GS._killGoldAcc=(GS._killGoldAcc||0)+m.reward;}
       GS.monsters.splice(i,1);continue;
     }
     const dx=curHX-m.x,dy=curHY-m.y,dist=Math.hypot(dx,dy);
@@ -3784,7 +3785,7 @@ function update(dt){
 
   // Game over — only restart button works
   if(GS.gameOver){
-    GS.notes=GS.notes.filter(n=>{n.timer-=dt;return n.timer>0});
+    GS.notes=GS.notes.filter(n=>{n.timer-=dt/defSpeedMult;return n.timer>0});
     if(justPressed('Enter')||justPressed('Space')){
       GS.farmHP=GS.farmMaxHP;GS.monsters=[];GS.defenses=[];GS.projectiles=[];
       GS.gameOver=false;GS.waveNum=0;GS.waveActive=false;GS.waveQueue=[];
@@ -3814,7 +3815,17 @@ function update(dt){
   }
 
   // Always update these regardless of UI state
-  GS.notes=GS.notes.filter(n=>{n.timer-=dt;return n.timer>0});
+  // Use real-time delta for notifications so they don't expire too fast at high speed
+  const noteDt=dt/defSpeedMult;
+  GS.notes=GS.notes.filter(n=>{n.timer-=noteDt;return n.timer>0});
+  // Aggregate kill-gold notifications at 2x/3x speed
+  if(defSpeedMult>1&&GS._killGoldAcc>0){
+    GS._killGoldFlush=(GS._killGoldFlush||0)-noteDt;
+    if(GS._killGoldFlush<=0){
+      notify(`+${GS._killGoldAcc}G 👾`,'#FFD700');
+      GS._killGoldAcc=0;GS._killGoldFlush=0.8;
+    }
+  } else if(defSpeedMult===1){GS._killGoldAcc=0;GS._killGoldFlush=0;}
   updateParticles(dt);
   updateRain();
   updateCam();
