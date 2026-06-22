@@ -68,7 +68,7 @@ window.addEventListener('resize',resize);resize();
 
 // ── CONSTANTS ──────────────────────────────────
 const TILE=48, WW=80, WH=60;
-const SPEED=2.8;
+const SPEED=168; // px/sec (= 2.8px/frame × 60fps)
 const MAX_E=100;
 const HOUR_SECS=12; // real seconds per game hour (12s × 16h = 192s/day)
 
@@ -4027,7 +4027,7 @@ function update(dt){
 
   // Movement (Shift = sprint)
   const sprint=(KEYS['ShiftLeft']||KEYS['ShiftRight'])?1.85:1;
-  const spd=SPEED*sprint;
+  const spd=SPEED*sprint*dt;
   let dx=0,dy=0;
   if(KEYS['ArrowUp']||KEYS['KeyW'])dy=-spd;
   if(KEYS['ArrowDown']||KEYS['KeyS'])dy=spd;
