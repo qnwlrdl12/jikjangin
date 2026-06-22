@@ -42,9 +42,12 @@ body{background:#fde8f0;display:flex;align-items:center;justify-content:center;w
     몬스터로부터 신성한 <b style="color:#c050e0">💎 석상</b>을 수호하세요.<br>
     웨이브가 거듭될수록 몬스터는 더 강해집니다.
   </div>
-  <div id="t-btns">
-    <button class="t-btn" id="btn-continue" style="display:none;background:linear-gradient(to bottom,#4A90D9,#2A6AAD);box-shadow:0 6px 0 #1A4A8D,0 10px 30px rgba(0,0,0,0.5)" onclick="continueGame()">💾 이어하기</button>
-    <button class="t-btn" id="btn-new" onclick="startGame(true)">🌱 새 게임</button>
+  <div id="t-btns" style="display:flex;flex-direction:column;align-items:center;gap:12px">
+    <div style="display:flex;gap:16px;flex-wrap:wrap;justify-content:center">
+      <button class="t-btn" id="btn-continue" style="display:none;background:linear-gradient(to bottom,#4A90D9,#2A6AAD);box-shadow:0 6px 0 #1A4A8D,0 10px 30px rgba(0,0,0,0.5)" onclick="continueGame()">💾 이어하기</button>
+      <button class="t-btn" id="btn-new" onclick="startGame(true)">🌱 기본 모드</button>
+    </div>
+    <button class="t-btn" style="background:linear-gradient(to bottom,#5a3e8e,#3d2070);box-shadow:0 6px 0 #200050,0 10px 30px rgba(80,0,180,0.4)" onclick="startDefenseMode()">⚔️ 디펜스 모드</button>
   </div>
   <div id="t-saveinfo" style="color:#5a7a4a;font-size:13px;margin-top:10px;display:none"></div>
   <div class="t-ctrl" style="margin-top:18px">
@@ -59,6 +62,7 @@ body{background:#fde8f0;display:flex;align-items:center;justify-content:center;w
 const CV = document.getElementById('c');
 const ctx = CV.getContext('2d');
 let W=0,H=0;
+let gameMode='farm';
 function resize(){W=CV.width=window.innerWidth;H=CV.height=window.innerHeight}
 window.addEventListener('resize',resize);resize();
 
@@ -113,6 +117,8 @@ const DEFENSE_DEFS={
 
 // Sacred statue inside player house (on floor tile, row 11 center)
 const HOUSE_X=31*TILE+TILE/2,HOUSE_Y=11*TILE+TILE/2;
+const DEF_HX=40*TILE+TILE/2,DEF_HY=30*TILE+TILE/2; // defense mode castle center
+let curHX=HOUSE_X,curHY=HOUSE_Y; // current mode target (dynamic)
 
 // ── CROPS ──────────────────────────────────────
 const CROPS={
@@ -291,6 +297,47 @@ function makeWorld(){
   return {tiles,cd};
 }
 
+function makeDefenseWorld(){
+  const tiles=Array.from({length:WH},()=>new Uint8Array(WW).fill(T.GRASS));
+  const cd=Array.from({length:WH},()=>Array(WW).fill(null));
+  const set=(r,c,v)=>{if(r>=0&&r<WH&&c>=0&&c<WW)tiles[r][c]=v};
+  const fill=(r1,c1,r2,c2,v)=>{for(let r=r1;r<=r2;r++)for(let c=c1;c<=c2;c++)set(r,c,v)};
+
+  // Border
+  for(let r=0;r<WH;r++){tiles[r][0]=T.VOID;tiles[r][WW-1]=T.VOID}
+  for(let c=0;c<WW;c++){tiles[0][c]=T.VOID;tiles[WH-1][c]=T.VOID}
+
+  // Decorative trees along map edges
+  const rng=mulberry32(42);
+  for(let r=2;r<WH-2;r++){
+    if(rng()<0.18){set(r,2,T.TREE);set(r,3,T.TREE)}
+    if(rng()<0.18){set(r,WW-3,T.TREE);set(r,WW-2,T.TREE)}
+  }
+  for(let c=4;c<WW-4;c++){
+    if(rng()<0.18){set(2,c,T.TREE);set(3,c,T.TREE)}
+    if(rng()<0.18){set(WH-3,c,T.TREE);set(WH-2,c,T.TREE)}
+  }
+  // Scattered rocks and flowers
+  for(let r=5;r<WH-5;r++)for(let c=5;c<WW-5;c++){
+    const v=rng();
+    if(v<0.018)set(r,c,T.ROCK);
+    else if(v<0.032)set(r,c,T.FLOWER);
+  }
+
+  // Cross paths from edges to castle (placed last, overrides decorations)
+  for(let r=0;r<WH;r++){set(r,39,T.PATH);set(r,40,T.PATH);set(r,41,T.PATH)}
+  for(let c=0;c<WW;c++){set(29,c,T.PATH);set(30,c,T.PATH);set(31,c,T.PATH)}
+
+  // Castle walls (rows 25-35, cols 35-45), floor inside
+  fill(25,35,35,45,T.BUILDING);
+  fill(26,36,34,44,T.FLOOR);
+  // Four gates (cut through outer walls)
+  for(let c=39;c<=41;c++){set(25,c,T.PATH);set(35,c,T.PATH)} // N/S gates
+  for(let r=29;r<=31;r++){set(r,35,T.PATH);set(r,45,T.PATH)} // W/E gates
+
+  return {tiles,cd};
+}
+
 function mulberry32(a){
   return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);
     t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
@@ -369,6 +416,58 @@ function initGS(){
     craftedCount:0,fishedCount:0,animalProductCount:0,wavesCleared:0,
     barnOpen:false,barnIdx:0,_barnBtns:[],
   };
+}
+
+function initDefenseGS(){
+  world=makeDefenseWorld();
+  curHX=DEF_HX; curHY=DEF_HY;
+  GS={
+    hour:12,minute:0,day:1,season:0,year:1,
+    px:DEF_HX,py:(28*TILE+TILE/2),
+    dir:2,moving:false,
+    energy:MAX_E,money:1000,
+    waterCan:0,maxWater:0,
+    inv:{},
+    bar:[],slot:0,seedSlot:0,
+    npcs:[],
+    dialog:null,
+    shopOpen:false,shopTab:'buy',
+    invOpen:false,invIdx:0,
+    notes:[],parts:[],
+    harvested:0,watered:0,earned:0,days:0,
+    quests:[],
+    weather:'sunny',rainTimer:0,
+    sleeping:false,sleepT:0,
+    chestOpen:false,chestLooted:false,
+    animals:[],
+    wakedUp:true,
+    buildMenuIdx:0,shopIdx:0,
+    smithIdx:0,clinicIdx:0,mayorIdx:0,
+    smithOpen:false,clinicOpen:false,mayorOpen:false,
+    dailyOrders:[],dailyOrderDay:0,
+    farmHP:200,farmMaxHP:200,
+    monsters:[],defenses:[],projectiles:[],
+    waveNum:0,waveActive:false,waveQueue:[],waveSpawnAcc:0,waveAnnounce:0,
+    waveTriggeredToday:false,
+    gameOver:false,
+    buildMenuOpen:false,buildSelected:null,
+    statueHit:0,
+    _buildBtns:[],_closeBuildBtn:null,_gameOverRestartBtn:null,
+    waterUpgraded:false,energyUpgraded:false,
+    maxEnergy:MAX_E,
+    craftedCount:0,fishedCount:0,animalProductCount:0,wavesCleared:0,
+    barnOpen:false,barnIdx:0,_barnBtns:[],
+    _shopBtns:[],_sellBtns:[],
+  };
+}
+
+function startDefenseMode(){
+  gameMode='defense';
+  document.getElementById('title').style.display='none';
+  initDefenseGS();
+  gameRunning=true;
+  lastTime=performance.now();
+  notify('⚔️ 디펜스 모드!  B — 방어 건설  N — 웨이브 시작  U — 업그레이드','#c080ff');
 }
 
 // ── QUESTS ─────────────────────────────────────
@@ -1393,7 +1492,7 @@ function drawMonster(m){
   }
   // Attack flash & slash arc
   if(atkProg>0){
-    const ang=Math.atan2(HOUSE_Y-m.y,HOUSE_X-m.x);
+    const ang=Math.atan2(curHY-m.y,curHX-m.x);
     // body glow
     ctx.fillStyle=`rgba(255,80,0,${atkProg*0.38})`;
     ctx.beginPath();ctx.ellipse(0,-m.size*0.3,m.size*1.4,m.size*1.4,0,0,Math.PI*2);ctx.fill();
@@ -1437,7 +1536,7 @@ function drawProjectile(p){
 
 // ── SACRED STATUE ──────────────────────────────
 function drawStatue(){
-  const sx=HOUSE_X-camX(), sy=HOUSE_Y-camY();
+  const sx=curHX-camX(), sy=curHY-camY();
   if(sx<-80||sx>W+80||sy<-80||sy>H+80)return;
   const hp=GS.farmHP/GS.farmMaxHP;
   const pulse=0.72+0.28*Math.sin(animFrame*0.09);
@@ -1504,7 +1603,7 @@ function drawStatue(){
 function drawMonsterPaths(){
   if(!GS.waveActive&&!GS.buildMenuOpen&&!GS.buildSelected)return;
   const cx=camX(),cy=camY();
-  const hx=HOUSE_X-cx,hy=HOUSE_Y-cy;
+  const hx=curHX-cx,hy=curHY-cy;
   const pulse=0.55+0.3*Math.sin(animFrame*0.1);
   // Spawn zone centers (match spawnMonster logic)
   const spawns=[
@@ -1630,13 +1729,21 @@ function startWave(){
 
 function spawnMonster(type){
   const def=MONSTER_TYPES[type];
-  const sides=GS.waveNum>=11?4:3; // 11웨이브부터 서쪽 스폰 추가
-  const side=Math.floor(Math.random()*sides);
   let sx,sy;
-  if(side===0){sx=(38+Math.random()*6)*TILE;sy=(4+Math.random()*24)*TILE}       // 동쪽
-  else if(side===1){sx=(4+Math.random()*34)*TILE;sy=1*TILE}                       // 북쪽 (확장)
-  else if(side===2){sx=(4+Math.random()*34)*TILE;sy=29*TILE}                      // 남쪽 (확장)
-  else{sx=1*TILE;sy=(4+Math.random()*24)*TILE}                                    // 서쪽 (11웨이브+)
+  if(gameMode==='defense'){
+    const side=Math.floor(Math.random()*4);
+    if(side===0){sx=(2+Math.random()*(WW-4))*TILE;sy=2*TILE}         // 북쪽
+    else if(side===1){sx=(2+Math.random()*(WW-4))*TILE;sy=(WH-3)*TILE} // 남쪽
+    else if(side===2){sx=2*TILE;sy=(2+Math.random()*(WH-4))*TILE}    // 서쪽
+    else{sx=(WW-3)*TILE;sy=(2+Math.random()*(WH-4))*TILE}            // 동쪽
+  } else {
+    const sides=GS.waveNum>=11?4:3; // 11웨이브부터 서쪽 스폰 추가
+    const side=Math.floor(Math.random()*sides);
+    if(side===0){sx=(38+Math.random()*6)*TILE;sy=(4+Math.random()*24)*TILE}
+    else if(side===1){sx=(4+Math.random()*34)*TILE;sy=1*TILE}
+    else if(side===2){sx=(4+Math.random()*34)*TILE;sy=29*TILE}
+    else{sx=1*TILE;sy=(4+Math.random()*24)*TILE}
+  }
   const hpScale=GS.waveNum<11?1+GS.waveNum*0.15:1+GS.waveNum*0.22; // 11+는 HP 스케일 가속
   const hp=Math.round(def.hp*hpScale);
   const n=GS.waveNum;
@@ -1672,7 +1779,7 @@ function updateWave(dt){
       notify(`+${m.reward}G 👾`,'#FFD700');
       GS.monsters.splice(i,1);continue;
     }
-    const dx=HOUSE_X-m.x,dy=HOUSE_Y-m.y,dist=Math.hypot(dx,dy);
+    const dx=curHX-m.x,dy=curHY-m.y,dist=Math.hypot(dx,dy);
     // Wall check
     let blockedByWall=false;
     for(let wi=GS.defenses.length-1;wi>=0;wi--){
@@ -1781,13 +1888,17 @@ function updateWave(dt){
     // Restore statue HP: 5HP per wave, max up to 40HP
     const healAmt=Math.min(GS.farmMaxHP-GS.farmHP, Math.min(40, GS.waveNum*5));
     if(healAmt>0) GS.farmHP=Math.min(GS.farmMaxHP,GS.farmHP+healAmt);
-    // Bonus seed item every 2 waves
-    const seedBonus=(['parsnip_seed','turnip_seed','potato_seed','corn_seed','strawberry_seed'])[GS.waveNum%5];
-    const seedQty=1+Math.floor(GS.waveNum/4);
-    addItem(seedBonus,seedQty);
     const healMsg=healAmt>0?` | 석상 +${Math.floor(healAmt)}HP`:'';
     notify(`✨ ${GS.waveNum}웨이브 클리어! +${bonus}G${healMsg}`,'#FFD700');
-    notify(`🎁 씨앗 보너스: ${ITEM_META[seedBonus]?.name||seedBonus} ×${seedQty}`,'#90EE90');
+    if(gameMode==='defense'){
+      GS.waveTriggeredToday=false; // allow next wave via N key
+      notify('N키로 다음 웨이브를 시작하세요.','#c080ff');
+    } else {
+      const seedBonus=(['parsnip_seed','turnip_seed','potato_seed','corn_seed','strawberry_seed'])[GS.waveNum%5];
+      const seedQty=1+Math.floor(GS.waveNum/4);
+      addItem(seedBonus,seedQty);
+      notify(`🎁 씨앗 보너스: ${ITEM_META[seedBonus]?.name||seedBonus} ×${seedQty}`,'#90EE90');
+    }
     spawnParticles(GS.px,GS.py,'#FFD700',30);
   }
 }
@@ -2959,6 +3070,18 @@ function renderWaveHUD(){
   }
 }
 
+// ── DEFENSE MODE HUD ───────────────────────────
+function renderDefenseHUD(){
+  // Money panel (top-left)
+  ctx.fillStyle='rgba(20,8,50,0.88)';ctx.beginPath();ctx.roundRect(10,10,175,36,10);ctx.fill();
+  ctx.strokeStyle='rgba(160,100,255,0.5)';ctx.lineWidth=1.5;ctx.beginPath();ctx.roundRect(10,10,175,36,10);ctx.stroke();
+  ctx.font='bold 15px "Malgun Gothic"';ctx.textAlign='left';ctx.fillStyle='#FFD700';
+  ctx.fillText(`💰 ${GS.money.toLocaleString()}G`,20,33);
+  // Mode badge
+  ctx.font='12px "Malgun Gothic"';ctx.fillStyle='#c080ff';
+  ctx.fillText('⚔️ 디펜스',110,33);
+}
+
 // ── GAME OVER SCREEN ───────────────────────────
 function renderGameOver(){
   ctx.fillStyle='rgba(0,0,0,0.84)';ctx.fillRect(0,0,W,H);
@@ -3203,6 +3326,7 @@ function render(){
   else if(GS.mayorOpen){renderMayor()}
   else if(GS.invOpen){renderInventory()}
   else if(GS.dialog){renderDialog()}
+  else if(gameMode==='defense'){renderDefenseHUD();renderWaveHUD()}
   else{renderHUD();renderWaveHUD()}
 
   // 알림은 항상 최상단에 렌더 (패널 위에도 표시)
@@ -3228,7 +3352,7 @@ function update(dt){
     if(justPressed('Enter')||justPressed('Space')){
       GS.farmHP=GS.farmMaxHP;GS.monsters=[];GS.defenses=[];GS.projectiles=[];
       GS.gameOver=false;GS.waveNum=0;GS.waveActive=false;GS.waveQueue=[];
-      GS.waveTriggeredToday=false;GS.money=500;GS.day=1;
+      GS.waveTriggeredToday=false;GS.money=gameMode==='defense'?1000:500;GS.day=1;
     }
     clearJust();return;
   }
@@ -3239,15 +3363,17 @@ function update(dt){
     clearJust();return;
   }
 
-  // Time — hours go 6→26 (26=2AM next day), display as %24
-  timeAcc+=dt;
-  if(timeAcc>=0.25){
-    timeAcc-=0.25;
-    GS.minute+=1;
-    if(GS.minute>=60){GS.minute=0;GS.hour++}
-    if(GS.hour>=26){GS.hour=26} // cap at 2 AM next day
-    if(GS.hour===22&&GS.minute===0&&!GS.sleeping){
-      notify('밤이 깊었습니다. Z키로 수면하세요. 💤','#A0C4FF');
+  // Time — hours go 6→26 (26=2AM next day), display as %24 (farm mode only)
+  if(gameMode==='farm'){
+    timeAcc+=dt;
+    if(timeAcc>=0.25){
+      timeAcc-=0.25;
+      GS.minute+=1;
+      if(GS.minute>=60){GS.minute=0;GS.hour++}
+      if(GS.hour>=26){GS.hour=26}
+      if(GS.hour===22&&GS.minute===0&&!GS.sleeping){
+        notify('밤이 깊었습니다. Z키로 수면하세요. 💤','#A0C4FF');
+      }
     }
   }
 
@@ -3457,7 +3583,7 @@ function update(dt){
   // Actions
   if(justPressed('KeyE'))useTool();
   if(justPressed('Space')||justPressed('Enter'))interact();
-  if(justPressed('KeyZ')&&!GS.waveActive&&(GS.hour>=20||GS.waveTriggeredToday))advanceDay();
+  if(gameMode==='farm'&&justPressed('KeyZ')&&!GS.waveActive&&(GS.hour>=20||GS.waveTriggeredToday))advanceDay();
   if(justPressed('KeyI'))GS.invOpen=!GS.invOpen;
   if(justPressed('KeyB')&&!GS.waveActive){GS.buildMenuOpen=true;GS.buildSelected=null;}
 
@@ -3550,7 +3676,7 @@ CV.addEventListener('click',e=>{
     if(GS._gameOverRestartBtn&&inRect(x,y,GS._gameOverRestartBtn)){
       GS.farmHP=GS.farmMaxHP;GS.monsters=[];GS.defenses=[];GS.projectiles=[];
       GS.gameOver=false;GS.waveNum=0;GS.waveActive=false;GS.waveQueue=[];
-      GS.waveTriggeredToday=false;GS.money=500;GS.day=1;
+      GS.waveTriggeredToday=false;GS.money=gameMode==='defense'?1000:500;GS.day=1;
     }
     return;
   }
@@ -3832,6 +3958,7 @@ function getSaveInfo(){
 
 // ── START ──────────────────────────────────────
 function startGame(fresh=false){
+  gameMode='farm'; curHX=HOUSE_X; curHY=HOUSE_Y;
   if(fresh)localStorage.removeItem(SAVE_KEY);
   document.getElementById('title').style.display='none';
   initGS();
@@ -3841,6 +3968,7 @@ function startGame(fresh=false){
 }
 
 function continueGame(){
+  gameMode='farm'; curHX=HOUSE_X; curHY=HOUSE_Y;
   document.getElementById('title').style.display='none';
   initGS();
   const ok=loadSave();
