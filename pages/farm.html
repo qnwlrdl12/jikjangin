@@ -1454,6 +1454,17 @@ function drawDefense(d){
       ctx.globalAlpha=1;ctx.textBaseline='alphabetic';
       ctx.font='bold 8px "Malgun Gothic"';ctx.fillStyle=gc;
       ctx.fillText(def?.grade||'?',0,3);
+      // Attack flash beam
+      if(d.atkFlash>0){
+        const fl=d.atkFlash/0.35;
+        ctx.save();ctx.rotate(d.atkAng||0);
+        ctx.globalAlpha=fl*0.75;
+        ctx.strokeStyle=gc;ctx.lineWidth=3+fl*3;ctx.lineCap='round';
+        ctx.shadowBlur=10+fl*8;ctx.shadowColor=gc;
+        ctx.beginPath();ctx.moveTo(0,-30);ctx.lineTo(def.range||100,0);ctx.stroke();
+        ctx.shadowBlur=0;ctx.restore();
+        ctx.globalAlpha=1;
+      }
       break;
     }
   }
@@ -1691,6 +1702,65 @@ function drawProjectile(p){
     mg.addColorStop(0,'rgba(225,180,255,0.95)');mg.addColorStop(1,'rgba(140,70,255,0)');
     ctx.fillStyle=mg;ctx.beginPath();ctx.arc(0,0,9,0,Math.PI*2);ctx.fill();
     for(let i=0;i<4;i++){const a=animFrame*0.18+i*Math.PI/2;circ(Math.cos(a)*7,Math.sin(a)*7,2,'rgba(255,255,255,0.85)')}
+  } else {
+    // Gacha tower projectile — dispatch on special
+    const def2=DEFENSE_DEFS[p.type];
+    const sp2=def2?.special||'';
+    const gc2=GRADE_COLOR[def2?.grade]||'#90c8ff';
+    const ang=Math.atan2(p.ty-p.y,p.tx-p.x);
+    if(sp2.includes('burn')){
+      const fg=ctx.createRadialGradient(0,0,0,0,0,9);
+      fg.addColorStop(0,'rgba(255,255,200,0.95)');fg.addColorStop(0.45,'rgba(255,110,20,0.9)');fg.addColorStop(1,'rgba(200,30,0,0)');
+      ctx.fillStyle=fg;ctx.beginPath();ctx.arc(0,0,9,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='rgba(255,130,30,0.35)';
+      ctx.beginPath();ctx.ellipse(-Math.cos(ang)*9,-Math.sin(ang)*9,13,4,ang,0,Math.PI*2);ctx.fill();
+    } else if(sp2==='chain'||sp2.includes('chain')){
+      // Lightning spark
+      ctx.strokeStyle='rgba(255,255,120,0.95)';ctx.lineWidth=2.5;
+      ctx.shadowBlur=10;ctx.shadowColor='#ffff00';
+      ctx.beginPath();ctx.moveTo(-8*Math.cos(ang),-8*Math.sin(ang));ctx.lineTo(8*Math.cos(ang),8*Math.sin(ang));ctx.stroke();
+      ctx.shadowBlur=0;
+      circ(0,0,3,'rgba(255,255,220,0.95)');
+    } else if(sp2.includes('poison')){
+      const pg=ctx.createRadialGradient(0,0,0,0,0,8);
+      pg.addColorStop(0,'rgba(200,255,80,0.95)');pg.addColorStop(1,'rgba(30,160,10,0)');
+      ctx.fillStyle=pg;ctx.beginPath();ctx.arc(0,0,8,0,Math.PI*2);ctx.fill();
+      circ(0,0,3,'rgba(100,220,40,0.9)');
+    } else if(sp2.includes('slow')){
+      ctx.save();ctx.rotate(ang);
+      ctx.fillStyle='rgba(130,215,255,0.92)';
+      ctx.beginPath();ctx.moveTo(11,0);ctx.lineTo(-5,-4);ctx.lineTo(-5,4);ctx.closePath();ctx.fill();
+      ctx.fillStyle='rgba(200,240,255,0.65)';ctx.beginPath();ctx.moveTo(-5,-2);ctx.lineTo(-13,0);ctx.lineTo(-5,2);ctx.closePath();ctx.fill();
+      ctx.restore();
+    } else if(sp2.includes('holy')){
+      const hg=ctx.createRadialGradient(0,0,0,0,0,9);
+      hg.addColorStop(0,'rgba(255,255,230,0.98)');hg.addColorStop(0.5,'rgba(255,220,60,0.85)');hg.addColorStop(1,'rgba(255,200,0,0)');
+      ctx.fillStyle=hg;ctx.beginPath();ctx.arc(0,0,9,0,Math.PI*2);ctx.fill();
+      ctx.strokeStyle='rgba(255,255,180,0.8)';ctx.lineWidth=1.5;
+      ctx.beginPath();ctx.moveTo(0,-11);ctx.lineTo(0,11);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(-11,0);ctx.lineTo(11,0);ctx.stroke();
+    } else if(sp2.includes('drain')){
+      const dg=ctx.createRadialGradient(0,0,0,0,0,8);
+      dg.addColorStop(0,'rgba(220,130,255,0.95)');dg.addColorStop(1,'rgba(70,0,140,0)');
+      ctx.fillStyle=dg;ctx.beginPath();ctx.arc(0,0,8,0,Math.PI*2);ctx.fill();
+      circ(0,0,3,'rgba(180,60,255,0.85)');
+    } else if(sp2.includes('pierce')){
+      ctx.save();ctx.rotate(ang);
+      ctx.fillStyle='rgba(190,170,150,0.92)';
+      ctx.beginPath();ctx.moveTo(13,0);ctx.lineTo(-5,-3);ctx.lineTo(-4,0);ctx.lineTo(-5,3);ctx.closePath();ctx.fill();
+      ctx.fillStyle='rgba(255,255,255,0.35)';ctx.beginPath();ctx.moveTo(11,-1);ctx.lineTo(-3,-2);ctx.lineTo(-2,0);ctx.closePath();ctx.fill();
+      ctx.restore();
+    } else if(sp2.includes('push')){
+      ctx.save();ctx.rotate(ang);
+      ctx.strokeStyle='rgba(90,215,255,0.88)';ctx.lineWidth=2.5;ctx.lineCap='round';
+      ctx.beginPath();ctx.arc(0,0,8,-0.8,0.8);ctx.stroke();
+      ctx.beginPath();ctx.arc(0,0,13,-0.6,0.6);ctx.stroke();
+      ctx.restore();
+    } else {
+      const cg=ctx.createRadialGradient(0,0,0,0,0,7);
+      cg.addColorStop(0,gc2);cg.addColorStop(1,gc2.slice(0,7)+'00');
+      ctx.fillStyle=cg;ctx.beginPath();ctx.arc(0,0,7,0,Math.PI*2);ctx.fill();
+    }
   }
   ctx.globalAlpha=1;ctx.restore();
 }
@@ -1766,51 +1836,76 @@ function drawMonsterPaths(){
   const cx=camX(),cy=camY();
   const hx=curHX-cx,hy=curHY-cy;
   const pulse=0.55+0.3*Math.sin(animFrame*0.1);
-  // Spawn zone centers (match spawnMonster logic)
-  const spawns=[
-    {wx:41*TILE,wy:16*TILE,label:'동쪽 출현'},
-    {wx:19*TILE,wy:TILE,   label:'북쪽 출현'},
-    {wx:19*TILE,wy:29*TILE,label:'남쪽 출현'},
-  ];
-  if(GS.waveNum>=10)spawns.push({wx:TILE,wy:16*TILE,label:'서쪽 출현'});
   ctx.save();
   ctx.font='bold 12px sans-serif';ctx.textAlign='center';
-  for(const s of spawns){
-    const sx=s.wx-cx,sy=s.wy-cy;
-    const ang=Math.atan2(hy-sy,hx-sx);
-    // Marching dashed path
-    ctx.strokeStyle=`rgba(255,70,50,${pulse*0.7})`;
-    ctx.lineWidth=2.5;
-    ctx.setLineDash([14,10]);
-    ctx.lineDashOffset=-(animFrame*1.3%24);
-    ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(hx,hy);ctx.stroke();
+
+  if(gameMode==='defense'){
+    // Four cross-path corridors → castle
+    const pathX=DEF_HX-cx, pathY=DEF_HY-cy;
+    const corners=[
+      {sx:pathX,       sy:2*TILE-cy,         mx:pathX,        my:pathY,    label:'북쪽'},
+      {sx:pathX,       sy:(WH-3)*TILE-cy,    mx:pathX,        my:pathY,    label:'남쪽'},
+      {sx:2*TILE-cx,   sy:pathY,             mx:pathX,        my:pathY,    label:'서쪽'},
+      {sx:(WW-3)*TILE-cx,sy:pathY,           mx:pathX,        my:pathY,    label:'동쪽'},
+    ];
+    ctx.lineWidth=3;ctx.setLineDash([14,10]);ctx.lineDashOffset=-(animFrame*1.3%24);
+    for(const s of corners){
+      // Leg 1: spawn edge → cross join
+      const ang1=Math.atan2(s.my-s.sy,s.mx-s.sx);
+      ctx.strokeStyle=`rgba(255,70,50,${pulse*0.7})`;
+      ctx.beginPath();ctx.moveTo(s.sx,s.sy);ctx.lineTo(s.mx,s.my);ctx.stroke();
+      // Arrow at midpoint of leg
+      const ax=(s.sx+s.mx)*0.5,ay=(s.sy+s.my)*0.5;
+      ctx.setLineDash([]);
+      ctx.save();ctx.translate(ax,ay);ctx.rotate(ang1);
+      ctx.fillStyle=`rgba(255,100,60,${pulse})`;
+      ctx.beginPath();ctx.moveTo(13,0);ctx.lineTo(-8,-7);ctx.lineTo(-8,7);ctx.closePath();ctx.fill();
+      ctx.restore();
+      ctx.setLineDash([14,10]);ctx.lineDashOffset=-(animFrame*1.3%24);
+      // Spawn zone glow
+      const rg=ctx.createRadialGradient(s.sx,s.sy,0,s.sx,s.sy,TILE*2.5);
+      rg.addColorStop(0,`rgba(255,50,30,${pulse*0.25})`);rg.addColorStop(1,'rgba(255,50,30,0)');
+      ctx.setLineDash([]);ctx.fillStyle=rg;ctx.beginPath();ctx.arc(s.sx,s.sy,TILE*2.5,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle=`rgba(255,210,190,${pulse})`;ctx.fillText(`⚠ ${s.label}`,s.sx,s.sy-TILE*1.8+4);
+      ctx.setLineDash([14,10]);ctx.lineDashOffset=-(animFrame*1.3%24);
+    }
     ctx.setLineDash([]);
-    // Arrow at 60% along path
-    const ax=sx+(hx-sx)*0.62,ay=sy+(hy-sy)*0.62;
-    ctx.save();ctx.translate(ax,ay);ctx.rotate(ang);
-    ctx.fillStyle=`rgba(255,100,60,${pulse})`;
-    ctx.beginPath();ctx.moveTo(13,0);ctx.lineTo(-8,-7);ctx.lineTo(-8,7);ctx.closePath();ctx.fill();
-    ctx.restore();
-    // Spawn glow zone
-    const rg=ctx.createRadialGradient(sx,sy,0,sx,sy,TILE*2.8);
-    rg.addColorStop(0,`rgba(255,50,30,${pulse*0.28})`);
-    rg.addColorStop(1,'rgba(255,50,30,0)');
-    ctx.fillStyle=rg;
-    ctx.beginPath();ctx.arc(sx,sy,TILE*2.8,0,Math.PI*2);ctx.fill();
-    // Label (opposite side from house)
-    const lx=sx+Math.cos(ang+Math.PI)*TILE*3.2;
-    const ly=sy+Math.sin(ang+Math.PI)*TILE*3.2;
-    ctx.fillStyle=`rgba(255,210,190,${pulse})`;
-    ctx.fillText(`⚠ ${s.label}`,lx,ly+4);
+  } else {
+    // Farm mode spawn zones
+    const spawns=[
+      {wx:41*TILE,wy:16*TILE,label:'동쪽 출현'},
+      {wx:19*TILE,wy:TILE,   label:'북쪽 출현'},
+      {wx:19*TILE,wy:29*TILE,label:'남쪽 출현'},
+    ];
+    if(GS.waveNum>=10)spawns.push({wx:TILE,wy:16*TILE,label:'서쪽 출현'});
+    for(const s of spawns){
+      const sx=s.wx-cx,sy=s.wy-cy;
+      const ang=Math.atan2(hy-sy,hx-sx);
+      ctx.strokeStyle=`rgba(255,70,50,${pulse*0.7})`;
+      ctx.lineWidth=2.5;ctx.setLineDash([14,10]);ctx.lineDashOffset=-(animFrame*1.3%24);
+      ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(hx,hy);ctx.stroke();
+      ctx.setLineDash([]);
+      const ax=sx+(hx-sx)*0.62,ay=sy+(hy-sy)*0.62;
+      ctx.save();ctx.translate(ax,ay);ctx.rotate(ang);
+      ctx.fillStyle=`rgba(255,100,60,${pulse})`;
+      ctx.beginPath();ctx.moveTo(13,0);ctx.lineTo(-8,-7);ctx.lineTo(-8,7);ctx.closePath();ctx.fill();
+      ctx.restore();
+      const rg=ctx.createRadialGradient(sx,sy,0,sx,sy,TILE*2.8);
+      rg.addColorStop(0,`rgba(255,50,30,${pulse*0.28})`);rg.addColorStop(1,'rgba(255,50,30,0)');
+      ctx.fillStyle=rg;ctx.beginPath();ctx.arc(sx,sy,TILE*2.8,0,Math.PI*2);ctx.fill();
+      const lx=sx+Math.cos(ang+Math.PI)*TILE*3.2,ly=sy+Math.sin(ang+Math.PI)*TILE*3.2;
+      ctx.fillStyle=`rgba(255,210,190,${pulse})`;ctx.fillText(`⚠ ${s.label}`,lx,ly+4);
+    }
   }
-  // Statue target ring
+
+  // Castle/statue target ring
   ctx.strokeStyle=`rgba(200,150,255,${pulse*0.85})`;
   ctx.lineWidth=2.5;
   ctx.beginPath();ctx.arc(hx,hy,TILE*1.5,0,Math.PI*2);ctx.stroke();
   ctx.fillStyle=`rgba(200,150,255,${pulse*0.12})`;ctx.fill();
   ctx.fillStyle=`rgba(240,220,255,${pulse*0.9})`;
   ctx.font='bold 12px sans-serif';ctx.textAlign='center';
-  ctx.fillText('💎 석상',hx,hy-TILE*1.8);
+  ctx.fillText(gameMode==='defense'?'🏰 성채':'💎 석상',hx,hy-TILE*1.8);
   ctx.restore();
 }
 
@@ -1890,13 +1985,13 @@ function startWave(){
 
 function spawnMonster(type){
   const def=MONSTER_TYPES[type];
-  let sx,sy;
+  let sx,sy,wps=[];
   if(gameMode==='defense'){
     const side=Math.floor(Math.random()*4);
-    if(side===0){sx=(2+Math.random()*(WW-4))*TILE;sy=2*TILE}         // 북쪽
-    else if(side===1){sx=(2+Math.random()*(WW-4))*TILE;sy=(WH-3)*TILE} // 남쪽
-    else if(side===2){sx=2*TILE;sy=(2+Math.random()*(WH-4))*TILE}    // 서쪽
-    else{sx=(WW-3)*TILE;sy=(2+Math.random()*(WH-4))*TILE}            // 동쪽
+    if(side===0){sx=(2+Math.random()*(WW-4))*TILE;sy=2*TILE;       wps=[{x:DEF_HX,y:2*TILE}]}          // 북쪽
+    else if(side===1){sx=(2+Math.random()*(WW-4))*TILE;sy=(WH-3)*TILE;wps=[{x:DEF_HX,y:(WH-3)*TILE}]} // 남쪽
+    else if(side===2){sx=2*TILE;sy=(2+Math.random()*(WH-4))*TILE;  wps=[{x:2*TILE,y:DEF_HY}]}          // 서쪽
+    else{sx=(WW-3)*TILE;sy=(2+Math.random()*(WH-4))*TILE;          wps=[{x:(WW-3)*TILE,y:DEF_HY}]}     // 동쪽
   } else {
     const sides=GS.waveNum>=11?4:3; // 11웨이브부터 서쪽 스폰 추가
     const side=Math.floor(Math.random()*sides);
@@ -1905,7 +2000,7 @@ function spawnMonster(type){
     else if(side===2){sx=(4+Math.random()*34)*TILE;sy=29*TILE}
     else{sx=1*TILE;sy=(4+Math.random()*24)*TILE}
   }
-  const hpScale=GS.waveNum<11?1+GS.waveNum*0.15:1+GS.waveNum*0.22; // 11+는 HP 스케일 가속
+  const hpScale=GS.waveNum<11?1+GS.waveNum*0.15:1+GS.waveNum*0.22;
   const hp=Math.round(def.hp*hpScale);
   const n=GS.waveNum;
   const spdScale=n<11?1+n*0.04:1+n*0.07;
@@ -1915,7 +2010,8 @@ function spawnMonster(type){
     spd:def.spd*spdScale,
     dmg:def.dmg*dmgScale,
     reward:def.reward,col:def.col,size:def.size,
-    id:Math.random()*9999|0,slowed:0,atkCd:0,atkAnim:0,houseAtkCd:0
+    id:Math.random()*9999|0,slowed:0,atkCd:0,atkAnim:0,houseAtkCd:0,
+    waypoints:wps
   });
 }
 
@@ -1960,10 +2056,18 @@ function updateWave(dt){
     }
     if(!blockedByWall&&dist>2){
       const spd=m.spd*(m.slowed>0?0.45:1)*dt;
-      // Steer around walls — normalized so speed stays constant
+      // Waypoint navigation: align to cross path first
+      let mvdx=dx,mvdy=dy,mvdist=dist;
+      if(m.waypoints&&m.waypoints.length>0){
+        const wp=m.waypoints[0];
+        const wdx=wp.x-m.x,wdy=wp.y-m.y,wdist=Math.hypot(wdx,wdy);
+        if(wdist<TILE*0.6){m.waypoints.shift();}
+        else{mvdx=wdx;mvdy=wdy;mvdist=wdist;}
+      }
+      // Steer around walls
       let steerX=0,steerY=0;
       for(const wd of GS.defenses){
-        if(wd.type!=='wall')continue;
+        if(wd.type!=='wall'&&DEFENSE_DEFS[wd.type]?.special!=='wall')continue;
         const wdx=m.x-wd.x,wdy=m.y-wd.y,wdist=Math.hypot(wdx,wdy);
         if(wdist>0&&wdist<TILE*2.2){
           const push=(TILE*2.2-wdist)/(TILE*2.2);
@@ -1971,8 +2075,8 @@ function updateWave(dt){
           steerY+=wdy/wdist*push;
         }
       }
-      const mvx=dx/dist+steerX*0.9;
-      const mvy=dy/dist+steerY*0.9;
+      const mvx=mvdx/(mvdist||1)+steerX*0.9;
+      const mvy=mvdy/(mvdist||1)+steerY*0.9;
       const mvLen=Math.hypot(mvx,mvy)||1;
       m.x+=(mvx/mvLen)*spd;
       m.y+=(mvy/mvLen)*spd;
@@ -2007,6 +2111,7 @@ function updateWave(dt){
     const def=DEFENSE_DEFS[d.type];
     if(!d.atkCd)d.atkCd=0;
     d.atkCd-=dt;
+    if(d.atkFlash>0)d.atkFlash-=dt;
     const sp=def.special||'';
     if(d.type==='scarecrow'||sp==='slow_aura'){
       const lvl=d.level||1;
@@ -2027,6 +2132,7 @@ function updateWave(dt){
       for(const m of GS.monsters){const md=Math.hypot(d.x-m.x,d.y-m.y);if(md<effRange&&md<nearDist){nearest=m;nearDist=md}}
       if(nearest){
         d.atkCd=Math.max(0.4,def.delay*(1-(lvl-1)*0.1));
+        d.atkFlash=0.35;d.atkAng=Math.atan2(nearest.y-d.y,nearest.x-d.x);
         const isAoE=d.type==='cannon'||d.type==='magetower'||sp.includes('aoe');
         const DARK_TYPES=['demon','boss','skeleton','wraith'];
         const holyMult=(sp.includes('holy')&&DARK_TYPES.includes(nearest.type))?1.8:1;
@@ -2066,7 +2172,8 @@ function updateWave(dt){
             }
           }
         }
-        GS.projectiles.push({x:d.x,y:d.y,tx:nearest.x,ty:nearest.y,type:d.type,life:1,spd:d.type==='archer'?9:7});
+        const pSpd=d.type==='archer'?11:sp==='chain'?18:sp.includes('push')?13:9;
+        GS.projectiles.push({x:d.x,y:d.y,tx:nearest.x,ty:nearest.y,type:d.type,life:1,spd:pSpd});
       }
     }
   }
