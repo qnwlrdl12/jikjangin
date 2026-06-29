@@ -102,6 +102,32 @@
     <button class="btn-main" id="btnConvert" style="display:none" onclick="convert()">변환하기</button>
     <button class="btn-dl" id="btnDl" style="display:none" onclick="download()">⬇️ 다운로드</button>
   </div>
+  <section class="page-faq">
+    <h2>이미지 변환 — 자주 묻는 질문</h2>
+    <p class="faq-intro">
+      <strong>PNG·JPG·WebP</strong>는 각각 사용 목적이 다릅니다. PNG는 투명 배경이 필요할 때, JPG는 사진 압축에, WebP는 웹 최적화에 적합합니다.
+      이 도구는 브라우저에서만 처리되어 파일이 서버로 전송되지 않습니다.
+    </p>
+    <div class="faq-grid">
+      <div class="faq-item">
+        <h3>Q. PNG를 JPG로 변환하면 왜 배경이 흰색이 되나요?</h3>
+        <p>JPG 포맷은 투명도(알파 채널)를 지원하지 않습니다. PNG의 투명 영역은 변환 시 <strong>흰색(또는 검정색)</strong>으로 채워집니다. 투명 배경을 유지하려면 PNG 또는 WebP로 변환하세요.</p>
+      </div>
+      <div class="faq-item">
+        <h3>Q. WebP 형식을 왜 써야 하나요?</h3>
+        <p>WebP는 JPG보다 <strong>25~35% 용량이 작으면서</strong> 동등한 품질을 제공합니다. 또한 투명도도 지원합니다. 웹사이트 이미지 최적화에 가장 적합한 포맷입니다.</p>
+      </div>
+      <div class="faq-item">
+        <h3>Q. GIF나 BMP도 변환할 수 있나요?</h3>
+        <p>업로드는 GIF·BMP·PNG·JPG·WebP 모두 가능합니다. GIF는 첫 프레임만 변환됩니다(애니메이션 미지원). 변환 결과물은 <strong>PNG·JPG·WebP</strong> 중에서 선택할 수 있습니다.</p>
+      </div>
+      <div class="faq-item">
+        <h3>Q. 변환 시 이미지 크기(해상도)도 변경할 수 있나요?</h3>
+        <p>현재 이 도구는 포맷 변환만 지원하며 해상도 변경은 지원하지 않습니다. 해상도 조정이 필요하다면 <strong>Windows 그림판, macOS 미리보기, 또는 Canva</strong>를 사용하세요.</p>
+      </div>
+    </div>
+    <p class="faq-note">※ 이미지 변환은 브라우저의 Canvas API를 사용합니다. 모든 파일은 브라우저 내에서만 처리되며 서버로 전송되지 않습니다.</p>
+  </section>
   <div class="ad-banner">광고 영역 (Google AdSense)</div>
 </main>
 <footer>
